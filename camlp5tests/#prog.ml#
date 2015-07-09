@@ -1,0 +1,7 @@
+open Pic;; 
+
+node test = 
+  let RB4 := (if RB1 then 0 else 1) 
+  RD2 := if RD1 then true else false
+
+let _ = test  

@@ -1,0 +1,2 @@
+ocamlc -c -I +camlp5 -pp 'camlp5o pa_extend.cmo q_MLast.cmo -loc loc' \
+		-dtypes pa_tryfinally.ml

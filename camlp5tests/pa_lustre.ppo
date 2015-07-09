@@ -1,0 +1,270 @@
+open Pcaml
+open Token 
+open MLast
+
+
+
+let rec remove_exclam expr =
+  let loc = MLast.loc_of_expr expr in
+  let se = remove_exclam in
+  let sel = List.map se in
+  match expr with
+    MLast.ExAcc (_, e1, e2) -> e1
+  | _ ->
+      Stdpp.raise_with_loc loc
+        (Failure "syntax not supported due to the \
+              lack of Camlp5 documentation")
+
+let rec transform_expr exp =
+  let loc = MLast.loc_of_expr exp in
+  let se = transform_expr in
+  let sel = List.map transform_expr in
+  match exp with
+    MLast.ExAss (_, e1, e2) ->
+      MLast.ExApp
+        (loc,
+         MLast.ExApp
+           (loc, MLast.ExLid (loc, Ploc.VaVal "write_bit"), remove_exclam e1),
+         se e2)
+  | MLast.ExIfe (_, e1, e2, e3) -> MLast.ExIfe (loc, se e1, se e2, se e3)
+  | MLast.ExLid (_, Ploc.VaVal s) -> exp
+  | MLast.ExSeq (_, Ploc.VaVal el) -> MLast.ExSeq (loc, Ploc.VaVal (sel el))
+  | MLast.ExUid (_, Ploc.VaVal s) ->
+      begin match s with
+        "RA0" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA1" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA2" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA3" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA4" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA5" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA6" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RA7" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB0" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB1" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB2" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB3" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB4" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB5" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB6" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RB7" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC0" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC1" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC2" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC3" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC4" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC5" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC6" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RC7" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD0" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD1" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD2" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD3" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD4" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD5" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD6" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RD7" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE0" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE1" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE2" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE3" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE4" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE5" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE6" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | "RE7" ->
+          MLast.ExApp
+            (loc, MLast.ExLid (loc, Ploc.VaVal "test_bit"),
+             MLast.ExUid (loc, Ploc.VaVal s))
+      | _ -> exp
+      end
+  | _ -> exp (* Stdpp.raise_with_loc loc (Failure " what is this ") *)
+
+let transform (p, exp) = p, transform_expr exp
+
+let transform_list exp = List.map transform exp 
+(*  | _ -> Stdpp.raise_with_loc loc (Failure "wrong syntax") *)
+  
+
+(* The statement that extends the default grammar, 
+   i.e. the regular syntax of OCaml if we use camlp5o 
+   or the revised syntax if we use camlp5r *)
+let _ =
+  Grammar.extend
+    [(*  Pcaml.expr: LEVEL "top" [
+         [ x = Pcaml.expr; o = OPT "rec";  "where"; l = LIST1 Pcaml.let_binding SEP "and"  ->
+               <:expr< let $opt:o2b o$ $list:l$ in $x$ >> ]
+       |
+         [ "node"; e = LIST1 let_binding SEP "and";  "in";
+             x = expr LEVEL "top" ->
+               <:expr< let  $list:e$ in $x$ >> ]
+       ];
+       Pcaml.expr: LEVEL ":=" [
+         [ e1 = SELF; "<-"; e2 = expr LEVEL "expr1" -> <:expr< set_bit $e1$ $e2$ >>  ]
+      ]; *)
+
+     Grammar.
+     Entry.
+     obj
+       (Pcaml.expr : 'Pcaml__expr Grammar.Entry.e),
+     Some (Gramext.Level "top"),
+     [None, None,
+      [[Gramext.Stoken ("", "pre");
+        Gramext.Snterml
+          (Grammar.Entry.obj (Pcaml.patt : 'Pcaml__patt Grammar.Entry.e),
+           "simple")],
+       Gramext.action
+         (fun (x : 'Pcaml__patt) _ (loc : Ploc.t) ->
+            (MLast.ExApp
+               (loc, x,
+                MLast.ExAcc
+                  (loc, MLast.ExLid (loc, Ploc.VaVal "_pre"),
+                   MLast.ExLid (loc, Ploc.VaVal "val"))) :
+             'Pcaml__expr))]];
+     Grammar.Entry.obj (Pcaml.expr : 'Pcaml__expr Grammar.Entry.e),
+     Some (Gramext.Level "top"),
+     [None, None,
+      [[Gramext.Stoken ("", "node");
+        Gramext.Slist1sep
+          (Gramext.Snterm
+             (Grammar.Entry.obj (let_binding : 'let_binding Grammar.Entry.e)),
+           Gramext.Stoken ("", "and"), false);
+        Gramext.Stoken ("", "in");
+        Gramext.Snterml
+          (Grammar.Entry.obj (expr : 'expr Grammar.Entry.e), "top")],
+       Gramext.action
+         (fun (x : 'expr) _ (e : 'let_binding list) _ (loc : Ploc.t) ->
+            (MLast.ExLet
+               (loc, Ploc.VaVal false, Ploc.VaVal (transform_list e), x) :
+             'Pcaml__expr))]];
+     Grammar.Entry.obj (Pcaml.str_item : 'Pcaml__str_item Grammar.Entry.e),
+     Some (Gramext.Level "top"),
+     [None, None,
+      [[Gramext.Stoken ("", "node");
+        Gramext.Slist1sep
+          (Gramext.Snterm
+             (Grammar.Entry.obj (let_binding : 'let_binding Grammar.Entry.e)),
+           Gramext.Stoken ("", "and"), false)],
+       Gramext.action
+         (fun (l : 'let_binding list) _ (loc : Ploc.t) ->
+            (match l with
+               [MLast.PaAny _, e] -> MLast.StExp (loc, e)
+             | _ ->
+                 MLast.StVal
+                   (loc, Ploc.VaVal false, Ploc.VaVal (transform_list l)) :
+             'Pcaml__str_item))]]]

@@ -1,0 +1,11 @@
+"truc.ml" 1 0 4 "truc.ml" 1 0 5
+type(
+  int
+)
+ident(
+  def a "truc.ml" 1 0 9 "_none_" 1 0 -1
+)
+"truc.ml" 1 0 8 "truc.ml" 1 0 9
+type(
+  int
+)
