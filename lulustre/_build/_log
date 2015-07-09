@@ -1,0 +1,18 @@
+### Starting build.
+# Target: main.ml.depends, tags: { extension:ml, file:main.ml, ocaml, ocamldep, quiet }
+/home/steven/.opam/4.02.1/bin/ocamldep.opt -modules main.ml > main.ml.depends # cached
+# Target: ast.mli.depends, tags: { extension:mli, file:ast.mli, ocaml, ocamldep, quiet }
+/home/steven/.opam/4.02.1/bin/ocamldep.opt -modules ast.mli > ast.mli.depends # cached
+# Target: ast.cmi, tags: { byte, compile, extension:mli, file:ast.mli, interf, ocaml, quiet }
+/home/steven/.opam/4.02.1/bin/ocamlc.opt -c -o ast.cmi ast.mli # cached
+# Target: main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet }
+/home/steven/.opam/4.02.1/bin/ocamlc.opt -c -o main.cmo main.ml # cached
+# Target: ast.ml.depends, tags: { extension:ml, file:ast.ml, ocaml, ocamldep, quiet }
+/home/steven/.opam/4.02.1/bin/ocamldep.opt -modules ast.ml > ast.ml.depends
+# Target: ast.cmx, tags: { compile, extension:cmx, extension:ml, file:ast.cmx, file:ast.ml, implem, native, ocaml, quiet }
+/home/steven/.opam/4.02.1/bin/ocamlopt.opt -c -o ast.cmx ast.ml
+# Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }
+/home/steven/.opam/4.02.1/bin/ocamlopt.opt -c -o main.cmx main.ml
+# Target: main.native, tags: { dont_link_with, extension:native, file:main.native, link, native, ocaml, program, quiet }
+/home/steven/.opam/4.02.1/bin/ocamlopt.opt ast.cmx main.cmx -o main.native
+# Compilation successful.
