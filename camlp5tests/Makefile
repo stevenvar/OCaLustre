@@ -1,30 +1,16 @@
 NAME = lustre
-BASE = prog
-PIC = 18f4620
-
-hexa: $(BASE).hex
-
-$(BASE).hex: $(BASE).asm
-	gpasm -y $(BASE).asm
-
-$(BASE) $(BASE).asm: $(BASE).ml 
-	ocapic $(PIC) -pp 'camlp5o -I . pa_$(NAME).cmo' $(BASE).ml $$(ocapic -where)/default-config.asm
-
-$(BASE)_pure.ml : 
-	camlp5o -I . pr_o.cmo pa_$(NAME).cmo $(BASE).ml -o $(BASE)_pure.ml
-
 all:
 	camlp5o pa_extend.cmo q_MLast.cmo pr_o.cmo pa_$(NAME).ml \
 		-o pa_$(NAME).ppo -loc loc
 	camlp5o pa_extend.cmo q_MLast.cmo pa_$(NAME).ml \
 		-o pa_$(NAME).ast -loc loc
-	ocamlc -c -I /home/steven/.opam/4.00.1/lib/camlp5 -pp 'camlp5o pa_extend.cmo q_MLast.cmo -loc loc' \
+	ocamlc -c -I /home/steven/.opam/system/lib/camlp5 -pp 'camlp5o pa_extend.cmo q_MLast.cmo -loc loc' \
 		-dtypes pa_$(NAME).ml
 	camlp5o -I . pr_o.cmo pa_$(NAME).cmo prog.ml -o prog.ppo
-#	camlp5o -I . pr_r.cmo pa_$(NAME).cmo prog.ml -o prog.ppr
-#	ocamlopt -dtypes -o prog -pp 'camlp5o -I . pa_$(NAME).cmo' prog.ml
-#	caml2html -t -ln pa_$(NAME).ml
-#	caml2html -t -ln prog.ml
+	camlp5o -I . pr_r.cmo pa_$(NAME).cmo prog.ml -o prog.ppr
+	ocamlopt -dtypes -o prog -pp 'camlp5o -I . pa_$(NAME).cmo' prog.ml
+	caml2html -t -ln pa_$(NAME).ml
+	caml2html -t -ln prog.ml
 
 clean:
 	rm -f prog *.ppo *.ppr *.cmo *.cmi *.o *.cmx *.ast *~ *.ml.html

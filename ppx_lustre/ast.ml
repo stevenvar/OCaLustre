@@ -16,7 +16,7 @@ and
 and
  expression = exp_desc 
 and
- ident = string
+ ident = {loc : Location.t ; content :  string}
 and
  exp_desc =   
   | Alternative of exp_desc * exp_desc * exp_desc 
@@ -37,11 +37,11 @@ and
   | Opposed 
   | Pre 
 
-let loc_default = "loc"
-
 let mk_node name inputs outputs equations = { name ;  inputs ; outputs ; equations} 
 
-let mk_ident v = { loc = loc_default ; content = v } 
+let loc_default = Location.none
+					      
+let mk_ident ?(loc=loc_default) v = { loc ; content = v } 
 
 let alternative e1 e2 e3 = Alternative (e1, e2, e3)
 
@@ -52,27 +52,7 @@ let (-->) e1 e2 = InfixOp ( Arrow, e1, e2)
 let pre e1 = PrefixOp ( Pre , e1) 
 
 let mk_variable v  = Variable (mk_ident v)
-
-let equation = { pattern = [mk_ident "a"] ; expression = { loc = loc_default ; content = mk_variable "b"  } }  
-
-let var1 = pre (mk_variable "v1")
-let var2 = mk_variable "v2"
-let var3 = mk_variable "v3"
-
-let my_alternative = alternative var1 var2 var3
-
-let equation2 = { pattern = [mk_ident "b"] ; expression = { loc = loc_default ; content = my_alternative } }  
-
-
-
-let equations = [ equation ; equation2 ; equation ] 
-
-let inputs = ["maman"; "papa";"bebe"]
-
-let outputs = ["mamy" ; "papy" ; "toutou"]
-
-let mynode = mk_node "monneud" inputs outputs equations
-
+(*
 let rec print_list l = 
   match l with
   | h ::t when t <> []  -> (Printf.printf "%s , " h ; print_list t) 
@@ -104,3 +84,4 @@ let print_node n = Printf.printf "node %s " n.name; print_io n.inputs; Printf.pr
 													      
 let _ = print_node mynode  
 		     
+ *)
