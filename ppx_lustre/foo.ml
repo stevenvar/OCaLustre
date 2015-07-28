@@ -1,2 +1,3 @@
 
-let%node bonjour = () 
+let%node bonjour =
+  a := 0
