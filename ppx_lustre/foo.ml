@@ -1,3 +1,4 @@
-
-let%node bonjour =
-  a := 0
+let%node maison =
+  a := 8 * 9;
+  b := true --> false; 
+  c := pre a 
