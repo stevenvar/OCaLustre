@@ -1,7 +1,7 @@
 type node = {
- name : string ;
- inputs : string list;  
- outputs : string list; 
+ name : ident ;
+ inputs : ident list;  
+ outputs : ident list; 
  equations : equation list; 
 }
 and 
@@ -17,7 +17,10 @@ and
 and
  expression = exp_desc 
 and
- ident = {loc : Location.t ; content :  string}
+  ident = {
+  loc : Location.t;
+  content :  string
+}
 and
  exp_desc =   
   | Alternative of exp_desc * exp_desc * exp_desc 
@@ -39,10 +42,12 @@ and
   | Pre 
 
 let mk_node name inputs outputs equations =
-  { name ;
-    inputs ;
-    outputs ;
-    equations} 
+  {
+   name ;
+   inputs ;
+   outputs ;
+   equations
+  } 
 
 let loc_default = Location.none
 					      
@@ -64,14 +69,15 @@ let pre e1 = PrefixOp ( Pre , e1)
 
 let mk_variable v  = Variable (mk_ident v)
 
-let rec print_list fmt l = 
+let rec print_list f fmt l = 
   match l with
-  | h ::t when t <> []  -> (Format.fprintf fmt  "%s , " h ; print_list fmt t) 
-  | s :: []             -> Format.fprintf fmt  "%s" s 
-  | _                  -> () 
+  | h ::t when t <> []-> (Format.fprintf fmt  "%a , " f h ; print_list f fmt t) 
+  | s :: [] -> Format.fprintf fmt  "%a" f s 
+  | _ -> () 
 
 let print_io fmt n =
-  Format.fprintf fmt  "(%a)" print_list n
+  Format.fprintf fmt  "(%a)"
+    (print_list (fun fmt x -> Format.fprintf fmt "%s" x.content))  n
 
 let print_ident fmt i = Format.fprintf fmt "%s" i.content  
 
@@ -83,7 +89,7 @@ let print_preop fmt op =
   | Pre -> Format.fprintf fmt  "pre "
   | Opposed -> Format.fprintf fmt "-"
   | Not -> Format.fprintf fmt "not "
-  | _ -> ()
+
 
 let print_infop fmt op =
   match op with
@@ -92,7 +98,7 @@ let print_infop fmt op =
   | Div -> Format.fprintf fmt " / "
   | Minus -> Format.fprintf fmt " - "
   | Arrow -> Format.fprintf fmt " -> "
-  | _ -> () 
+  
 
 let rec print_expression fmt e = match e with 
   | Variable i -> print_ident fmt i 
@@ -107,7 +113,7 @@ let rec print_expression fmt e = match e with
       print_expression e2
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> Pprintast.expression fmt v 
-  | _-> Format.fprintf fmt  "()" 
+  
 
 let print_equation fmt e =
   Format.fprintf fmt  "  %a = %a"
@@ -116,7 +122,7 @@ let print_equation fmt e =
 
 let rec print_equations fmt le =
   match le with
-    e::[] -> Format.fprintf fmt "%a" print_equation e
+  | e::[] -> Format.fprintf fmt "%a" print_equation e
   | e::ll ->
     Format.fprintf fmt "%a \n" print_equation e;
     print_equations fmt ll
@@ -124,7 +130,7 @@ let rec print_equations fmt le =
  
 let print_node fmt n =
   Format.fprintf fmt  "node %s %a returns %a ; \nlet \n%a\ntel \n "
-    n.name
+    n.name.content
     print_io n.inputs 
     print_io n.outputs 
     print_equations n.equations
