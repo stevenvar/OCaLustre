@@ -38,7 +38,6 @@ and
 and
  pre_operator = 
   | Not
-  | Opposed 
   | Pre 
 
 let mk_node name inputs outputs equations =
@@ -67,6 +66,8 @@ let (-->) e1 e2 = InfixOp ( Arrow, e1, e2)
 
 let pre e1 = PrefixOp ( Pre , e1) 
 
+let not e1 = PrefixOp ( Not , e1) 
+  
 let mk_variable v  = Variable (mk_ident v)
 
 let rec print_list f fmt l = 
@@ -87,7 +88,6 @@ let print_pattern fmt pp =
 let print_preop fmt op = 
   match op with
   | Pre -> Format.fprintf fmt  "pre "
-  | Opposed -> Format.fprintf fmt "-"
   | Not -> Format.fprintf fmt "not "
 
 
@@ -100,7 +100,8 @@ let print_infop fmt op =
   | Arrow -> Format.fprintf fmt " -> "
   
 
-let rec print_expression fmt e = match e with 
+let rec print_expression fmt e =
+  match e with 
   | Variable i -> print_ident fmt i 
   | Alternative (e1,e2,e3) ->
     Format.fprintf fmt  "if %a then %a else %a" 

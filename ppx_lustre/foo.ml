@@ -1,3 +1,2 @@
-let%node maison () (a,b,c) =
-  b := true --> false; 
-  c := pre a 
+let%node xor (a,b) (xor) =
+  xor := if a then not b else b 
