@@ -1,7 +1,13 @@
+open Parsetree
+    
+(*
+* AST TYPES 
+*)
+
 type node = {
  name : ident ;
  inputs : ident list;  
- outputs : ident list; 
+ outputs : ident list;
  equations : equation list; 
 }
 and 
@@ -40,13 +46,21 @@ and
   | Not
   | Pre 
 
-let mk_node name inputs outputs equations =
-  {
-   name ;
-   inputs ;
-   outputs ;
-   equations
-  } 
+(*
+* Errors 
+*)
+
+module Error = struct
+  let print_error loc string =
+    raise (Location.(Error(error ~loc:loc string)))
+
+  let syntax_error loc =
+    print_error loc "Syntax Error"
+end 
+
+(*
+* AST makers 
+*)
 
 let loc_default = Location.none
 					      
@@ -64,75 +78,101 @@ let ( / ) e1 e2 = InfixOp (Div, e1, e2)
 
 let (-->) e1 e2 = InfixOp ( Arrow, e1, e2) 
 
-let pre e1 = PrefixOp ( Pre , e1) 
+let mk_pre e1 = PrefixOp ( Pre , e1) 
 
-let not e1 = PrefixOp ( Not , e1) 
+let mk_not e1 = PrefixOp ( Not , e1) 
   
 let mk_variable v  = Variable (mk_ident v)
 
-let rec print_list f fmt l = 
-  match l with
-  | h ::t when t <> []-> (Format.fprintf fmt  "%a , " f h ; print_list f fmt t) 
-  | s :: [] -> Format.fprintf fmt  "%a" f s 
-  | _ -> () 
+(* check if the pattern is a variable *)
+let checkname_pattern n =
+  match n.ppat_desc with
+    Ppat_var sl -> {loc=sl.loc ; content=sl.txt }
+  | _ -> Error.print_error n.ppat_loc "this is not a pattern"
 
-let print_io fmt n =
-  Format.fprintf fmt  "(%a)"
-    (print_list (fun fmt x -> Format.fprintf fmt "%s" x.content))  n
+(* check if the name is an ident  *)
+let checkname_ident id =
+  match id.pexp_desc with
+    Pexp_ident {loc; txt=Lident s } -> mk_ident ~loc s
+  | _ -> Error.print_error id.pexp_loc "this is not an expression" 
 
-let print_ident fmt i = Format.fprintf fmt "%s" i.content  
+(* transform expressions to node of the ocalustre AST *)
+let rec mk_expr e =
+  match e with
+  | [%expr [%e? e1] + [%e? e2] ] -> mk_expr e1 + mk_expr e2
+  | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 * mk_expr e2
+  | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 - mk_expr e2
+  | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 / mk_expr e2
+  | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
+  | [%expr [%e? e1] --> [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
+  | [%expr if [%e? e1] then [%e? e2] else [%e? e3] ] ->
+    alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
+  | [%expr true ] -> Value e
+  | [%expr false ] -> Value e
+  | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
+  | { pexp_desc = Pexp_constant c;
+      pexp_loc ;
+      pexp_attributes } ->
+    Value (e)
+  | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
+     pexp_loc ;
+     pexp_attributes} ->
+    mk_variable v 
+  | _ -> Error.syntax_error e.pexp_loc 
 
-let print_pattern fmt pp =
-  List.iter (fun e -> Format.fprintf fmt "%s" e.content) pp
+(* creates equation node in the AST *)
+let mk_equation eq =
+  match eq with
+    [%expr [%e? p] := [%e? e] ] ->
+    {pattern= [checkname_ident p];
+     expression = mk_expr e}
+  | _ -> Error.syntax_error eq.pexp_loc 
 
-let print_preop fmt op = 
-  match op with
-  | Pre -> Format.fprintf fmt  "pre "
-  | Not -> Format.fprintf fmt "not "
+(* creates list of equations nodes in the AST *)
+let rec mk_equations eqs =
+  match eqs with
+  | [%expr [%e? e1]; [%e? eq]] -> mk_equation e1 :: mk_equations eq
+  | e -> [mk_equation e] 
 
+(* check that the I/O are tuples and returns a list of corresponding idents *) 
+let checkio body =
+  match body with
+  | [%expr fun () -> [%e? body] ] -> ( [], body)
+  | [%expr fun [%p? inputs] -> [%e? body] ] ->
+    begin match inputs.ppat_desc with
+      | Ppat_var s -> ([mk_ident ~loc:s.loc s.txt], body ) 
+      | Ppat_tuple l -> (List.map checkname_pattern l, body)
+      | _ -> Error.syntax_error body.pexp_loc 
+    end 
+  | _ -> Error.syntax_error body.pexp_loc 
 
-let print_infop fmt op =
-  match op with
-  | Plus -> Format.fprintf fmt " + "
-  | Times -> Format.fprintf fmt " * "
-  | Div -> Format.fprintf fmt " / "
-  | Minus -> Format.fprintf fmt " - "
-  | Arrow -> Format.fprintf fmt " -> "
-  
-
-let rec print_expression fmt e =
+let rec get_idents e =
   match e with 
-  | Variable i -> print_ident fmt i 
+  | Variable i -> [i] 
   | Alternative (e1,e2,e3) ->
-    Format.fprintf fmt  "if %a then %a else %a" 
-    print_expression e1 
-    print_expression e2 
-    print_expression e3
-  | InfixOp (op, e1, e2) -> Format.fprintf fmt "%a %a %a"
-      print_expression e1
-      print_infop op
-      print_expression e2
-  | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
-  | Value v -> Pprintast.expression fmt v 
-  
+    get_idents e1 @ 
+    get_idents e2 @
+    get_idents e3 
+  | InfixOp (op, e1, e2) ->
+      get_idents e1 @
+      get_idents e2
+  | PrefixOp (op, e1) ->
+    begin match op with
+      | Pre -> []
+      | _ -> get_idents e1
+    end
+  | Value v -> []
 
-let print_equation fmt e =
-  Format.fprintf fmt  "  %a = %a"
-    print_pattern e.pattern
-    print_expression e.expression
-
-let rec print_equations fmt le =
-  match le with
-  | e::[] -> Format.fprintf fmt "%a" print_equation e
-  | e::ll ->
-    Format.fprintf fmt "%a \n" print_equation e;
-    print_equations fmt ll
-  | _ -> ()
- 
-let print_node fmt n =
-  Format.fprintf fmt  "node %s %a returns %a ; \nlet \n%a\ntel \n "
-    n.name.content
-    print_io n.inputs 
-    print_io n.outputs 
-    print_equations n.equations
+(* creates a node "lustre node" in the AST *)
+let mk_node name body =
+  let name = checkname_pattern name in
+  let inputs, body = checkio body in
+  let outputs, body = checkio body in
+  let equations = mk_equations body in
+  {
+    name;
+    inputs;
+    outputs;
+    equations
+  }
 
