@@ -23,8 +23,9 @@ let lustre_mapper argv =
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
-            print_node Format.std_formatter _node;  
-            print_dependencies Format.std_formatter _node;
+            let _node = schedule _node in
+            print_node Format.std_formatter _node;
+             
             [%stri let () = () ]
           | _ -> Error.syntax_error; assert false
         end

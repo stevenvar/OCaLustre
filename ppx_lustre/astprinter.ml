@@ -13,7 +13,7 @@ let print_io fmt n =
 let print_ident fmt i = Format.fprintf fmt "%s" i.content  
 
 let print_pattern fmt pp =
-  List.iter (fun e -> Format.fprintf fmt "%s" e.content) pp
+  Format.fprintf fmt "%s" pp.content
 
 let print_preop fmt op = 
   match op with

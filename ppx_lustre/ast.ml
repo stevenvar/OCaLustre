@@ -16,7 +16,7 @@ and
  expression : expression; 
 } 
 and 
- pattern = (ident) list
+ pattern = ident 
 and
   constant =
   Parsetree.expression 
@@ -124,7 +124,7 @@ let rec mk_expr e =
 let mk_equation eq =
   match eq with
     [%expr [%e? p] := [%e? e] ] ->
-    {pattern= [checkname_ident p];
+    {pattern= checkname_ident p;
      expression = mk_expr e}
   | _ -> Error.syntax_error eq.pexp_loc 
 
