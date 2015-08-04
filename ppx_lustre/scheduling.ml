@@ -48,13 +48,20 @@ let print_set fmt s =
 let print_graph fmt g =
   G.iter (fun ((x,_),s) -> Format.fprintf fmt " %s -> %a " x print_set s ) g 
 
+let remove_init_dependency g =
+  let init =
+    S.add ("init") (S.empty)
+  in
+  G.fold
+    (fun ((y,e),s) g -> G.add ((y,e),S.diff s init) g)
+    g G.empty
+
 let remove_inputs_dependency g inputs =
-   let s_inputs =
-      List.fold_left (fun l x -> S.add x.content l) (S.empty) inputs
-    in
-    G.fold
-      (fun ((y,e),s) g -> G.add ((y,e),S.diff s s_inputs) g)
-      g G.empty
+  let inputs' =
+    List.fold_left (fun l x -> S.add x.content l) (S.empty) inputs
+  in
+  G.fold (fun ((y,e),s) g -> G.add ((y,e),S.diff s inputs') g)
+    g G.empty
 
 
 let rec toposort topo g name =
@@ -89,6 +96,7 @@ let schedule node =
          G.add ((pv,eq),ev) g)
       (G.empty) eqs
   in
+  let g = remove_init_dependency g  in 
   let g = remove_inputs_dependency g inputs
   in 
   let eqs = toposort [] g node.name in 

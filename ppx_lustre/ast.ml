@@ -106,7 +106,7 @@ let rec mk_expr e =
   | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 - mk_expr e2
   | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 / mk_expr e2
   | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
-  | [%expr [%e? e1] --> [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
+  | [%expr [%e? e1] next [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
   | [%expr if [%e? e1] then [%e? e2] else [%e? e3] ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value e
