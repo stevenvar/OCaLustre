@@ -27,7 +27,7 @@ let lustre_mapper argv =
             print_node Format.std_formatter _node;
              
             [%stri let () = () ]
-          | _ -> Error.syntax_error; assert false
+          | _ -> Error.syntax_error s.pstr_loc
         end
       | x -> default_mapper.structure_item mapper str
   }

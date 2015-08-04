@@ -28,9 +28,16 @@ let print_infop fmt op =
   | Div -> Format.fprintf fmt " / "
   | Minus -> Format.fprintf fmt " - "
   | Arrow -> Format.fprintf fmt " -> "
-  
 
 let rec print_expression fmt e =
+  let print_expressions fmt el =
+    List.iter (fun x -> print_expression fmt x) el
+  in 
+  let print_application fmt (i,el) =
+    Format.fprintf fmt "%s %a"
+      i.content
+      print_expressions el
+  in
   match e with 
   | Variable i -> print_ident fmt i 
   | Alternative (e1,e2,e3) ->
@@ -42,6 +49,7 @@ let rec print_expression fmt e =
       print_expression e1
       print_infop op
       print_expression e2
+  | Application (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> Pprintast.expression fmt v 
   

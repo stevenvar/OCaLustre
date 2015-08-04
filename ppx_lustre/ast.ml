@@ -1,5 +1,6 @@
 open Parsetree
-    
+open Asttypes
+open Longident
 (*
 * AST TYPES 
 *)
@@ -29,7 +30,8 @@ and
 }
 and
  exp_desc =   
-  | Alternative of exp_desc * exp_desc * exp_desc 
+  | Alternative of exp_desc * exp_desc * exp_desc
+  | Application of ident * expression list 
   | InfixOp of inf_operator * exp_desc * exp_desc 
   | PrefixOp of pre_operator * exp_desc
   | Value of constant 
@@ -52,7 +54,7 @@ and
 
 module Error = struct
   let print_error loc string =
-    raise (Location.(Error(error ~loc:loc string)))
+    raise (Location.(Error(error ~loc:loc ("Error:"^string))))
 
   let syntax_error loc =
     print_error loc "Syntax Error"
@@ -109,6 +111,12 @@ let rec mk_expr e =
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value e
   | [%expr false ] -> Value e
+  (* a := NOEUD2 (x,y) *)
+  | [%expr [%e? e1] [%e? e2] ] -> Application(checkname_ident e1, 
+    begin match e2.pexp_desc with
+      | Pexp_tuple l -> List.map mk_expr l
+      | _ -> [mk_expr e2]
+    end )
   | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
@@ -140,7 +148,7 @@ let checkio body =
   | [%expr fun () -> [%e? body] ] -> ( [], body)
   | [%expr fun [%p? inputs] -> [%e? body] ] ->
     begin match inputs.ppat_desc with
-      | Ppat_var s -> ([mk_ident ~loc:s.loc s.txt], body ) 
+      | Ppat_var s -> ([checkname_pattern inputs], body ) 
       | Ppat_tuple l -> (List.map checkname_pattern l, body)
       | _ -> Error.syntax_error body.pexp_loc 
     end 
@@ -152,7 +160,9 @@ let rec get_idents e =
   | Alternative (e1,e2,e3) ->
     get_idents e1 @ 
     get_idents e2 @
-    get_idents e3 
+    get_idents e3
+  | Application (id, el) ->
+    List.fold_left (fun l e -> l @ get_idents e) [] el 
   | InfixOp (op, e1, e2) ->
       get_idents e1 @
       get_idents e2
