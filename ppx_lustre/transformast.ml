@@ -2,11 +2,16 @@ open Ast
 
  
 let rec transform_exp e l =
-  let not_init = mk_variable "init" in
+  let init = mk_variable "init" in
   match e with 
   | InfixOp (op, e1, e2) ->
     begin match op with
-      | Arrow -> transform_exp (alternative not_init e1 e2) l
+      | Arrow -> transform_exp (alternative init e1 e2)
+                   ({
+                       pattern = mk_ident "init";
+                       expression = ( mk_expr [%expr true]
+                                      --> mk_expr [%expr false]  )
+                     }::l)
       | _ ->
         let ne1 = transform_exp (e1) l in 
             let ne2 = transform_exp (e2) l in 
@@ -28,7 +33,7 @@ let rec transform_exp e l =
     let ne2 = transform_exp (e2) l in
     let ne3 = transform_exp (e3) l in 
     Alternative(fst ne1, fst ne2, fst ne3),(snd ne1@snd ne2@snd ne3)
-  | Application (i,el) -> e,l (* TODO *)   
+  | Application (i,el) -> e,l 
   | Value v -> e,l
 
 let transform_eq eq =

@@ -96,7 +96,7 @@ let schedule node =
          G.add ((pv,eq),ev) g)
       (G.empty) eqs
   in
-  let g = remove_init_dependency g  in 
+  (* let g = remove_init_dependency g  in *) 
   let g = remove_inputs_dependency g inputs
   in 
   let eqs = toposort [] g node.name in 

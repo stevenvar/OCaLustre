@@ -55,17 +55,18 @@ let rec print_expression fmt e =
   
 
 let print_equation fmt e =
-  Format.fprintf fmt  "  %a = %a"
+  Format.fprintf fmt  "  %a = %a;"
     print_pattern e.pattern
     print_expression e.expression
 
 let rec print_equations fmt le =
   match le with
-  | e::[] -> Format.fprintf fmt "%a" print_equation e
-  | e::ll ->
-    Format.fprintf fmt "%a \n" print_equation e;
-    print_equations fmt ll
-  | _ -> ()
+  | [] -> ()
+  | e::[] -> Format.fprintf fmt "%a"
+               print_equation e 
+  | e::tl -> Format.fprintf fmt "%a \n%a"
+               print_equation e
+               print_equations tl 
  
 let print_node fmt n =
   Format.fprintf fmt  "node %s %a returns %a ; \nlet \n%a\ntel \n "
