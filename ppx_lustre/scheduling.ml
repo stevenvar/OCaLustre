@@ -28,8 +28,9 @@ let rec get_expr_id e s =
   | InfixOp (op, e1, e2) ->
     let s = get_expr_id e1 s in 
     get_expr_id e2 s
-  | PrefixOp (op, e1) ->
-    get_expr_id e1 s 
+  | PrefixOp (Pre _, _) -> s
+  | PrefixOp (op, e) ->
+    get_expr_id e s 
   | Value v -> s
 
 

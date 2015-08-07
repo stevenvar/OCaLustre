@@ -1,4 +1,4 @@
 let%node xor (a,b) (xor, machin) =
-  machin := a next b; 
-  xor := if (pre b) then not b else b;
+  machin := a next xor ; 
+  xor := if (pre b) then not b else pre machin;
   

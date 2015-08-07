@@ -32,7 +32,7 @@ and
  exp_desc =   
   | Alternative of exp_desc * exp_desc * exp_desc
   | Application of ident * expression list 
-  | InfixOp of inf_operator * exp_desc * exp_desc 
+  | InfixOp of inf_operator * exp_desc * exp_desc
   | PrefixOp of pre_operator * exp_desc
   | Value of constant 
   | Variable of ident   

@@ -1,6 +1,8 @@
 open Ast
 
- 
+
+
+
 let rec transform_exp e l =
   let init = mk_variable "init" in
   match e with 
@@ -14,7 +16,7 @@ let rec transform_exp e l =
                      }::l)
       | _ ->
         let ne1 = transform_exp (e1) l in 
-            let ne2 = transform_exp (e2) l in 
+        let ne2 = transform_exp (e2) l in 
         (InfixOp (op, fst ne1, fst ne2) ) , snd ne1@snd ne2
     end
   | PrefixOp (op, e1) ->
