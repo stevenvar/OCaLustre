@@ -6,7 +6,8 @@ open Longident
 open Ast
 open Astprinter
 open Scheduling 
-open Transformast 
+open Transformast
+open Astimperative
 
 (* maps structures of the form : 
 
@@ -25,8 +26,10 @@ let lustre_mapper argv =
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = transform_node _node in
             print_node Format.std_formatter _node; 
-            let _node = schedule _node in 
-            print_node Format.std_formatter _node;             
+            let _node = schedule _node in
+            let _impnode = compile_node _node in
+            print_node Format.std_formatter _node;
+            printml_node Format.std_formatter _impnode; 
             [%stri let () = () ]
           | _ -> Error.syntax_error s.pstr_loc
         end
