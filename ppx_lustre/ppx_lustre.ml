@@ -9,7 +9,7 @@ open Scheduling
 open Transformast
 open Astimperative
 
-(* maps structures of the form : 
+(* maps structure_items of the form : 
 
    let%node NAME (IN1,IN2,...) (OUT1, OUT2, ...) = 
     IN1 := OUT1;
@@ -18,8 +18,9 @@ open Astimperative
 *)
 let lustre_mapper argv =
   { default_mapper with
-    structure_item = fun mapper str ->
-      match str.pstr_desc with
+    structure = fun mapper strs ->
+      let transform_str_item str =  
+       match str.pstr_desc with
       | Pstr_extension (({txt="node";_},PStr [s]),_) ->
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
@@ -30,10 +31,13 @@ let lustre_mapper argv =
             let _impnode = compile_node _node in
             print_node Format.std_formatter _node;
             printml_node Format.std_formatter _impnode; 
-            [%stri let () = () ]
+            ([%stri let f x = x]::[%stri let () = ()]::[])
           | _ -> Error.syntax_error s.pstr_loc
         end
-      | x -> default_mapper.structure_item mapper str
+      | x -> [default_mapper.structure_item mapper str]
+      in
+      let new_list = List.map transform_str_item strs
+          in List.fold_left (fun l x -> x@l) [] new_list
   }
 
 let () = register "lustre" lustre_mapper 

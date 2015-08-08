@@ -1,4 +1,852 @@
-"pa_lustre.ml" 9 189 195 "pa_lustre.ml" 9 189 196
+"pa_lustre.ml" 1 0 4 "pa_lustre.ml" 1 0 20
+type(
+  MLast.loc -> ((MLast.loc * string * 'a * 'b) * 'c) list -> MLast.expr
+)
+ident(
+  def make_record_expr "pa_lustre.ml" 7 198 198 "pa_lustre.ml" 1 0 -1
+)
+"pa_lustre.ml" 1 0 21 "pa_lustre.ml" 1 0 24
+type(
+  MLast.loc
+)
+ident(
+  def loc "pa_lustre.ml" 1 0 25 "pa_lustre.ml" 5 166 196
+)
+"pa_lustre.ml" 1 0 25 "pa_lustre.ml" 1 0 26
+type(
+  ((MLast.loc * string * 'a * 'b) * 'c) list
+)
+ident(
+  def l "pa_lustre.ml" 2 29 31 "pa_lustre.ml" 5 166 196
+)
+"pa_lustre.ml" 2 29 35 "pa_lustre.ml" 2 29 41
+type(
+  (MLast.patt * MLast.expr) list
+)
+ident(
+  def fields "pa_lustre.ml" 5 166 168 "pa_lustre.ml" 5 166 196
+)
+"pa_lustre.ml" 3 44 48 "pa_lustre.ml" 3 44 56
+type(
+  ((MLast.loc * string * 'a * 'b) * 'c -> MLast.patt * MLast.expr) ->
+  ((MLast.loc * string * 'a * 'b) * 'c) list ->
+  (MLast.patt * MLast.expr) list
+)
+ident(
+  ext_ref List.map
+)
+"pa_lustre.ml" 3 44 64 "pa_lustre.ml" 3 44 67
+type(
+  MLast.loc
+)
+ident(
+  def loc "pa_lustre.ml" 4 97 113 "pa_lustre.ml" 4 97 159
+)
+"pa_lustre.ml" 3 44 69 "pa_lustre.ml" 3 44 73
+type(
+  string
+)
+ident(
+  def name "pa_lustre.ml" 4 97 113 "pa_lustre.ml" 4 97 159
+)
+"pa_lustre.ml" 3 44 75 "pa_lustre.ml" 3 44 78
+type(
+  'a
+)
+ident(
+  def mut "pa_lustre.ml" 4 97 113 "pa_lustre.ml" 4 97 159
+)
+"pa_lustre.ml" 3 44 80 "pa_lustre.ml" 3 44 81
+type(
+  'b
+)
+ident(
+  def t "pa_lustre.ml" 4 97 113 "pa_lustre.ml" 4 97 159
+)
+"pa_lustre.ml" 3 44 64 "pa_lustre.ml" 3 44 81
+type(
+  MLast.loc * string * 'a * 'b
+)
+"pa_lustre.ml" 3 44 84 "pa_lustre.ml" 3 44 91
+type(
+  'c
+)
+ident(
+  def default "pa_lustre.ml" 4 97 113 "pa_lustre.ml" 4 97 159
+)
+"pa_lustre.ml" 3 44 63 "pa_lustre.ml" 3 44 91
+type(
+  (MLast.loc * string * 'a * 'b) * 'c
+)
+"pa_lustre.ml" 4 97 127 "pa_lustre.ml" 4 97 131
+type(
+  string
+)
+ident(
+  int_ref name "pa_lustre.ml" 3 44 69 "pa_lustre.ml" 3 44 73
+)
+type(
+  string Ploc.vala
+)
+"pa_lustre.ml" 4 97 114 "pa_lustre.ml" 4 97 135
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 3 44 64 "pa_lustre.ml" 3 44 67
+)
+type(
+  MLast.patt
+)
+"pa_lustre.ml" 4 97 150 "pa_lustre.ml" 4 97 154
+type(
+  string
+)
+ident(
+  int_ref name "pa_lustre.ml" 3 44 69 "pa_lustre.ml" 3 44 73
+)
+type(
+  string Ploc.vala
+)
+"pa_lustre.ml" 4 97 137 "pa_lustre.ml" 4 97 158
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 3 44 64 "pa_lustre.ml" 3 44 67
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 4 97 113 "pa_lustre.ml" 4 97 159
+type(
+  MLast.patt * MLast.expr
+)
+"pa_lustre.ml" 3 44 57 "pa_lustre.ml" 4 97 160
+type(
+  (MLast.loc * string * 'a * 'b) * 'c -> MLast.patt * MLast.expr
+)
+"pa_lustre.ml" 4 97 161 "pa_lustre.ml" 4 97 162
+type(
+  ((MLast.loc * string * 'a * 'b) * 'c) list
+)
+ident(
+  int_ref l "pa_lustre.ml" 1 0 25 "pa_lustre.ml" 1 0 26
+)
+"pa_lustre.ml" 3 44 48 "pa_lustre.ml" 4 97 162
+call(
+  stack
+)
+type(
+  (MLast.patt * MLast.expr) list
+)
+"pa_lustre.ml" 5 166 184 "pa_lustre.ml" 5 166 190
+type(
+  (MLast.patt * MLast.expr) list
+)
+ident(
+  int_ref fields "pa_lustre.ml" 2 29 35 "pa_lustre.ml" 2 29 41
+)
+type(
+  (MLast.patt * MLast.expr) list Ploc.vala
+)
+"pa_lustre.ml" 5 166 168 "pa_lustre.ml" 5 166 196
+type(
+  MLast.expr option
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 1 0 21 "pa_lustre.ml" 1 0 24
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 2 29 31 "pa_lustre.ml" 5 166 196
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 1 0 25 "pa_lustre.ml" 5 166 196
+type(
+  ((MLast.loc * string * 'a * 'b) * 'c) list -> MLast.expr
+)
+"pa_lustre.ml" 1 0 21 "pa_lustre.ml" 5 166 196
+type(
+  MLast.loc -> ((MLast.loc * string * 'a * 'b) * 'c) list -> MLast.expr
+)
+"pa_lustre.ml" 7 198 202 "pa_lustre.ml" 7 198 215
+type(
+  MLast.loc ->
+  string ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.str_item
+)
+ident(
+  def expand_record "pa_lustre.ml" 26 873 873 "pa_lustre.ml" 1 0 -1
+)
+"pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+type(
+  MLast.loc
+)
+ident(
+  def loc "pa_lustre.ml" 7 198 220 "pa_lustre.ml" 24 819 871
+)
+"pa_lustre.ml" 7 198 220 "pa_lustre.ml" 7 198 229
+type(
+  string
+)
+ident(
+  def type_name "pa_lustre.ml" 7 198 230 "pa_lustre.ml" 24 819 871
+)
+"pa_lustre.ml" 7 198 230 "pa_lustre.ml" 7 198 231
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list
+)
+ident(
+  def l "pa_lustre.ml" 8 234 236 "pa_lustre.ml" 24 819 871
+)
+"pa_lustre.ml" 8 234 240 "pa_lustre.ml" 8 234 248
+type(
+  MLast.str_item
+)
+ident(
+  def type_def "pa_lustre.ml" 11 350 352 "pa_lustre.ml" 24 819 871
+)
+"pa_lustre.ml" 9 252 260 "pa_lustre.ml" 9 252 266
+type(
+  (MLast.loc * string * bool * MLast.ctyp) list
+)
+ident(
+  def fields "pa_lustre.ml" 10 287 291 "pa_lustre.ml" 10 287 346
+)
+"pa_lustre.ml" 9 252 269 "pa_lustre.ml" 9 252 277
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option ->
+   MLast.loc * string * bool * MLast.ctyp) ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  (MLast.loc * string * bool * MLast.ctyp) list
+)
+ident(
+  ext_ref List.map
+)
+"pa_lustre.ml" 9 252 278 "pa_lustre.ml" 9 252 281
+type(
+  (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option ->
+  MLast.loc * string * bool * MLast.ctyp
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"pa_lustre.ml" 9 252 282 "pa_lustre.ml" 9 252 283
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list
+)
+ident(
+  int_ref l "pa_lustre.ml" 7 198 230 "pa_lustre.ml" 7 198 231
+)
+"pa_lustre.ml" 9 252 269 "pa_lustre.ml" 9 252 283
+call(
+  stack
+)
+type(
+  (MLast.loc * string * bool * MLast.ctyp) list
+)
+"pa_lustre.ml" 10 287 313 "pa_lustre.ml" 10 287 322
+type(
+  string
+)
+ident(
+  int_ref type_name "pa_lustre.ml" 7 198 220 "pa_lustre.ml" 7 198 229
+)
+type(
+  string Ploc.vala
+)
+"pa_lustre.ml" 10 287 334 "pa_lustre.ml" 10 287 340
+type(
+  (MLast.loc * string * bool * MLast.ctyp) list
+)
+ident(
+  int_ref fields "pa_lustre.ml" 9 252 260 "pa_lustre.ml" 9 252 266
+)
+type(
+  (MLast.loc * string * bool * MLast.ctyp) list Ploc.vala
+)
+"pa_lustre.ml" 10 287 291 "pa_lustre.ml" 10 287 346
+type(
+  MLast.type_decl list
+)
+type(
+  MLast.type_decl
+)
+type(
+  (MLast.ctyp * MLast.ctyp) list
+)
+type(
+  (MLast.ctyp * MLast.ctyp) list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.ctyp
+)
+type(
+  bool
+)
+type(
+  bool Ploc.vala
+)
+type(
+  MLast.type_var list
+)
+type(
+  MLast.type_var list Ploc.vala
+)
+type(
+  MLast.loc * string Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  (MLast.loc * string Ploc.vala) Ploc.vala
+)
+type(
+  MLast.type_decl list
+)
+type(
+  MLast.type_decl list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 9 252 256 "pa_lustre.ml" 10 287 346
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 11 350 356 "pa_lustre.ml" 11 350 364
+type(
+  MLast.str_item
+)
+ident(
+  def expr_def "pa_lustre.ml" 24 819 821 "pa_lustre.ml" 24 819 871
+)
+"pa_lustre.ml" 12 367 375 "pa_lustre.ml" 12 367 386
+type(
+  MLast.expr
+)
+ident(
+  def record_expr "pa_lustre.ml" 13 415 419 "pa_lustre.ml" 23 752 815
+)
+"pa_lustre.ml" 12 367 389 "pa_lustre.ml" 12 367 405
+type(
+  MLast.loc ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.expr
+)
+ident(
+  int_ref make_record_expr "pa_lustre.ml" 1 0 4 "pa_lustre.ml" 1 0 20
+)
+"pa_lustre.ml" 12 367 406 "pa_lustre.ml" 12 367 409
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+"pa_lustre.ml" 12 367 410 "pa_lustre.ml" 12 367 411
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list
+)
+ident(
+  int_ref l "pa_lustre.ml" 7 198 230 "pa_lustre.ml" 7 198 231
+)
+"pa_lustre.ml" 12 367 389 "pa_lustre.ml" 12 367 411
+call(
+  stack
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 13 415 423 "pa_lustre.ml" 13 415 424
+type(
+  MLast.expr
+)
+ident(
+  def f "pa_lustre.ml" 23 752 756 "pa_lustre.ml" 23 752 815
+)
+"pa_lustre.ml" 14 427 433 "pa_lustre.ml" 14 427 448
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option ->
+   MLast.expr -> MLast.expr) ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.expr -> MLast.expr
+)
+ident(
+  ext_ref List.fold_right
+)
+"pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+type(
+  MLast.loc
+)
+ident(
+  def loc "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 15 449 469 "pa_lustre.ml" 15 449 473
+type(
+  string
+)
+ident(
+  def name "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 15 449 475 "pa_lustre.ml" 15 449 478
+type(
+  bool
+)
+ident(
+  def mut "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 15 449 480 "pa_lustre.ml" 15 449 481
+type(
+  MLast.ctyp
+)
+ident(
+  def t "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 481
+type(
+  MLast.loc * string * bool * MLast.ctyp
+)
+"pa_lustre.ml" 15 449 484 "pa_lustre.ml" 15 449 491
+type(
+  MLast.expr option
+)
+ident(
+  def default "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 15 449 463 "pa_lustre.ml" 15 449 491
+type(
+  (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+"pa_lustre.ml" 15 449 493 "pa_lustre.ml" 15 449 494
+type(
+  MLast.expr
+)
+ident(
+  def e "pa_lustre.ml" 16 498 509 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 16 498 515 "pa_lustre.ml" 16 498 522
+type(
+  MLast.expr option
+)
+ident(
+  int_ref default "pa_lustre.ml" 15 449 484 "pa_lustre.ml" 15 449 491
+)
+"pa_lustre.ml" 17 528 543 "pa_lustre.ml" 17 528 547
+type(
+  MLast.expr option
+)
+"pa_lustre.ml" 18 551 594 "pa_lustre.ml" 18 551 598
+type(
+  string
+)
+ident(
+  int_ref name "pa_lustre.ml" 15 449 469 "pa_lustre.ml" 15 449 473
+)
+"pa_lustre.ml" 18 551 583 "pa_lustre.ml" 18 551 598
+type(
+  string Ploc.vala
+)
+"pa_lustre.ml" 18 551 604 "pa_lustre.ml" 18 551 605
+type(
+  MLast.expr
+)
+ident(
+  int_ref e "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 15 449 494
+)
+"pa_lustre.ml" 18 551 568 "pa_lustre.ml" 18 551 609
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list
+)
+type(
+  MLast.patt * MLast.expr option Ploc.vala * MLast.expr
+)
+type(
+  MLast.expr option
+)
+type(
+  MLast.expr option Ploc.vala
+)
+type(
+  (MLast.patt * MLast.patt option Ploc.vala) list
+)
+type(
+  MLast.patt * MLast.patt option Ploc.vala
+)
+type(
+  MLast.patt option
+)
+type(
+  MLast.patt option Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+)
+type(
+  MLast.patt
+)
+type(
+  (MLast.patt * MLast.patt option Ploc.vala) list
+)
+type(
+  (MLast.patt * MLast.patt option Ploc.vala) list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+)
+type(
+  MLast.patt
+)
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list
+)
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 19 610 630 "pa_lustre.ml" 19 610 631
+type(
+  MLast.expr
+)
+ident(
+  def x "pa_lustre.ml" 20 635 652 "pa_lustre.ml" 20 635 694
+)
+"pa_lustre.ml" 19 610 625 "pa_lustre.ml" 19 610 631
+type(
+  MLast.expr option
+)
+"pa_lustre.ml" 20 635 672 "pa_lustre.ml" 20 635 676
+type(
+  string
+)
+ident(
+  int_ref name "pa_lustre.ml" 15 449 469 "pa_lustre.ml" 15 449 473
+)
+type(
+  string Ploc.vala
+)
+"pa_lustre.ml" 20 635 681 "pa_lustre.ml" 20 635 682
+type(
+  MLast.expr
+)
+ident(
+  int_ref x "pa_lustre.ml" 19 610 630 "pa_lustre.ml" 19 610 631
+)
+"pa_lustre.ml" 20 635 689 "pa_lustre.ml" 20 635 690
+type(
+  MLast.expr
+)
+ident(
+  int_ref e "pa_lustre.ml" 15 449 493 "pa_lustre.ml" 15 449 494
+)
+"pa_lustre.ml" 20 635 652 "pa_lustre.ml" 20 635 694
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list
+)
+type(
+  MLast.patt * MLast.expr option Ploc.vala * MLast.expr
+)
+type(
+  MLast.expr option
+)
+type(
+  MLast.expr option Ploc.vala
+)
+type(
+  MLast.expr option
+)
+type(
+  MLast.expr option Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+)
+type(
+  MLast.patt
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+)
+type(
+  MLast.patt
+)
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list
+)
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 15 449 464 "pa_lustre.ml" 15 449 467
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 16 498 509 "pa_lustre.ml" 20 635 694
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 15 449 493 "pa_lustre.ml" 20 635 694
+type(
+  MLast.expr -> MLast.expr
+)
+"pa_lustre.ml" 15 449 457 "pa_lustre.ml" 20 635 695
+type(
+  (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option ->
+  MLast.expr -> MLast.expr
+)
+"pa_lustre.ml" 21 696 704 "pa_lustre.ml" 21 696 705
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list
+)
+ident(
+  int_ref l "pa_lustre.ml" 7 198 230 "pa_lustre.ml" 7 198 231
+)
+"pa_lustre.ml" 22 706 733 "pa_lustre.ml" 22 706 744
+type(
+  MLast.expr
+)
+ident(
+  int_ref record_expr "pa_lustre.ml" 12 367 375 "pa_lustre.ml" 12 367 386
+)
+"pa_lustre.ml" 22 706 714 "pa_lustre.ml" 22 706 748
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list
+)
+type(
+  MLast.patt * MLast.expr option Ploc.vala * MLast.expr
+)
+type(
+  MLast.expr option
+)
+type(
+  MLast.expr option Ploc.vala
+)
+type(
+  string
+)
+type(
+  string Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.patt
+)
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list
+)
+type(
+  (MLast.patt * MLast.expr option Ploc.vala * MLast.expr) list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 14 427 433 "pa_lustre.ml" 22 706 748
+call(
+  stack
+)
+type(
+  MLast.expr
+)
+"pa_lustre.ml" 23 752 784 "pa_lustre.ml" 23 752 793
+type(
+  string
+)
+"pa_lustre.ml" 23 752 796 "pa_lustre.ml" 23 752 805
+type(
+  string
+)
+ident(
+  int_ref type_name "pa_lustre.ml" 7 198 220 "pa_lustre.ml" 7 198 229
+)
+"pa_lustre.ml" 23 752 784 "pa_lustre.ml" 23 752 805
+call(
+  stack
+)
+type(
+  string
+)
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+type(
+  string Ploc.vala
+)
+"pa_lustre.ml" 23 752 810 "pa_lustre.ml" 23 752 811
+type(
+  MLast.expr
+)
+ident(
+  int_ref f "pa_lustre.ml" 13 415 423 "pa_lustre.ml" 13 415 424
+)
+"pa_lustre.ml" 23 752 756 "pa_lustre.ml" 23 752 815
+type(
+  (MLast.patt * MLast.expr) list
+)
+type(
+  MLast.patt * MLast.expr
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.patt
+)
+type(
+  (MLast.patt * MLast.expr) list
+)
+type(
+  (MLast.patt * MLast.expr) list Ploc.vala
+)
+type(
+  bool
+)
+type(
+  bool Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 13 415 419 "pa_lustre.ml" 23 752 815
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 12 367 371 "pa_lustre.ml" 23 752 815
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 24 819 842 "pa_lustre.ml" 24 819 850
+type(
+  MLast.str_item
+)
+ident(
+  int_ref type_def "pa_lustre.ml" 8 234 240 "pa_lustre.ml" 8 234 248
+)
+"pa_lustre.ml" 24 819 854 "pa_lustre.ml" 24 819 862
+type(
+  MLast.str_item
+)
+ident(
+  int_ref expr_def "pa_lustre.ml" 11 350 356 "pa_lustre.ml" 11 350 364
+)
+"pa_lustre.ml" 24 819 821 "pa_lustre.ml" 24 819 871
+type(
+  MLast.str_item list
+)
+type(
+  MLast.str_item list
+)
+type(
+  MLast.str_item list
+)
+type(
+  MLast.str_item list Ploc.vala
+)
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 7 198 216 "pa_lustre.ml" 7 198 219
+)
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 11 350 352 "pa_lustre.ml" 24 819 871
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 8 234 236 "pa_lustre.ml" 24 819 871
+type(
+  MLast.str_item
+)
+"pa_lustre.ml" 7 198 230 "pa_lustre.ml" 24 819 871
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.str_item
+)
+"pa_lustre.ml" 7 198 220 "pa_lustre.ml" 24 819 871
+type(
+  string ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.str_item
+)
+"pa_lustre.ml" 7 198 216 "pa_lustre.ml" 24 819 871
+type(
+  MLast.loc ->
+  string ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.str_item
+)
+"pa_lustre.ml" 26 873 879 "pa_lustre.ml" 26 873 880
 type(
   (Grammar.token Gramext.g_entry * Gramext.position option *
    (string option * Gramext.g_assoc option *
@@ -9,22 +857,112 @@ type(
 ident(
   ext_ref Grammar.extend
 )
-"pa_lustre.ml" 24 628 628 "pa_lustre.ml" 24 628 642
+"pa_lustre.ml" 27 880 890 "pa_lustre.ml" 27 880 904
+type(
+  MLast.str_item Grammar.Entry.e
+)
+ident(
+  ext_ref Pcaml.str_item
+)
+type(
+  MLast.str_item Grammar.Entry.e
+)
+type(
+  MLast.str_item Grammar.Entry.e
+)
+ident(
+  ext_ref Pcaml.str_item
+)
+type(
+  MLast.str_item Grammar.Entry.e
+)
+"pa_lustre.ml" 29 907 909 "pa_lustre.ml" 29 907 923
+type(
+  Grammar.token Gramext.g_entry * Gramext.position option *
+  (string option * Gramext.g_assoc option *
+   (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+  list
+)
+type(
+  (string option * Gramext.g_assoc option *
+   (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+  list
+)
+type(
+  string option * Gramext.g_assoc option *
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  Grammar.token Gramext.g_symbol list * Gramext.g_action
+)
+type(
+  Gramext.g_action
+)
+type(
+  '_a ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  '_b -> '_c -> string -> '_d -> Ploc.t -> MLast.str_item
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  '_b -> '_c -> string -> '_d -> Ploc.t -> MLast.str_item
+)
+type(
+  '_b -> '_c -> string -> '_d -> Ploc.t -> MLast.str_item
+)
+type(
+  '_c -> string -> '_d -> Ploc.t -> MLast.str_item
+)
+type(
+  string -> '_d -> Ploc.t -> MLast.str_item
+)
+type(
+  '_d -> Ploc.t -> MLast.str_item
+)
+type(
+  Ploc.t -> MLast.str_item
+)
 type(
   Ploc.t
 )
 ident(
-  def loc "pa_lustre.ml" 24 628 628 "pa_lustre.ml" 24 628 642
+  def loc "pa_lustre.ml" 29 907 909 "pa_lustre.ml" 29 907 923
+)
+type(
+  '_d
+)
+type(
+  '_c
+)
+type(
+  '_b
 )
 type(
   '_a
 )
 type(
-  ((MLast.patt * MLast.expr) list -> '_a -> Ploc.t -> '_b) ->
+  ('_a ->
+   ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+   '_b -> '_c -> string -> '_d -> Ploc.t -> MLast.str_item) ->
   Gramext.g_action
 )
 ident(
   ext_ref Gramext.action
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
 )
 type(
   Grammar.token Gramext.g_symbol list
@@ -61,15 +999,15 @@ type(
 ident(
   ext_ref Pcaml.str_item
 )
-"pa_lustre.ml" 24 628 651 "pa_lustre.ml" 24 628 656
+"pa_lustre.ml" 29 907 931 "pa_lustre.ml" 29 907 936
 type(
   string
 )
-"pa_lustre.ml" 24 628 645 "pa_lustre.ml" 24 628 656
+"pa_lustre.ml" 29 907 925 "pa_lustre.ml" 29 907 936
 type(
   Gramext.position
 )
-"pa_lustre.ml" 27 663 672 "pa_lustre.ml" 27 663 678
+"pa_lustre.ml" 30 939 945 "pa_lustre.ml" 30 939 953
 type(
   Plexing.pattern
 )
@@ -82,21 +1020,70 @@ type(
 type(
   Grammar.token Gramext.g_symbol
 )
-"pa_lustre.ml" 27 663 690 "pa_lustre.ml" 27 663 701
+"pa_lustre.ml" 30 939 967 "pa_lustre.ml" 30 939 973
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 30 939 955 "pa_lustre.ml" 30 939 973
+type(
+  string
+)
+ident(
+  def type_name "pa_lustre.ml" 29 907 909 "pa_lustre.ml" 29 907 923
+)
+"pa_lustre.ml" 30 939 975 "pa_lustre.ml" 30 939 978
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 31 981 987 "pa_lustre.ml" 31 981 990
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 31 981 1002 "pa_lustre.ml" 31 981 1012
 type(
   Grammar.token Gramext.g_entry
 )
 type(
-  (MLast.patt * MLast.expr) Grammar.Entry.e
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
 )
 type(
-  (MLast.patt * MLast.expr) Grammar.Entry.e
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
 )
 ident(
-  ext_ref Pcaml.let_binding
+  int_ref field_decl "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
 )
 type(
-  (MLast.patt * MLast.expr) Grammar.Entry.e -> Grammar.token Gramext.g_entry
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e -> Grammar.token Gramext.g_entry
 )
 ident(
   ext_ref Grammar.Entry.obj
@@ -104,7 +1091,7 @@ ident(
 type(
   Grammar.token Gramext.g_symbol
 )
-"pa_lustre.ml" 27 663 706 "pa_lustre.ml" 27 663 711
+"pa_lustre.ml" 31 981 1017 "pa_lustre.ml" 31 981 1020
 type(
   Plexing.pattern
 )
@@ -117,94 +1104,558 @@ type(
 type(
   Grammar.token Gramext.g_symbol
 )
-"pa_lustre.ml" 27 663 684 "pa_lustre.ml" 27 663 711
+"pa_lustre.ml" 31 981 996 "pa_lustre.ml" 31 981 1020
 type(
   bool
 )
 type(
   Grammar.token Gramext.g_symbol
 )
-"pa_lustre.ml" 27 663 680 "pa_lustre.ml" 27 663 711
+"pa_lustre.ml" 31 981 992 "pa_lustre.ml" 31 981 1020
 type(
-  (MLast.patt * MLast.expr) list
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list
 )
 ident(
-  def l "pa_lustre.ml" 24 628 628 "pa_lustre.ml" 24 628 642
+  def l "pa_lustre.ml" 29 907 909 "pa_lustre.ml" 29 907 923
 )
-"pa_lustre.ml" 28 715 724 "pa_lustre.ml" 28 715 725
+"pa_lustre.ml" 31 981 1022 "pa_lustre.ml" 31 981 1025
 type(
-  (MLast.patt * MLast.expr) list
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 31 981 1029 "pa_lustre.ml" 31 981 1042
+type(
+  MLast.loc ->
+  string ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list ->
+  MLast.str_item
 )
 ident(
-  int_ref l "pa_lustre.ml" 27 663 680 "pa_lustre.ml" 27 663 711
+  int_ref expand_record "pa_lustre.ml" 7 198 202 "pa_lustre.ml" 7 198 215
 )
-"pa_lustre.ml" 29 732 739 "pa_lustre.ml" 29 732 751
-type(
-  MLast.patt
-)
-type(
-  MLast.loc
-)
-"pa_lustre.ml" 29 732 753 "pa_lustre.ml" 29 732 754
-type(
-  MLast.expr
-)
-ident(
-  def e "pa_lustre.ml" 29 732 761 "pa_lustre.ml" 29 732 783
-)
-"pa_lustre.ml" 29 732 739 "pa_lustre.ml" 29 732 754
-type(
-  MLast.patt * MLast.expr
-)
-"pa_lustre.ml" 29 732 737 "pa_lustre.ml" 29 732 756
-type(
-  (MLast.patt * MLast.expr) list
-)
-type(
-  (MLast.patt * MLast.expr) list
-)
-"pa_lustre.ml" 29 732 778 "pa_lustre.ml" 29 732 779
-type(
-  MLast.expr
-)
-ident(
-  int_ref e "pa_lustre.ml" 29 732 753 "pa_lustre.ml" 29 732 754
-)
-"pa_lustre.ml" 29 732 761 "pa_lustre.ml" 29 732 783
+"pa_lustre.ml" 31 981 1043 "pa_lustre.ml" 31 981 1046
 type(
   MLast.loc
 )
 ident(
-  int_ref loc "pa_lustre.ml" 24 628 628 "pa_lustre.ml" 24 628 642
+  int_ref loc "pa_lustre.ml" 29 907 909 "pa_lustre.ml" 29 907 923
+)
+"pa_lustre.ml" 31 981 1047 "pa_lustre.ml" 31 981 1056
+type(
+  string
+)
+ident(
+  int_ref type_name "pa_lustre.ml" 30 939 955 "pa_lustre.ml" 30 939 973
+)
+"pa_lustre.ml" 31 981 1057 "pa_lustre.ml" 31 981 1058
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) list
+)
+ident(
+  int_ref l "pa_lustre.ml" 31 981 992 "pa_lustre.ml" 31 981 1020
+)
+"pa_lustre.ml" 31 981 1029 "pa_lustre.ml" 31 981 1058
+call(
+  tail
 )
 type(
   MLast.str_item
 )
-"pa_lustre.ml" 30 784 789 "pa_lustre.ml" 30 784 790
 type(
-  (MLast.patt * MLast.expr) list
+  MLast.str_item
 )
-"pa_lustre.ml" 30 784 838 "pa_lustre.ml" 30 784 854
+"pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+call(
+  stack
+)
 type(
-  (MLast.patt * MLast.expr) list Ploc.vala
+  Grammar.token Gramext.g_entry * Gramext.position option *
+  (string option * Gramext.g_assoc option *
+   (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+  list
 )
-"pa_lustre.ml" 30 784 813 "pa_lustre.ml" 30 784 858
+type(
+  (string option * Gramext.g_assoc option *
+   (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+  list
+)
+type(
+  string option * Gramext.g_assoc option *
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  Grammar.token Gramext.g_symbol list * Gramext.g_action
+)
+type(
+  Gramext.g_action
+)
+type(
+  MLast.expr option ->
+  MLast.ctyp ->
+  '_e ->
+  string ->
+  string option ->
+  Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+type(
+  MLast.ctyp ->
+  '_e ->
+  string ->
+  string option ->
+  Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+type(
+  '_e ->
+  string ->
+  string option ->
+  Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+type(
+  string ->
+  string option ->
+  Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+type(
+  string option ->
+  Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+type(
+  Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
+)
+type(
+  Ploc.t
+)
+ident(
+  def loc "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+type(
+  '_e
+)
+type(
+  (MLast.expr option ->
+   MLast.ctyp ->
+   '_e ->
+   string ->
+   string option ->
+   Ploc.t -> (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option) ->
+  Gramext.g_action
+)
+ident(
+  ext_ref Gramext.action
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  Gramext.g_assoc option
+)
+type(
+  string option
+)
+type(
+  (string option * Gramext.g_assoc option *
+   (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+  list
+)
+type(
+  Gramext.position option
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
+)
+ident(
+  int_ref field_decl "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
+)
+type(
+  string
+)
+type(
+  string ->
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
+)
+ident(
+  int_ref grammar_entry_create "pa_lustre.ml" 27 880 882 "pa_lustre.ml" 39 1272 1276
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e
+)
+ident(
+  def field_decl "pa_lustre.ml" 27 880 882 "pa_lustre.ml" 39 1272 1276
+)
+"pa_lustre.ml" 35 1083 1099 "pa_lustre.ml" 35 1083 1108
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 35 1083 1095 "pa_lustre.ml" 35 1083 1108
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 35 1083 1089 "pa_lustre.ml" 35 1083 1108
+type(
+  string option
+)
+ident(
+  def mut "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+"pa_lustre.ml" 36 1110 1123 "pa_lustre.ml" 36 1110 1129
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 36 1110 1116 "pa_lustre.ml" 36 1110 1129
+type(
+  string
+)
+ident(
+  def name "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+"pa_lustre.ml" 36 1110 1131 "pa_lustre.ml" 36 1110 1134
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 36 1110 1140 "pa_lustre.ml" 36 1110 1150
+type(
+  Grammar.token Gramext.g_entry
+)
+type(
+  MLast.ctyp Grammar.Entry.e
+)
+type(
+  MLast.ctyp Grammar.Entry.e
+)
+ident(
+  ext_ref Pcaml.ctyp
+)
+type(
+  MLast.ctyp Grammar.Entry.e -> Grammar.token Gramext.g_entry
+)
+ident(
+  ext_ref Grammar.Entry.obj
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 36 1110 1136 "pa_lustre.ml" 36 1110 1150
+type(
+  MLast.ctyp
+)
+ident(
+  def t "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+"pa_lustre.ml" 37 1153 1175 "pa_lustre.ml" 37 1153 1178
+type(
+  Plexing.pattern
+)
+type(
+  string
+)
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 37 1153 1184 "pa_lustre.ml" 37 1153 1209
+type(
+  string
+)
+type(
+  Grammar.token Gramext.g_entry
+)
+type(
+  MLast.expr Grammar.Entry.e
+)
+type(
+  MLast.expr Grammar.Entry.e
+)
+ident(
+  ext_ref Pcaml.expr
+)
+type(
+  MLast.expr Grammar.Entry.e -> Grammar.token Gramext.g_entry
+)
+ident(
+  ext_ref Grammar.Entry.obj
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 37 1153 1180 "pa_lustre.ml" 37 1153 1209
+type(
+  MLast.expr
+)
+ident(
+  def e "pa_lustre.ml" 37 1153 1173 "pa_lustre.ml" 37 1153 1216
+)
+"pa_lustre.ml" 37 1153 1213 "pa_lustre.ml" 37 1153 1214
+type(
+  MLast.expr
+)
+type(
+  MLast.expr
+)
+ident(
+  int_ref e "pa_lustre.ml" 37 1153 1180 "pa_lustre.ml" 37 1153 1209
+)
+"pa_lustre.ml" 37 1153 1173 "pa_lustre.ml" 37 1153 1216
+call(
+  stack
+)
+type(
+  Grammar.token Gramext.g_symbol
+)
+type(
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  Grammar.token Gramext.g_symbol list * Gramext.g_action
+)
+type(
+  Gramext.g_action
+)
+type(
+  MLast.expr -> '_f -> Ploc.t -> MLast.expr
+)
+type(
+  '_f -> Ploc.t -> MLast.expr
+)
+type(
+  Ploc.t -> MLast.expr
+)
+type(
+  Ploc.t
+)
+ident(
+  def loc "pa_lustre.ml" 37 1153 1173 "pa_lustre.ml" 37 1153 1216
+)
+type(
+  '_f
+)
+type(
+  (MLast.expr -> '_f -> Ploc.t -> MLast.expr) -> Gramext.g_action
+)
+ident(
+  ext_ref Gramext.action
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  Grammar.token Gramext.g_symbol list
+)
+type(
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list
+)
+type(
+  (Grammar.token Gramext.g_symbol list * Gramext.g_action) list ->
+  Grammar.token Gramext.g_symbol
+)
+ident(
+  ext_ref Gramext.srules
+)
+"pa_lustre.ml" 37 1153 1169 "pa_lustre.ml" 37 1153 1216
+type(
+  Grammar.token Gramext.g_symbol
+)
+"pa_lustre.ml" 37 1153 1159 "pa_lustre.ml" 37 1153 1216
+type(
+  MLast.expr option
+)
+ident(
+  def default "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+"pa_lustre.ml" 38 1221 1231 "pa_lustre.ml" 38 1221 1234
+type(
+  MLast.loc
+)
+ident(
+  int_ref loc "pa_lustre.ml" 34 1067 1069 "pa_lustre.ml" 34 1067 1079
+)
+"pa_lustre.ml" 38 1221 1236 "pa_lustre.ml" 38 1221 1240
+type(
+  string
+)
+ident(
+  int_ref name "pa_lustre.ml" 36 1110 1116 "pa_lustre.ml" 36 1110 1129
+)
+"pa_lustre.ml" 38 1221 1243 "pa_lustre.ml" 38 1221 1246
+type(
+  string option
+)
+ident(
+  int_ref mut "pa_lustre.ml" 35 1083 1089 "pa_lustre.ml" 35 1083 1108
+)
+"pa_lustre.ml" 38 1221 1250 "pa_lustre.ml" 38 1221 1254
+type(
+  string option
+)
+"pa_lustre.ml" 38 1221 1243 "pa_lustre.ml" 38 1221 1254
+type(
+  string option -> string option -> bool
+)
+ident(
+  ext_ref Pervasives.( <> )
+)
+"pa_lustre.ml" 38 1221 1242 "pa_lustre.ml" 38 1221 1255
 type(
   bool
 )
+"pa_lustre.ml" 38 1221 1257 "pa_lustre.ml" 38 1221 1258
 type(
-  bool Ploc.vala
-)
-type(
-  MLast.loc
+  MLast.ctyp
 )
 ident(
-  int_ref loc "pa_lustre.ml" 24 628 628 "pa_lustre.ml" 24 628 642
+  int_ref t "pa_lustre.ml" 36 1110 1136 "pa_lustre.ml" 36 1110 1150
+)
+"pa_lustre.ml" 38 1221 1230 "pa_lustre.ml" 38 1221 1259
+type(
+  MLast.loc * string * bool * MLast.ctyp
+)
+"pa_lustre.ml" 38 1221 1261 "pa_lustre.ml" 38 1221 1268
+type(
+  MLast.expr option
+)
+ident(
+  int_ref default "pa_lustre.ml" 37 1153 1159 "pa_lustre.ml" 37 1153 1216
+)
+"pa_lustre.ml" 38 1221 1229 "pa_lustre.ml" 38 1221 1269
+type(
+  (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
 )
 type(
-  MLast.str_item
+  (MLast.loc * string * bool * MLast.ctyp) * MLast.expr option
 )
-"pa_lustre.ml" 24 628 628 "pa_lustre.ml" 32 868 870
+"pa_lustre.ml" 27 880 882 "pa_lustre.ml" 39 1272 1276
+call(
+  stack
+)
+call(
+  tail
+)
+call(
+  stack
+)
+type(
+  unit
+)
+type(
+  (Grammar.token Gramext.g_entry * Gramext.position option *
+   (string option * Gramext.g_assoc option *
+    (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+   list)
+  list
+)
+type(
+  (Grammar.token Gramext.g_entry * Gramext.position option *
+   (string option * Gramext.g_assoc option *
+    (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+   list)
+  list
+)
+type(
+  (Grammar.token Gramext.g_entry * Gramext.position option *
+   (string option * Gramext.g_assoc option *
+    (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+   list)
+  list
+)
+type(
+  (Grammar.token Gramext.g_entry * Gramext.position option *
+   (string option * Gramext.g_assoc option *
+    (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+   list)
+  list
+)
+type(
+  Grammar.token Gramext.g_entry
+)
+type(
+  ((MLast.loc * string * bool * MLast.ctyp) * MLast.expr option)
+  Grammar.Entry.e -> Grammar.token Gramext.g_entry
+)
+ident(
+  ext_ref Grammar.Entry.obj
+)
+type(
+  (Grammar.token Gramext.g_entry * Gramext.position option *
+   (string option * Gramext.g_assoc option *
+    (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
+   list)
+  list
+)
 type(
   Grammar.token Gramext.g_entry
 )
@@ -220,4 +1671,43 @@ type(
     (Grammar.token Gramext.g_symbol list * Gramext.g_action) list)
    list)
   list
+)
+type(
+  string -> 'g Grammar.Entry.e
+)
+type(
+  'g Grammar.Entry.e
+)
+type(
+  string
+)
+ident(
+  int_ref s "pa_lustre.ml" 27 880 882 "pa_lustre.ml" 39 1272 1276
+)
+type(
+  Grammar.g
+)
+type(
+  MLast.str_item Grammar.Entry.e -> Grammar.g
+)
+ident(
+  ext_ref Grammar.of_entry
+)
+type(
+  Grammar.g -> string -> 'g Grammar.Entry.e
+)
+ident(
+  ext_ref Grammar.create_local_entry
+)
+type(
+  string
+)
+ident(
+  def s "pa_lustre.ml" 27 880 882 "pa_lustre.ml" 39 1272 1276
+)
+type(
+  string -> 'g Grammar.Entry.e
+)
+ident(
+  def grammar_entry_create "pa_lustre.ml" 27 880 882 "pa_lustre.ml" 39 1272 1276
 )

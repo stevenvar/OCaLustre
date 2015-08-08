@@ -1,43 +1,100 @@
-open Pcaml
-open Token 
-open MLast
+let make_record_expr loc l =
+  let fields =
+    List.map
+      (fun ((loc, name, mut, t), default) ->
+         MLast.PaLid (loc, Ploc.VaVal name),
+         MLast.ExLid (loc, Ploc.VaVal name))
+      l
+  in
+  MLast.ExRec (loc, Ploc.VaVal fields, None)
 
+let expand_record loc type_name l =
+  let type_def =
+    let fields = List.map fst l in
+    MLast.StTyp
+      (loc,
+       Ploc.VaVal
+         [{MLast.tdNam = Ploc.VaVal (loc, Ploc.VaVal type_name);
+           MLast.tdPrm = Ploc.VaVal []; MLast.tdPrv = Ploc.VaVal false;
+           MLast.tdDef = MLast.TyRec (loc, Ploc.VaVal fields);
+           MLast.tdCon = Ploc.VaVal []}])
+  in
+  let expr_def =
+    let record_expr = make_record_expr loc l in
+    let f =
+      List.fold_right
+        (fun ((loc, name, mut, t), default) e ->
+           match default with
+             None ->
+               MLast.ExFun
+                 (loc,
+                  Ploc.VaVal
+                    [MLast.PaLab
+                       (loc,
+                        Ploc.VaVal
+                          [MLast.PaLid (loc, Ploc.VaVal name),
+                           Ploc.VaVal None]),
+                     Ploc.VaVal None, e])
+           | Some x ->
+               MLast.ExFun
+                 (loc,
+                  Ploc.VaVal
+                    [MLast.PaOlb
+                       (loc, MLast.PaLid (loc, Ploc.VaVal name),
+                        Ploc.VaVal (Some x)),
+                     Ploc.VaVal None, e]))
+        l
+        (MLast.ExFun
+           (loc,
+            Ploc.VaVal
+              [MLast.PaUid (loc, Ploc.VaVal "()"), Ploc.VaVal None,
+               record_expr]))
+    in
+    MLast.StVal
+      (loc, Ploc.VaVal true,
+       Ploc.VaVal [MLast.PaLid (loc, Ploc.VaVal ("create_" ^ type_name)), f])
+  in
+  MLast.StDcl (loc, Ploc.VaVal [type_def; expr_def])
 
-(* The statement that extends the default grammar, 
-   i.e. the regular syntax of OCaml if we use camlp5o 
-   or the revised syntax if we use camlp5r *)
 let _ =
   Grammar.extend
-    [(*  Pcaml.expr: LEVEL "top" [
-         [ x = Pcaml.expr; o = OPT "rec";  "where"; l = LIST1 Pcaml.let_binding SEP "and"  ->
-               <:expr< let $opt:o2b o$ $list:l$ in $x$ >> ]
-       |
-         [ "node"; e = LIST1 let_binding SEP "and";  "in";
-             x = expr LEVEL "top" ->
-               <:expr< let  $list:e$ in $x$ >> ]
-       ];
-       Pcaml.expr: LEVEL ":=" [
-         [ e1 = SELF; "<-"; e2 = expr LEVEL "expr1" -> <:expr< set_bit $e1$ $e2$ >>  ]
-      ]; *)
-
-
-
-     Grammar.
-     Entry.
-     obj
-       (Pcaml.str_item : 'Pcaml__str_item Grammar.Entry.e),
-     Some (Gramext.Level "top"),
-     [None, None,
-      [[Gramext.Stoken ("", "node");
-        Gramext.Slist1sep
-          (Gramext.Snterm
-             (Grammar.Entry.obj (let_binding : 'let_binding Grammar.Entry.e)),
-           Gramext.Stoken ("", "and"), false)],
-       Gramext.action
-         (fun (l : 'let_binding list) _ (loc : Ploc.t) ->
-            (match l with
-               [MLast.PaAny _, e] -> MLast.StExp (loc, e)
-             | _ ->
-                 MLast.StVal
-                   (loc, Ploc.VaVal false, Ploc.VaVal (transform_list l)) :
-             'Pcaml__str_item))]]]
+    (let _ = (Pcaml.str_item : 'Pcaml__str_item Grammar.Entry.e) in
+     let grammar_entry_create s =
+       Grammar.create_local_entry (Grammar.of_entry Pcaml.str_item) s
+     in
+     let field_decl : 'field_decl Grammar.Entry.e =
+       grammar_entry_create "field_decl"
+     in
+     [Grammar.Entry.obj (Pcaml.str_item : 'Pcaml__str_item Grammar.Entry.e),
+      Some (Gramext.Level "top"),
+      [None, None,
+       [[Gramext.Stoken ("", "record"); Gramext.Stoken ("LIDENT", "");
+         Gramext.Stoken ("", "="); Gramext.Stoken ("", "{");
+         Gramext.Slist1sep
+           (Gramext.Snterm
+              (Grammar.Entry.obj (field_decl : 'field_decl Grammar.Entry.e)),
+            Gramext.Stoken ("", ";"), false);
+         Gramext.Stoken ("", "}")],
+        Gramext.action
+          (fun _ (l : 'field_decl list) _ _ (type_name : string) _
+               (loc : Ploc.t) ->
+             (expand_record loc type_name l : 'Pcaml__str_item))]];
+      Grammar.Entry.obj (field_decl : 'field_decl Grammar.Entry.e), None,
+      [None, None,
+       [[Gramext.Sopt (Gramext.Stoken ("", "mutable"));
+         Gramext.Stoken ("LIDENT", ""); Gramext.Stoken ("", ":");
+         Gramext.Snterm
+           (Grammar.Entry.obj (Pcaml.ctyp : 'Pcaml__ctyp Grammar.Entry.e));
+         Gramext.Sopt
+           (Gramext.srules
+              [[Gramext.Stoken ("", "=");
+                Gramext.Snterml
+                  (Grammar.Entry.obj
+                     (Pcaml.expr : 'Pcaml__expr Grammar.Entry.e),
+                   "simple")],
+               Gramext.action
+                 (fun (e : 'Pcaml__expr) _ (loc : Ploc.t) -> (e : 'e__1))])],
+        Gramext.action
+          (fun (default : 'e__1 option) (t : 'Pcaml__ctyp) _ (name : string)
+               (mut : string option) (loc : Ploc.t) ->
+             ((loc, name, mut <> None, t), default : 'field_decl))]]])

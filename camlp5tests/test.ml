@@ -1,2 +1,3 @@
-let f x = x in 
-    f 5;; 
+
+let f x = x
+let g x = x

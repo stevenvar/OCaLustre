@@ -1,8 +1,10 @@
-open Pic;; 
+record bob = { foo : string = "Hello";
+               bar : string;
+               mutable n : int = 1 }
 
-node test = 
-  RB4 := if RB1 then 0 else 1 ; 
-  RD2 := if RD1 then 1 else 0 ;
-  RB1 := pre RB3
+record weird = { x : weird option = (Some (create_weird ~x:None ())) }
 
-let _ = test  
+let _ =
+  let x = create_bob ~bar:"World" () in
+  x.n <- x.n + 1;
+  Printf.printf "%s %s %i\n" x.foo x.bar x.n
