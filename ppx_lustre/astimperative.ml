@@ -9,17 +9,9 @@ type imp_value =
   | Constant of constant 
   | Variable of string
 
-type imp_init = {
-  i_next_init : (string * constant) list; 
-  i_pre_init : (string * constant) list; 
-}
-
-type imp_memory = {
-  i_next_mem : string list;
-  i_pre_mem : string list; 
-}
-
-type imp_expr =
+type imp_init = (string * imp_expr option) list 
+and
+  imp_expr =
   | IValue of constant
   | IVariable of string
   | IInfixOp of imp_infop * imp_expr * imp_expr
@@ -51,11 +43,109 @@ type imp_node = {
   i_name : string;
   i_inputs : string list;
   i_outputs : string list;
-  i_memory : imp_memory;
-  i_init_fun : imp_init;
+  i_inits : imp_init;
   i_step_fun : imp_step;
 }
 
+let rec compile_expression exp =
+  let compile_preop op =
+    match op with
+    | Pre -> IPre
+    | Not -> INot
+  in
+  let compile_infop op =
+    match op with
+    | Plus -> IPlus
+    | Minus -> IMinus
+    | Times -> ITimes
+    | Div -> IDiv
+    | _-> failwith "wrong operator" 
+  in
+  match exp with
+  | Value c -> IValue c 
+  | Variable v -> IVariable v.content
+  | InfixOp (op,e1,e2) -> IInfixOp(compile_infop op,
+                                compile_expression e1,
+                                   compile_expression e2)
+  | PrefixOp (op, e) -> IPrefixOp (compile_preop op, compile_expression e)
+  | Alternative (e1,e2,e3) ->  IAlternative (compile_expression e1,
+                                             compile_expression e2,
+                                             compile_expression e3)
+  | Application (id, el) -> IApplication (id.content,
+                                          List.map (compile_expression) el)
+
+let printml_string fmt p =
+  Format.fprintf fmt "%s" p
+
+
+
+let rec printml_expression fmt exp =
+  let printml_preop fmt op =
+    match op with
+    | IPre -> Format.fprintf fmt "mem."
+    | INot -> Format.fprintf fmt "not "
+  in
+  let printml_infop fmt op =
+    match op with
+    | IPlus -> Format.fprintf fmt " + "
+    | ITimes -> Format.fprintf fmt " * "
+    | IDiv -> Format.fprintf fmt " / "
+    | IMinus -> Format.fprintf fmt " - "
+  in
+  let rec printml_expressions fmt el =
+    match el with
+    | [] -> ()
+    | e::[] -> Format.fprintf fmt "%a"
+                 printml_expression e
+    | e::tl -> Format.fprintf fmt "%a,%a"
+                 printml_expression e
+                 printml_expressions tl
+  in 
+  match exp with
+  | IValue c -> Pprintast.expression fmt c 
+  | IVariable v ->  Format.fprintf fmt "%s" v
+  | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
+                             printml_expression e1
+                             printml_infop op
+                             printml_expression e2
+  | IPrefixOp (op,e) -> Format.fprintf fmt "%a%a"
+                          printml_preop op
+                          printml_expression e
+  | IAlternative (e1,e2,e3) -> Format.fprintf fmt "if %a then %a else %a"
+                                 printml_expression e1
+                                 printml_expression e2
+                                 printml_expression e3
+  | IApplication (s, el) -> Format.fprintf fmt "%a(%a)"
+                              printml_string s
+                              printml_expressions el
+
+let printml_inits fmt il =
+  let printml_init fmt (s,e) =
+    begin match e with
+      | None -> Format.fprintf fmt "let %a = None in\n"
+                  printml_string s
+      | Some x -> Format.fprintf fmt "let %a = ref %a in\n"
+                    printml_string s
+                    printml_expression x
+   
+    end 
+  in
+  List.map (fun i -> printml_init fmt i) il 
+    
+let generate_inits node =
+  let generate_from_e equation l =
+    match equation.expression with
+    | PrefixOp (Pre, x) -> (equation.pattern.content,None)::l
+    | InfixOp (Arrow, x, y) -> (equation.pattern.content,Some (compile_expression x))::l
+    | _ -> l
+  in 
+  let generate_from_el equations = 
+    List.fold_left (fun l e -> let l = generate_from_e e l in l ) [] equations
+      in
+  (* list of couples (string, value) *) 
+  generate_from_el node.equations
+
+(*
 let compile_preop op =
   match op with
   | Pre -> IPre
@@ -222,3 +312,4 @@ let printml_node fmt node =
     printml_memory node 
     printml_init node
     printml_step node 
+*)
