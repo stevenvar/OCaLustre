@@ -39,7 +39,8 @@ let rec print_expression fmt e =
       print_expressions el
   in
   match e with 
-  | Variable i -> print_ident fmt i 
+  | Variable i -> print_ident fmt i
+  | Ref i -> print_ident fmt i
   | Alternative (e1,e2,e3) ->
     Format.fprintf fmt  "if %a then %a else %a" 
     print_expression e1 

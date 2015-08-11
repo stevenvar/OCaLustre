@@ -19,6 +19,7 @@ let rec get_patt_id p =
 let rec get_expr_id e s =
   match e with 
   | Variable i -> S.add i.content s
+  | Ref i -> S.add i.content s
   | Alternative (e1,e2,e3) ->
     let s = get_expr_id e1 s in
     let s = get_expr_id e2 s in 

@@ -35,7 +35,8 @@ and
   | InfixOp of inf_operator * exp_desc * exp_desc
   | PrefixOp of pre_operator * exp_desc
   | Value of constant 
-  | Variable of ident   
+  | Variable of ident
+  | Ref of ident
 and
  inf_operator = 
   | Plus
@@ -85,6 +86,8 @@ let mk_pre e1 = PrefixOp ( Pre , e1)
 let mk_not e1 = PrefixOp ( Not , e1) 
   
 let mk_variable v  = Variable (mk_ident v)
+
+let mk_ref v = Ref (mk_ident v) 
 
 (* check if the pattern is a variable *)
 let checkname_pattern n =
@@ -156,7 +159,8 @@ let checkio body =
 
 let rec get_idents e =
   match e with 
-  | Variable i -> [i] 
+  | Variable i -> [i]
+  | Ref i -> [i]
   | Alternative (e1,e2,e3) ->
     get_idents e1 @ 
     get_idents e2 @

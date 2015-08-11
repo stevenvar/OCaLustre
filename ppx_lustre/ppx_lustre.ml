@@ -18,8 +18,7 @@ open Astimperative
 *)
 let lustre_mapper argv =
   { default_mapper with
-    structure = fun mapper strs ->
-      let transform_str_item str =  
+    structure_item = fun mapper str ->
        match str.pstr_desc with
       | Pstr_extension (({txt="node";_},PStr [s]),_) ->
         begin match s.pstr_desc with
@@ -27,16 +26,13 @@ let lustre_mapper argv =
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = transform_node _node in
             let _node = schedule _node in
-            let _inits = generate_inits _node in 
+            let _inode = compile_node _node in 
             print_node Format.std_formatter _node; 
-            printml_inits Format.std_formatter _inits;
-            ([%stri let () = ()]::[])
+            printml_node Format.std_formatter _inode;
+            (tocaml_node _inode)
           | _ -> Error.syntax_error s.pstr_loc
         end
-      | x -> [default_mapper.structure_item mapper str]
-      in
-      let new_list = List.map transform_str_item strs
-          in List.fold_left (fun l x -> x@l) [] new_list
+      | x -> default_mapper.structure_item mapper str
   }
 
 let () = register "lustre" lustre_mapper 

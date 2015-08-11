@@ -4,7 +4,7 @@ open Ast
 
 
 let rec transform_exp e l =
-  let init = mk_variable "init" in
+  let init = mk_ref "init" in
   match e with 
   | InfixOp (op, e1, e2) ->
     begin match op with
@@ -25,11 +25,12 @@ let rec transform_exp e l =
         let idstr = (List.fold_left (fun s x -> s^x.content) "" (get_idents e1))
         in
         let name = "pre_"^idstr in  
-        (mk_variable name, {pattern = mk_ident name ; expression = e}::l) 
+        (mk_ref name, {pattern = mk_ident name ; expression = e}::l) 
       | _ -> let ne1 = transform_exp (e1) l in
         (PrefixOp (op, fst ne1)), (snd ne1)
     end
   | Variable i -> (e,l)
+  | Ref i -> (e,l)
   | Alternative (e1,e2,e3) ->
     let ne1 = transform_exp (e1) l in
     let ne2 = transform_exp (e2) l in
