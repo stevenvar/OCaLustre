@@ -5,14 +5,12 @@ module Option = struct
     | Some v -> v 
   end
 
-let%node add (a,b) (c) =
-  c := a + b 
- 
-let%node xor (b,c) (a) =
- a := add (b,c) 
+let%node xor () (a) =
+  a := 0 next (pre a + 1)
 
 let _ =
-  while true do
-    Format.printf "%d @." (xor (4,5));
+    while true do
+    let a = xor () in
+    Format.printf "%d @." a;
     Unix.sleep 1
-  done
+    done

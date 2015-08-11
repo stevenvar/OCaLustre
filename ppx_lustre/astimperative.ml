@@ -18,6 +18,7 @@ and
   | IApplication of ident * imp_expr list
 and
   imp_infop =
+  | IEquals
   | IPlus
   | IMinus
   | ITimes
@@ -76,6 +77,7 @@ let rec compile_expression exp =
   in
   let compile_infop op =
     match op with
+    | Equals -> IEquals
     | Plus -> IPlus
     | Minus -> IMinus
     | Times -> ITimes
@@ -109,6 +111,7 @@ let rec printml_expression fmt exp =
   in
   let printml_infop fmt op =
     match op with
+    | IEquals -> Format.fprintf fmt " = "  
     | IPlus -> Format.fprintf fmt " + "
     | ITimes -> Format.fprintf fmt " * "
     | IDiv -> Format.fprintf fmt " / "
@@ -269,6 +272,8 @@ let rec tocaml_expression e =
     | IValue v -> v
     | IVariable i -> [%expr [%e Exp.ident (ident_to_lid i) ]  ]
     | IRef i -> [%expr Option.get ![%e Exp.ident (ident_to_lid i) ]  ]
+     | IInfixOp (IEquals,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
     | IInfixOp (IPlus,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
     | IInfixOp (IMinus,e1,e2) ->
@@ -277,7 +282,7 @@ let rec tocaml_expression e =
        [%expr [%e tocaml_expression e1 ] * [%e tocaml_expression e2 ]]
     | IInfixOp (IDiv,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
-    | IPrefixOp (op, e) -> [%expr let () = () in () ]
+    | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e] ]
     | IAlternative (e1,e2,e3) -> 
       [%expr [%e Exp.ifthenelse
                 (tocaml_expression e1) 
@@ -331,6 +336,7 @@ let tocaml_step_fun node =
   let pname = ident_to_stringloc_suffix node.i_name "_step" in
   let out =
     match node.i_outputs with
+    | [] -> [%expr () ]
     | [x] -> [%expr [%e Ast_helper.Exp.ident (ident_to_lid x)]]
     | _ -> [%expr [%e
                      Ast_helper.Exp.tuple (tocaml_outputs node.i_outputs)
@@ -338,6 +344,17 @@ let tocaml_step_fun node =
   in
   let ups = [%expr [%e tocaml_updates node.i_step_fun.i_updates out ]] in
   match node.i_inputs with
+  | [] -> [%expr let [%p Ast_helper.Pat.var pname ] =
+             fun () ->
+               ([%e tocaml_eq_list node.i_step_fun.i_equations
+                      ups
+               ])
+           in
+           [%e
+             Ast_helper.Exp.ident
+               (ident_to_lid_suffix node.i_name "_step")
+           ]
+    ]
   | [x] ->
     [%expr let [%p Ast_helper.Pat.var pname ] =
              fun [%p Ast_helper.Pat.var (ident_to_stringloc x) ] ->

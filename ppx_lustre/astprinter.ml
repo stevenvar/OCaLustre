@@ -23,11 +23,13 @@ let print_preop fmt op =
 
 let print_infop fmt op =
   match op with
+  | Equals -> Format.fprintf fmt " = " 
   | Plus -> Format.fprintf fmt " + "
   | Times -> Format.fprintf fmt " * "
   | Div -> Format.fprintf fmt " / "
   | Minus -> Format.fprintf fmt " - "
   | Arrow -> Format.fprintf fmt " -> "
+  | When -> Format.fprintf fmt " when "
 
 let rec print_expression fmt e =
   let print_expressions fmt el =

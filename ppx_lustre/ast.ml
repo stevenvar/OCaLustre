@@ -38,12 +38,14 @@ and
   | Variable of ident
   | Ref of ident
 and
- inf_operator = 
+  inf_operator =
+  | Equals
   | Plus
   | Minus
   | Times
   | Div
-  | Arrow 
+  | Arrow
+  | When 
 and
  pre_operator = 
   | Not
@@ -104,13 +106,14 @@ let checkname_ident id =
 (* transform expressions to node of the ocalustre AST *)
 let rec mk_expr e =
   match e with
+  | [%expr [%e? e1] = [%e? e2] ] -> InfixOp(Equals, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] + [%e? e2] ] -> mk_expr e1 + mk_expr e2
   | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 * mk_expr e2
   | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 - mk_expr e2
   | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 / mk_expr e2
   | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
   | [%expr [%e? e1] next [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
-  | [%expr if [%e? e1] then [%e? e2] else [%e? e3] ] ->
+  | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value e
   | [%expr false ] -> Value e
@@ -128,8 +131,9 @@ let rec mk_expr e =
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
      pexp_loc ;
      pexp_attributes} ->
-    mk_variable v 
-  | _ -> Error.syntax_error e.pexp_loc 
+    mk_variable v
+  | [%expr [%e? e1] iftrue [%e? e2] ] -> InfixOp(When,mk_expr e1,mk_expr e2)
+  | _ -> Pprintast.expression Format.std_formatter e; Error.syntax_error e.pexp_loc 
 
 (* creates equation node in the AST *)
 let mk_equation eq =
