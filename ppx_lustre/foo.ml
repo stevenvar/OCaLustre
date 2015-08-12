@@ -1,17 +1,28 @@
-module Option = struct
-  let get x =
-    match x with
-    | None -> failwith "none"
-    | Some v -> v 
-  end
+(*************************************************************************)
+(*                                                                       *)
+(*                                OCaPIC                                 *)
+(*                                                                       *)
+(*                             Benoit Vaugon                             *)
+(*                                                                       *)
+(*    This file is distributed under the terms of the CeCILL license.    *)
+(*    See file ../../LICENSE-en.                                         *)
+(*                                                                       *)
+(*************************************************************************)
 
-let%node xor () (a,b) =
-  b:= if a < 10 then true else false ;
-  a:= 0 next (pre a + 1)
-  
-let _ =
+open Pic;;
+
+let write_bit pin v =
+  if v = 1 then set_bit pin else set_bit 0
+
+let%node count (x) (a) =
+  a := 0 next (pre a + 1)
+
+let%node light () (pin) =
+  pin := if count (0) > 10 then 1 else 0
+
+let _ = 
+  write_reg TRISB 0x00;
   while true do
-    let (a,b) = xor () in
-    Format.printf "%d | %B @." a b;
-    Unix.sleep 1
+    write_bit RB0 (light ());
+    Sys.sleep 500;
   done
