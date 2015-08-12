@@ -10,7 +10,7 @@ let rec transform_exp e l =
     begin match op with
       | Arrow -> transform_exp (alternative init e1 e2)
                    ({
-                       pattern = mk_ident "init";
+                       pattern = mk_pattern "init";
                        expression = ( mk_expr [%expr true]
                                       --> mk_expr [%expr false]  )
                      }::l)
@@ -25,11 +25,15 @@ let rec transform_exp e l =
         let idstr = (List.fold_left (fun s x -> s^x.content) "" (get_idents e1))
         in
         let name = "pre_"^idstr in  
-        (mk_ref name, {pattern = mk_ident name ; expression = e}::l) 
+        (mk_ref name, {pattern = mk_pattern name ; expression = e}::l) 
       | _ -> let ne1 = transform_exp (e1) l in
         (PrefixOp (op, fst ne1)), (snd ne1)
     end
   | Variable i -> (e,l)
+  | Tuple t ->
+    let tuplist = List.map (fun e -> transform_exp e l) t in
+    let listup = List.fold_left (fun l (a,b) -> (a::(fst l),b@(snd l))  ) ([],[]) tuplist in
+    Tuple(fst listup), (snd listup)
   | Ref i -> (e,l)
   | Alternative (e1,e2,e3) ->
     let ne1 = transform_exp (e1) l in

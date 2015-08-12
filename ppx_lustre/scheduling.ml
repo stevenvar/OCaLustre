@@ -14,11 +14,14 @@ module G = Set.Make(
   )
 
 let rec get_patt_id p =
-  p.content
+  match p with
+  | Simple x -> [x.content]
+  | List t -> List.map (fun x -> x.content) t
 
 let rec get_expr_id e s =
   match e with 
   | Variable i -> S.add i.content s
+  | Tuple t -> List.fold_left (fun s e -> get_expr_id e s) s t
   | Ref i -> S.add i.content s
   | Alternative (e1,e2,e3) ->
     let s = get_expr_id e1 s in
@@ -29,7 +32,7 @@ let rec get_expr_id e s =
   | InfixOp (op, e1, e2) ->
     let s = get_expr_id e1 s in 
     get_expr_id e2 s
-  | PrefixOp (Pre _, _) -> s
+  | PrefixOp (Pre, _) -> s
   | PrefixOp (op, e) ->
     get_expr_id e s 
   | Value v -> s
@@ -95,7 +98,7 @@ let schedule node =
       (fun g eq ->
          let pv = get_patt_id eq.pattern in
          let ev = get_expr_id eq.expression (S.empty) in
-         G.add ((pv,eq),ev) g)
+         List.fold_left (fun g x -> G.add ((x,eq),ev) g) g pv )
       (G.empty) eqs
   in
   (* let g = remove_init_dependency g  in *) 

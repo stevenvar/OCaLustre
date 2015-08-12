@@ -17,7 +17,9 @@ and
  expression : expression; 
 } 
 and 
- pattern = ident 
+  pattern =
+  | Simple of ident
+  | List of ident list
 and
   constant =
   Parsetree.expression 
@@ -36,9 +38,15 @@ and
   | PrefixOp of pre_operator * exp_desc
   | Value of constant 
   | Variable of ident
+  | Tuple of exp_desc list 
   | Ref of ident
 and
   inf_operator =
+  | Diff
+  | Great
+  | Less
+  | Greate
+  | Lesse
   | Equals
   | Plus
   | Minus
@@ -68,7 +76,8 @@ end
 *)
 
 let loc_default = Location.none
-					      
+
+let mk_pattern ?(loc=loc_default) v = Simple {loc; content = v}
 let mk_ident ?(loc=loc_default) v = { loc ; content = v } 
 
 let alternative e1 e2 e3 = Alternative (e1, e2, e3)
@@ -106,23 +115,30 @@ let checkname_ident id =
 (* transform expressions to node of the ocalustre AST *)
 let rec mk_expr e =
   match e with
+  | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
+  | [%expr ( [%e? e1] , [%e? e2] ) ] -> Tuple ((mk_expr e2)::(mk_expr e1)::[])
   | [%expr [%e? e1] = [%e? e2] ] -> InfixOp(Equals, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] <> [%e? e2] ] -> InfixOp(Diff, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] > [%e? e2] ] -> InfixOp(Great, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] < [%e? e2] ] -> InfixOp(Less, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] >= [%e? e2] ] -> InfixOp(Greate, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] <= [%e? e2] ] -> InfixOp(Lesse, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] + [%e? e2] ] -> mk_expr e1 + mk_expr e2
   | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 * mk_expr e2
   | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 - mk_expr e2
   | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 / mk_expr e2
-  | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
   | [%expr [%e? e1] next [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value e
   | [%expr false ] -> Value e
   (* a := NOEUD2 (x,y) *)
-  | [%expr [%e? e1] [%e? e2] ] -> Application(checkname_ident e1, 
-    begin match e2.pexp_desc with
-      | Pexp_tuple l -> List.map mk_expr l
-      | _ -> [mk_expr e2]
-    end )
+  | [%expr [%e? e1] [%e? e2] ] ->
+    Application(checkname_ident e1, 
+                begin match e2.pexp_desc with
+                  | Pexp_tuple l -> List.map mk_expr l
+                  | _ -> [mk_expr e2]
+                end )
   | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
@@ -133,13 +149,15 @@ let rec mk_expr e =
      pexp_attributes} ->
     mk_variable v
   | [%expr [%e? e1] iftrue [%e? e2] ] -> InfixOp(When,mk_expr e1,mk_expr e2)
-  | _ -> Pprintast.expression Format.std_formatter e; Error.syntax_error e.pexp_loc 
+  | _ ->
+    Pprintast.expression Format.std_formatter e;
+    Error.syntax_error e.pexp_loc 
 
 (* creates equation node in the AST *)
 let mk_equation eq =
   match eq with
     [%expr [%e? p] := [%e? e] ] ->
-    {pattern= checkname_ident p;
+    {pattern= Simple (checkname_ident p);
      expression = mk_expr e}
   | _ -> Error.syntax_error eq.pexp_loc 
 
@@ -164,6 +182,7 @@ let checkio body =
 let rec get_idents e =
   match e with 
   | Variable i -> [i]
+  | Tuple t -> List.fold_left (fun l x -> get_idents x) [] t
   | Ref i -> [i]
   | Alternative (e1,e2,e3) ->
     get_idents e1 @ 

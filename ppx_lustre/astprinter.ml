@@ -12,9 +12,17 @@ let print_io fmt n =
 
 let print_ident fmt i = Format.fprintf fmt "%s" i.content  
 
-let print_pattern fmt pp =
-  Format.fprintf fmt "%s" pp.content
+let rec print_tuple fmt l =
+  match l with
+  | [x] -> Format.fprintf fmt "%s" x.content
+  | h::t -> Format.fprintf fmt "%s," h.content; print_tuple fmt t
+  | [] -> () 
 
+let print_pattern fmt pp =
+  match pp with
+  | Simple x ->  Format.fprintf fmt "%s" x.content
+  | List t -> print_tuple fmt t
+    
 let print_preop fmt op = 
   match op with
   | Pre -> Format.fprintf fmt  "pre "
@@ -30,6 +38,11 @@ let print_infop fmt op =
   | Minus -> Format.fprintf fmt " - "
   | Arrow -> Format.fprintf fmt " -> "
   | When -> Format.fprintf fmt " when "
+  | Diff -> Format.fprintf fmt " <> "
+  | Great -> Format.fprintf fmt " > "
+  | Less -> Format.fprintf fmt " < "
+  | Lesse -> Format.fprintf fmt " <= "
+  | Greate -> Format.fprintf fmt " >= "
 
 let rec print_expression fmt e =
   let print_expressions fmt el =
@@ -40,8 +53,17 @@ let rec print_expression fmt e =
       i.content
       print_expressions el
   in
+  let rec print_expression_list fmt el =
+    match el with
+    | [x] -> print_expression fmt x
+    | h::t -> Format.fprintf fmt "%a,%a"
+                print_expression h
+                print_expression_list t 
+    | [] -> ()
+  in
   match e with 
   | Variable i -> print_ident fmt i
+  | Tuple t -> print_expression_list fmt t
   | Ref i -> print_ident fmt i
   | Alternative (e1,e2,e3) ->
     Format.fprintf fmt  "if %a then %a else %a" 

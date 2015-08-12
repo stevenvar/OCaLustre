@@ -5,12 +5,13 @@ open Ast
 
 type constant = Parsetree.expression 
   
-type imp_init = (ident * imp_expr option) list 
+type imp_init = (pattern * imp_expr option) list 
   
 and
   imp_expr =
   | IValue of constant
   | IVariable of ident
+  | ITuple of imp_expr list 
   | IRef of ident
   | IInfixOp of imp_infop * imp_expr * imp_expr
   | IPrefixOp of imp_preop * imp_expr
@@ -19,6 +20,11 @@ and
 and
   imp_infop =
   | IEquals
+  | IDiff
+  | IGreat
+  | IGreate
+  | ILess
+  | ILesse
   | IPlus
   | IMinus
   | ITimes
@@ -27,15 +33,15 @@ and
   imp_preop =
   | IPre
   | INot
-    
+
 type imp_equation =  {
-  i_pattern : ident;
+  i_pattern : pattern;
   i_expression : imp_expr;
 } 
 
 type imp_step = {
   i_equations : imp_equation list;
-  i_updates : (ident * imp_expr option) list;
+  i_updates : (pattern * imp_expr option) list;
 }
 
 type imp_node = {
@@ -45,6 +51,8 @@ type imp_node = {
   i_inits : imp_init;
   i_step_fun : imp_step;
 }
+
+
 
 let ident_to_stringloc i =
   {
@@ -82,10 +90,16 @@ let rec compile_expression exp =
     | Minus -> IMinus
     | Times -> ITimes
     | Div -> IDiv
-    | _-> failwith "wrong operator" 
+    | Lesse -> ILesse
+    | Great -> IGreat
+    | Greate -> IGreate
+    | Less -> ILess
+    | Diff -> IDiff
+    | _ -> failwith "forbidden operator"
   in
   match exp with
-  | Value c -> IValue c 
+  | Value c -> IValue c
+  | Tuple t -> ITuple (List.map (compile_expression) t)
   | Variable v -> IVariable v
   | Ref v -> IRef v
   | InfixOp (op,e1,e2) -> IInfixOp(compile_infop op,
@@ -102,6 +116,17 @@ let printml_string fmt p =
   Format.fprintf fmt "%s" p
 
 
+let rec printml_tuple fmt l =
+  match l with
+  | [] -> ()
+  | [x] -> printml_string fmt x.content
+  | h::t -> printml_string fmt (h.content^",") ; printml_tuple fmt t
+
+let printml_pattern fmt p =
+  match p with
+  | Simple x -> printml_string fmt x.content
+  | List t -> printml_tuple fmt t
+
 
 let rec printml_expression fmt exp =
   let printml_preop fmt op =
@@ -111,6 +136,11 @@ let rec printml_expression fmt exp =
   in
   let printml_infop fmt op =
     match op with
+    | IDiff -> Format.fprintf fmt " <> "
+    | ILess -> Format.fprintf fmt " < "
+    | ILesse -> Format.fprintf fmt " <= "
+    | IGreat -> Format.fprintf fmt " > "
+    | IGreate -> Format.fprintf fmt " >= "
     | IEquals -> Format.fprintf fmt " = "  
     | IPlus -> Format.fprintf fmt " + "
     | ITimes -> Format.fprintf fmt " * "
@@ -127,7 +157,8 @@ let rec printml_expression fmt exp =
                  printml_expressions tl
   in 
   match exp with
-  | IValue c -> Pprintast.expression fmt c 
+  | IValue c -> Pprintast.expression fmt c
+  | ITuple t -> printml_expressions fmt t
   | IVariable v ->  Format.fprintf fmt "%s" v.content
   | IRef v -> Format.fprintf fmt "Option.get (!%s)" v.content
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
@@ -149,9 +180,9 @@ let printml_inits fmt il =
   let printml_init fmt (s,e) =
     begin match e with
       | None -> Format.fprintf fmt "let %a = ref None in\n"
-                  printml_string s.content
+                  printml_pattern s
       | Some x -> Format.fprintf fmt "let %a = ref (Some %a) in\n"
-                    printml_string s.content
+                    printml_pattern s
                     printml_expression x
     end 
   in
@@ -161,19 +192,18 @@ let printml_updates fmt il =
   let printml_init fmt (s,e) =
     begin match e with
       | None -> Format.fprintf fmt "%a := None;\n"
-                  printml_string s.content
+                  printml_pattern s
       | Some x -> Format.fprintf fmt "%a := (Some %a);\n"
-                    printml_string s.content
+                    printml_pattern s
                     printml_expression x
     end 
   in
   List.iter (fun i -> printml_init fmt i) il
 
-
 let printml_equations fmt el = 
   let printml_equation fmt e =
     Format.fprintf fmt "let %a = %a in \n"
-      printml_string e.i_pattern.content
+      printml_pattern e.i_pattern
       printml_expression e.i_expression
   in
   List.iter (fun x -> printml_equation fmt x) el
@@ -270,10 +300,22 @@ let rec tocaml_expression e =
   Ast_helper.( 
     match e with
     | IValue v -> v
+    | ITuple t -> Exp.tuple (List.map tocaml_expression t)
     | IVariable i -> [%expr [%e Exp.ident (ident_to_lid i) ]  ]
     | IRef i -> [%expr Option.get ![%e Exp.ident (ident_to_lid i) ]  ]
-     | IInfixOp (IEquals,e1,e2) ->
+    | IInfixOp (IDiff,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
+    | IInfixOp (ILess,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] < [%e tocaml_expression e2 ]]
+    | IInfixOp (IGreat,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] > [%e tocaml_expression e2 ]]
+    | IInfixOp (IGreate,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] >= [%e tocaml_expression e2 ]] 
+    | IInfixOp (ILesse,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] < [%e tocaml_expression e2 ]]
+    | IInfixOp (IEquals,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
+
     | IInfixOp (IPlus,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
     | IInfixOp (IMinus,e1,e2) ->
@@ -296,13 +338,28 @@ let rec tocaml_expression e =
 
 let tocaml_inits il acc =
   let tocaml_init (s,e) acc =
-    match e with
-    | None ->
-      [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc s)] =
-               ref None in [%e acc ] ]  
-    | Some x ->
-      [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc s)] =
-               ref (Some [%e tocaml_expression x ]) in [%e acc ] ]
+    match s with
+    | Simple p ->
+      begin match e with
+      | None ->
+        [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc p)] =
+                 ref None in [%e acc ] ]  
+      | Some x ->
+        [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc p)] =
+                 ref (Some [%e tocaml_expression x ]) in [%e acc ] ]
+      end
+    | List t ->
+      let stringloclist = List.map (ident_to_stringloc) t in
+      let patlist = List.map (fun x -> Ast_helper.Pat.var x) stringloclist in
+      begin match e with
+      | None ->
+        [%expr let [%p Ast_helper.Pat.tuple patlist ] =
+                 ref None in [%e acc ] ]  
+      | Some x ->
+        [%expr let [%p Ast_helper.Pat.tuple patlist] =
+                 ref (Some [%e tocaml_expression x ]) in [%e acc ] ]
+      end
+      
   in List.fold_left (fun l i -> tocaml_init i l ) acc il 
 
 let tocaml_inputs il =
@@ -313,21 +370,42 @@ let tocaml_outputs ol =
 
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =
-    let ppat = ident_to_stringloc e.i_pattern in
-    let pexpr = tocaml_expression e.i_expression in 
-    [%expr let [%p Ast_helper.Pat.var ppat ] = ( [%e pexpr ] ) in  [%e acc ] ]
+    match e.i_pattern with
+    | Simple x -> 
+      let ppat = ident_to_stringloc x in
+      let pexpr = tocaml_expression e.i_expression in 
+      [%expr let [%p Ast_helper.Pat.var ppat ] = ( [%e pexpr ] ) in  [%e acc ] ]
+    | List t ->
+      let lpat = List.map ident_to_stringloc t in
+      let lastpat = List.map (fun x -> Ast_helper.Pat.var x ) lpat in 
+      let pexpr = tocaml_expression e.i_expression in 
+      [%expr let [%p Ast_helper.Pat.tuple lastpat ] = ( [%e pexpr ] ) in  [%e acc ] ]
   in
   List.fold_left (fun l e -> tocaml_eq e l) acc el
 
 let tocaml_updates ul acc =
   let tocaml_update (s,e) acc =
-    match e with
-    | None ->
-      [%expr [%p Ast_helper.Exp.ident (ident_to_lid s)] :=
-               None ; [%e acc ] ]  
-    | Some x ->
-      [%expr [%e Ast_helper.Exp.ident (ident_to_lid s)] :=
-               (Some [%e tocaml_expression x ]) ; [%e acc ] ]
+    match s with
+    | Simple p -> 
+      begin match e with
+        | None ->
+          [%expr [%p Ast_helper.Exp.ident (ident_to_lid p)] :=
+                   None ; [%e acc ] ]  
+        | Some x ->
+          [%expr [%e Ast_helper.Exp.ident (ident_to_lid p)] :=
+                   (Some [%e tocaml_expression x ]) ; [%e acc ] ]
+      end
+    | List t ->
+      let lidlist = List.map ident_to_lid t in
+      let explist = List.map (fun x -> Ast_helper.Exp.ident x) lidlist in
+       begin match e with
+        | None ->
+          [%expr [%p Ast_helper.Exp.tuple explist] :=
+                   None ; [%e acc ] ]  
+        | Some x ->
+          [%expr [%e Ast_helper.Exp.tuple explist] :=
+                   (Some [%e tocaml_expression x ]) ; [%e acc ] ]
+      end
   in
   List.fold_left (fun l u -> tocaml_update u l) acc ul
     
