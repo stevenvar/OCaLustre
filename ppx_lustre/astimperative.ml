@@ -17,6 +17,7 @@ and
   | IPrefixOp of imp_preop * imp_expr
   | IAlternative of imp_expr * imp_expr * imp_expr
   | IApplication of ident * imp_expr list
+  | IUnit
 and
   imp_infop =
   | IEquals
@@ -111,6 +112,7 @@ let rec compile_expression exp =
                                              compile_expression e3)
   | Application (id, el) -> IApplication (id,
                                           List.map (compile_expression) el)
+  | Unit -> IUnit
 
 let printml_string fmt p =
   Format.fprintf fmt "%s" p
@@ -172,9 +174,10 @@ let rec printml_expression fmt exp =
                                  printml_expression e1
                                  printml_expression e2
                                  printml_expression e3
-  | IApplication (s, el) -> Format.fprintf fmt "%a(%a)"
+  | IApplication (s, el) -> Format.fprintf fmt "%a (%a)"
                               printml_string s.content
                               printml_expressions el
+  | IUnit -> Format.fprintf fmt " () "
 
 let printml_inits fmt il =
   let printml_init fmt (s,e) =
@@ -301,7 +304,7 @@ let rec tocaml_expression e =
     match e with
     | IValue v -> v
     | ITuple t -> Exp.tuple (List.map tocaml_expression t)
-    | IVariable i -> [%expr [%e Exp.ident (ident_to_lid i) ]  ]
+    | IVariable i -> Exp.ident (ident_to_lid i)
     | IRef i -> [%expr Option.get ![%e Exp.ident (ident_to_lid i) ]  ]
     | IInfixOp (IDiff,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
@@ -331,10 +334,14 @@ let rec tocaml_expression e =
                 (tocaml_expression e2) 
                 (Some (tocaml_expression e3))  ] ]
     | IApplication (id, el) ->
+      let listexp = match el with
+        | [] ->  [("", [%expr () ] )]
+        | [x] ->  [("", tocaml_expression x)]
+        | _ -> [("",Exp.tuple (List.map (fun x -> tocaml_expression x) el))] in 
       Exp.apply
-        (Exp.ident (ident_to_lid id))
-        [("",Exp.tuple (List.map (fun x -> tocaml_expression x) el))]
-    | _ -> assert false )
+        (Exp.ident (ident_to_lid id)) listexp
+    | IUnit -> [%expr ()]
+    )
 
 let tocaml_inits il acc =
   let tocaml_init (s,e) acc =

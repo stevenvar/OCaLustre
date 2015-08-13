@@ -47,6 +47,7 @@ let rec transform_exp e l =
       List.fold_left (fun (l1,l2) (a,b) -> (a::l1,b@l2) ) ([],[]) tuplist in
     Application (i,List.rev new_eqs), new_list
   | Value v -> e,l
+  | Unit -> e,l
 
 let transform_eq eq =
   let (new_exp, new_eql) = transform_exp eq.expression [] in 

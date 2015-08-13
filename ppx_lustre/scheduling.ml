@@ -36,6 +36,7 @@ let rec get_expr_id e s =
   | PrefixOp (op, e) ->
     get_expr_id e s 
   | Value v -> s
+  | Unit -> s
 
 
 let mk_dep_graph eqs =

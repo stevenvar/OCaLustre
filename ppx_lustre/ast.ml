@@ -40,6 +40,7 @@ and
   | Variable of ident
   | Tuple of exp_desc list 
   | Ref of ident
+  | Unit
 and
   inf_operator =
   | Diff
@@ -115,6 +116,7 @@ let checkname_ident id =
 (* transform expressions to node of the ocalustre AST *)
 let rec mk_expr e =
   match e with
+  | [%expr () ] -> Unit
   | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
   | [%expr ( [%e? e1] , [%e? e2] ) ] -> Tuple ((mk_expr e2)::(mk_expr e1)::[])
   | [%expr [%e? e1] = [%e? e2] ] -> InfixOp(Equals, mk_expr e1, mk_expr e2)
@@ -199,6 +201,7 @@ let rec get_idents e =
       | _ -> get_idents e1
     end
   | Value v -> []
+  | Unit -> []
 
 (* creates a node "lustre node" in the AST *)
 let mk_node name body =

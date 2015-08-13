@@ -76,7 +76,8 @@ let rec print_expression fmt e =
       print_expression e2
   | Application (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
-  | Value v -> Pprintast.expression fmt v 
+  | Value v -> Pprintast.expression fmt v
+  | Unit -> Format.fprintf fmt " () "
   
 
 let print_equation fmt e =
