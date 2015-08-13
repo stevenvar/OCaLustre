@@ -15,15 +15,17 @@ module Option = struct
     | Some x -> x
 end 
 
-let%node machin () (b) =
-  b := 1 --> (pre b) * 5
 
-let%node truc () (c) =
-  c := 0 --> machin () 
+let%node truc () (a,b) =
+  (a,b) := (1,4) -->( (pre a) * 4 , (pre b)*5)
 
 let _ =
   while true do
-    Format.fprintf Format.std_formatter "%d @." (truc ());
+    let (a,b) = truc () in 
+    print_int a;
+    print_string ",";
+    print_int b;
+    print_endline "";
     Unix.sleep 1
   done
   

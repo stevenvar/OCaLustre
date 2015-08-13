@@ -158,7 +158,10 @@ let rec mk_expr e =
 (* creates equation node in the AST *)
 let mk_equation eq =
   match eq with
-    [%expr [%e? p] := [%e? e] ] ->
+  | [%expr ( [%e? e1] , [%e? e2] ) := [%e? e3] ] ->
+    {pattern = List ((checkname_ident e1)::(checkname_ident e2)::[]);
+     expression = mk_expr e3}
+  | [%expr [%e? p] := [%e? e] ] -> 
     {pattern= Simple (checkname_ident p);
      expression = mk_expr e}
   | _ -> Error.syntax_error eq.pexp_loc 
