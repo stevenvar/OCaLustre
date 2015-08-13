@@ -15,7 +15,9 @@ module Option = struct
     | Some x -> x
 end 
 
-let%node truc () (b,c,d) =
-  b := d;
-  c := if b then true else false;
-  d := c
+let%node machin (a,c) (b) =
+  b := a
+
+let%node truc () (c) =
+  c := 0 --> machin (pre c, 0)
+  

@@ -32,7 +32,8 @@ let rec transform_exp e l =
   | Variable i -> (e,l)
   | Tuple t ->
     let tuplist = List.map (fun e -> transform_exp e l) t in
-    let listup = List.fold_left (fun l (a,b) -> (a::(fst l),b@(snd l))  ) ([],[]) tuplist in
+    let listup =
+      List.fold_left (fun l (a,b) -> (a::(fst l),b@(snd l))) ([],[]) tuplist in
     Tuple(fst listup), (snd listup)
   | Ref i -> (e,l)
   | Alternative (e1,e2,e3) ->
@@ -40,7 +41,11 @@ let rec transform_exp e l =
     let ne2 = transform_exp (e2) l in
     let ne3 = transform_exp (e3) l in 
     Alternative(fst ne1, fst ne2, fst ne3),(snd ne1@snd ne2@snd ne3)
-  | Application (i,el) -> e,l 
+  | Application (i,el) -> 
+    let tuplist = List.map (fun e -> transform_exp e l) el in
+    let (new_eqs, new_list) =
+      List.fold_left (fun (l1,l2) (a,b) -> (a::l1,b@l2) ) ([],[]) tuplist in
+    Application (i,List.rev new_eqs), new_list
   | Value v -> e,l
 
 let transform_eq eq =
