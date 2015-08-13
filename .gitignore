@@ -2,3 +2,8 @@ ppx_lustre/_build
 ppx_lustre/setup.ml
 ppx_lustre/setup.data
 ppx_lustre/setup.log
+ppx_lustre/examples/led/led.asm
+ppx_lustre/examples/led/led.lst
+ppx_lustre/examples/led/led.cod
+ppx_lustre/examples/led/led.hex
+ppx_lustre/examples/led/led
