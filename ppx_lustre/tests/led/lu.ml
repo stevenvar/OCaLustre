@@ -1,13 +1,8 @@
 open Pic
-
-module Option = struct
-  let get x =
-    match x with
-    | None -> failwith "none"
-    | Some v -> v 
-end
-
-    
+module Option =
+  struct
+    let get x = match x with | None  -> failwith "none" | Some v -> v
+  end
 let write_bit pin v = if v = 1 then set_bit pin else clear_bit pin
 let count =
   let init = ref (Some true) in
@@ -17,7 +12,7 @@ let count =
     init := (Some false); pre_a := (Some a); a in
   count_step
 let light =
-  let light_step () = let pin = if (count (0)) > 10 then 1 else 0 in pin in
+  let light_step () = let pin = if (count 0) > 10 then 1 else 0 in pin in
   light_step
 let _ =
   write_reg TRISB 0;

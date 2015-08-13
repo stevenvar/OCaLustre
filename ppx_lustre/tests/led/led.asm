@@ -56,7 +56,6 @@ caml_globals_init_heap:
         db      0x6e, 0x65, 0x00, 0x01, 0x00, 0x01, 0x03, 0x00
 caml_globals_init_end:
 
-        include "config.asm"
         include "/usr/local/lib/ocapic/stdlib.asm"
 
         end

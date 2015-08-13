@@ -1,1 +1,4 @@
 ppx_lustre/_build
+ppx_lustre/setup.ml
+ppx_lustre/setup.data
+ppx_lustre/setup.log
