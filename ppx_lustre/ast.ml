@@ -132,6 +132,7 @@ let rec mk_expr e =
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value e
   | [%expr false ] -> Value e
+  | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
   (* a := NOEUD2 (x,y) *)
   | [%expr [%e? e1] [%e? e2] ] ->
     Application(checkname_ident e1, 
@@ -139,7 +140,6 @@ let rec mk_expr e =
                   | Pexp_tuple l -> List.map mk_expr l
                   | _ -> [mk_expr e2]
                 end )
-  | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
       pexp_attributes } ->
