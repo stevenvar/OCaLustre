@@ -74,7 +74,10 @@ let rec toposort topo g name =
   else
     let g1 , g2 = G.partition (fun ((_,_),s) -> S.is_empty s) g in
     if G.is_empty g1 then
-      Error.print_error name.loc ("Causality loop in node "^name.content) ;
+      let vars = G.fold (fun ((s,e),_) l -> s^" "^l) g "" in   
+      Error.print_error name.loc
+        ("Causality loop in node "^name.content^" with these variables : "^vars )
+    else
     let sv =
       G.fold (fun ((x,_),_) s -> S.add x s) g1 S.empty
     in
