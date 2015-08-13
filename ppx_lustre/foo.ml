@@ -9,20 +9,42 @@
 (*                                                                       *)
 (*************************************************************************)
 
-open Pic;;
+open Pic
 
-let write_bit pin v =
-  if v = 1 then set_bit pin else set_bit 0
+ 
 
-let%node count (x) (a) =
-  a := 0 next (pre a + 1)
+module Disp = Lcd.Connect (
+struct
+  let bus_size = Lcd.Eight
+  let e  = LATA0
+  let rs = LATA1
+  let rw = LATA3
+  let bus = PORTB
+end
+  )
 
-let%node light () (pin) =
-  pin := if count (0) > 10 then 1 else 0
+module Option =
+struct
+  let get o = match o with
+    | None -> failwith "None"
+    | Some x -> x
+end
 
-let _ = 
-  write_reg TRISB 0x00;
+let write_bit pin b =
+  if b then set_bit pin else clear_bit pin
+
+let%node switch () (value,pin) =
+  value := true --> not (pre value);
+  pin := if value then "ON" else "OFF"
+
+let _ =
+  set_bit IRCF1;
+  set_bit IRCF0;
+  set_bit PLLEN;
+  Disp.init ();
+  Disp.config ();
   while true do
-    write_bit RB0 (light ());
+    Disp.clear (); 
+    Disp.print_string (light ());
     Sys.sleep 500;
   done

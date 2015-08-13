@@ -20,11 +20,14 @@ $(BASE).hex: $(BASE).asm
 $(BASE) $(BASE).asm: $(BASE).ml config.asm
 	ocapic $(PIC) -pp '/home/steven/.opam/4.02.3/lib/ppx_tools/rewriter ../../ppx_lustre.native' config.asm $(BASE).ml
 
+
 simul1: $(BASE)
-	./$(BASE) ocapic_dip40_simulator
+	./$(BASE) ocapic_dip40_simulator \
+	  'ocapic_lcd_simulator 16x2 e=RC5 rs=RD3 rw=RC4 bus=PORTB'
 
 simul2: $(BASE).hex
-	ocasim $(BASE).hex ocapic_dip40_simulator
+	ocasim $(BASE).hex ocapic_dip40_simulator \
+	  'ocapic_lcd_simulator 16x2 e=RC5 rs=RD3 rw=RC4 bus=PORTB'
 
 prog: $(BASE).hex
 	picprog $(BASE).hex
