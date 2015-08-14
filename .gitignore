@@ -7,3 +7,4 @@ ppx_lustre/examples/led/led.lst
 ppx_lustre/examples/led/led.cod
 ppx_lustre/examples/led/led.hex
 ppx_lustre/examples/led/led
+ppx_lustre/ppx_lustre.native
