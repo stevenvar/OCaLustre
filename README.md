@@ -2,7 +2,7 @@
 
 # Description
 
-Synchronous extension to OCaml with the style of the Lustre synchronous programming language
+Synchronous extension to OCaml with the style of the Lustre synchronous programming language.
 
 OCaml is extended with "nodes" that are synchronous functions,
 running at every instant.
@@ -14,9 +14,9 @@ Inputs and outputs are considered as data flows, that is a flow of values that c
 # Syntax 
 ```ocaml
 let%node NAMEOFNODE INPUTS OUTPUTS = 
-  OUT1 := EXPR; 
+  OUT := EXPR; 
   ... 
-  OUTN := EXPR
+  OUT := EXPR
   
 ```
 with
@@ -33,12 +33,12 @@ OUT ::= IDENT | (IDENT,IDENT) >
 INFIXOP ::= + | - | / | * | --> | < | > | <= | >= | = | <> 
 PREFIXOP ::= pre | not 
 EXPR ::=   UNIT 
-        | if EXPR then EXPR else EXPR
-	| IDENT PARAMETERS (* the application of the function named IDENT *)
-	| EXPR INFIXOP EXPR
-	| PREFIXOP EXPR
-	| VALUE
-	| (EXPR,EXPR)
+       | if EXPR then EXPR else EXPR
+       | IDENT PARAMETERS (* the application of the function named IDENT *)
+       | EXPR INFIXOP EXPR
+       | PREFIXOP EXPR
+       | VALUE
+       | (EXPR,EXPR)
 ```
 NB: The sequence of assignations ( OUT := EXPR; ... ) can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
