@@ -12,12 +12,14 @@ An instant is the atomic unit of time at which a node computes outputs from inpu
 Inputs and outputs are considered as data flows, that is a flow of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...  
 
 # Syntax 
-
-let%node NAMEOFNODE INPUTS OUTPUTS = <br />
-  OUT1 := EXPR; <br />
-  ... <br />
-  OUTN := EXPR <br />
+```ocaml
+let%node NAMEOFNODE INPUTS OUTPUTS = 
+  OUT1 := EXPR; 
+  ... 
+  OUTN := EXPR 
 <br />
+```
+
 with
 <br />
 
