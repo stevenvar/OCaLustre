@@ -16,41 +16,41 @@ Inputs and outputs are considered as data flows, that is a flow of values that c
 let%node NAMEOFNODE INPUTS OUTPUTS = 
   OUT1 := EXPR; 
   ... 
-  OUTN := EXPR 
-<br />
+  OUTN := EXPR
+  
 ```
-
 with
 <br />
+```ocaml
+VALUE ::= "string" | int | bool | ... 
 
-VALUE ::= "string" | int | bool | ... <br />
+NAMEOFNODE ::= string 
 
-NAMEOFNODE ::= string <br />
+IDENT ::= string 
 
-IDENT ::= string <br />
+UNIT ::= () 
 
-UNIT ::= () <br />
+PARAMETERS ::= (IDENT,IDENT,...) | IDENT | UNIT
 
-PARAMETERS ::= (IDENT,IDENT,...) | IDENT | UNIT <br />
+INTPUTS ::= PARAMETERS 
 
-INTPUTS ::= PARAMETERS <br />
+OUTPUTS ::= PARAMETERS 
 
-OUTPUTS ::= PARAMETERS <br />
+OUT ::= IDENT | (IDENT,IDENT) >
 
-OUT ::= IDENT | (IDENT,IDENT) <br />
-
-INFIXOP ::= + | - | / | * | --> | < | > | <= | >= | = | <> <br />
+INFIXOP ::= + | - | / | * | --> | < | > | <= | >= | = | <> 
 
 PREFIXOP ::= pre | not 
 
-EXPR ::=   UNIT <br />
-           | if EXPR then EXPR else EXPR<br />
-	   | IDENT PARAMETERS (* the application of the function named IDENT *)<br />
-           | EXPR INFIXOP EXPR<br />
-	   | PREFIXOP EXPR<br />
-	   | VALUE<br />
-	   | (EXPR,EXPR)<br />
-<br />
+EXPR ::=   UNIT 
+           | if EXPR then EXPR else EXPR
+	   | IDENT PARAMETERS (* the application of the function named IDENT *)
+           | EXPR INFIXOP EXPR
+	   | PREFIXOP EXPR
+	   | VALUE
+	   | (EXPR,EXPR)
+
+```
 NB: The sequence of assignations ( OUT := EXPR; ... ) can be listed in any order, for example:<br />
    a := b * 5;<br />
    b := 9<br />
