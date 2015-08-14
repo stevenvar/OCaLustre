@@ -33,9 +33,9 @@ end
 let write_bit pin b =
   if b then set_bit pin else clear_bit pin
 
-let%node switch () (value,pin) =
-  value := true --> not (pre value);
-  pin := if value then "ON" else "OFF"
+let%node entiers () (n) =
+  n := 0 --> ((pre n) + 1)
+  
 
 let _ =
   set_bit IRCF1;
@@ -45,6 +45,6 @@ let _ =
   Disp.config ();
   while true do
     Disp.clear (); 
-    Disp.print_string (snd (switch ()));
-    Sys.sleep 500;
+    Disp.print_int (entiers ()); 
+    Sys.sleep 1000;
   done

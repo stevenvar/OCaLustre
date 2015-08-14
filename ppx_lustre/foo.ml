@@ -15,14 +15,13 @@ module Option = struct
     | Some x -> x
 end 
 
-let%node bool_to_string (bool) (string) =
-  string := if bool then "TRUE" else "FALSE"
-
-let%node xor_writer (a,b) (x,s) =
-   s:= bool_to_string (x);
-   x:= if a then (not b) else b
+let%node entiers () (n) =
+  n := 0 --> (pre n) + 1
+  
 let _ =
   while true do
-    print_endline (snd (xor_writer (true,false)))
+    print_int (entiers ());
+    print_endline "";
+    Unix.sleep 1
   done
   

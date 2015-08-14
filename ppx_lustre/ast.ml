@@ -191,7 +191,7 @@ let rec get_idents e =
   | Ref i -> [i]
   | Alternative (e1,e2,e3) ->
     get_idents e1 @ 
-    get_idents e2 @
+    get_idents e2 @ 
     get_idents e3
   | Application (id, el) ->
     List.fold_left (fun l e -> l @ get_idents e) [] el 

@@ -18,7 +18,7 @@ $(BASE).hex: $(BASE).asm
 	gpasm -y $(BASE).asm
 
 $(BASE) $(BASE).asm: $(BASE).ml config.asm
-	ocapic $(PIC) -pp '/home/steven/.opam/4.02.3/lib/ppx_tools/rewriter ../../ppx_lustre.native' config.asm $(BASE).ml
+	ocapic $(PIC) -pp '/home/steven/.opam/4.02.2/lib/ppx_tools/rewriter ../../ppx_lustre.native' config.asm $(BASE).ml
 
 
 simul1: $(BASE)
