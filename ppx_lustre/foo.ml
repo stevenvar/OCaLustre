@@ -15,17 +15,14 @@ module Option = struct
     | Some x -> x
 end 
 
+let%node bool_to_string (bool) (string) =
+  string := if bool then "TRUE" else "FALSE"
 
-let%node truc () (a,b) =
-  (a,b) := (1,4) -->( (pre a) * 4 , (pre b)*5)
-
+let%node xor_writer (a,b) (x,s) =
+   s:= bool_to_string (x);
+   x:= if a then (not b) else b
 let _ =
   while true do
-    let (a,b) = truc () in 
-    print_int a;
-    print_string ",";
-    print_int b;
-    print_endline "";
-    Unix.sleep 1
+    print_endline (snd (xor_writer (true,false)))
   done
   
