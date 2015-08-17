@@ -29,10 +29,10 @@ UNIT ::= ()
 PARAMETERS ::= (IDENT,IDENT,...) | IDENT | UNIT
 INTPUTS ::= PARAMETERS 
 OUTPUTS ::= PARAMETERS 
-OUT ::= IDENT | (IDENT,IDENT) >
+OUT ::= IDENT | (IDENT,IDENT) 
 INFIXOP ::= + | - | / | * | --> | < | > | <= | >= | = | <> 
 PREFIXOP ::= pre | not 
-EXPR ::=   UNIT 
+EXPR ::= UNIT 
        | if EXPR then EXPR else EXPR
        | IDENT PARAMETERS (* the application of the function named IDENT *)
        | EXPR INFIXOP EXPR
