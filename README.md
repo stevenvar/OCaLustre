@@ -13,7 +13,7 @@ Inputs and outputs are considered as data flows, that is a flow of values that c
 
 # Syntax 
 ```ocaml
-let%node NAMEOFNODE INPUTS OUTPUTS = 
+let%node IDENT INPUTS OUTPUTS = 
   OUT := EXPR; 
   ... 
   OUT := EXPR
@@ -22,17 +22,16 @@ let%node NAMEOFNODE INPUTS OUTPUTS =
 with
 <br />
 ```ocaml
-VALUE ::= "string" | int | bool | ... 
-NAMEOFNODE ::= string 
-IDENT ::= string 
+VALUE ::= string | int | bool | ... 
+IDENT ::= id
 UNIT ::= () 
 PARAMETERS ::= (IDENT,IDENT,...) | IDENT | UNIT
 INTPUTS ::= PARAMETERS 
 OUTPUTS ::= PARAMETERS 
-OUT ::= IDENT | (IDENT,IDENT) >
+OUT ::= IDENT | (IDENT,IDENT) 
 INFIXOP ::= + | - | / | * | --> | < | > | <= | >= | = | <> 
 PREFIXOP ::= pre | not 
-EXPR ::=   UNIT 
+EXPR ::= UNIT 
        | if EXPR then EXPR else EXPR
        | IDENT PARAMETERS (* the application of the function named IDENT *)
        | EXPR INFIXOP EXPR
