@@ -30,21 +30,24 @@ struct
     | Some x -> x
 end
 
-let write_bit pin b =
-  if b then set_bit pin else clear_bit pin
+let moveto = Disp.moveto
+let print_string = Disp.print_string
 
-let%node entiers () (n) =
-  n := 0 --> ((pre n) + 1)
+
+let%node print_h () (h) =
+  h := print_string "h " 
+
+let%node print_w () (w) =
+  w := print_string "w "
+
+let%node main () (a,b) =
+  a := print_h ();
+  b := print_w () 
   
-
+  
 let _ =
-  set_bit IRCF1;
-  set_bit IRCF0;
-  set_bit PLLEN;
-  Disp.init ();
-  Disp.config ();
   while true do
-    Disp.clear (); 
-    Disp.print_int (entiers ()); 
-    Sys.sleep 1000;
+    main ();
+    Sys.sleep 1;
   done
+  
