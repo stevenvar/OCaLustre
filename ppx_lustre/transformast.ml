@@ -3,7 +3,12 @@ open Ast
 
 
 
+let counter =
+  let count = ref (0) in
+  fun () -> incr count; !count
+
 let rec transform_exp e l =
+ 
   let init = mk_ref "init" in
   match e with 
   | InfixOp (op, e1, e2) ->
@@ -15,6 +20,7 @@ let rec transform_exp e l =
                                       --> mk_expr [%expr false]  )
                      }::l)
       | _ ->
+
         let ne1 = transform_exp (e1) l in 
         let ne2 = transform_exp (e2) l in 
         (InfixOp (op, fst ne1, fst ne2) ) , snd ne1@snd ne2
@@ -45,7 +51,10 @@ let rec transform_exp e l =
     let tuplist = List.map (fun e -> transform_exp e l) el in
     let (new_eqs, new_list) =
       List.fold_left (fun (l1,l2) (a,b) -> (a::l1,b@l2) ) ([],[]) tuplist in
-    Application (i,List.rev new_eqs), new_list
+     
+    let name = (i.content^"_step_"^(string_of_int (counter ()) ))in
+    let new_exp = { pattern = mk_pattern name ; expression = Application (i,el)} in
+     Application (mk_ident name,List.rev new_eqs), new_exp::new_list
   | Value v -> e,l
   | Unit -> e,l
 
@@ -58,6 +67,6 @@ let rec transform_eqs eqs =
   List.fold_left (fun (l1,l2) (x,yl) -> (x::l1),(l2@yl) ) ([],[]) new_eqs
 
 let transform_node node = 
-  let eqs = transform_eqs node.equations  in 
+  let eqs = transform_eqs node.equations in 
   { node with equations = (fst eqs)@(snd eqs) }
  

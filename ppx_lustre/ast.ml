@@ -21,8 +21,7 @@ and
   | Simple of ident
   | List of ident list
 and
-  constant =
-  Parsetree.expression 
+  constant = Integer of int | Float of float | Bool of bool 
 and
  expression = exp_desc 
 and
@@ -83,13 +82,13 @@ let mk_ident ?(loc=loc_default) v = { loc ; content = v }
 
 let alternative e1 e2 e3 = Alternative (e1, e2, e3)
 
-let (+) e1 e2 = InfixOp ( Plus , e1 , e2 ) 
+let ( +/ ) e1 e2 = InfixOp ( Plus , e1 , e2 ) 
 
-let ( * ) e1 e2 = InfixOp ( Times , e1 , e2)
+let ( */ ) e1 e2 = InfixOp ( Times , e1 , e2)
 
-let ( - ) e1 e2 = InfixOp ( Minus, e1, e2)
+let ( -/ ) e1 e2 = InfixOp ( Minus, e1, e2)
 
-let ( / ) e1 e2 = InfixOp (Div, e1, e2) 
+let ( // ) e1 e2 = InfixOp (Div, e1, e2) 
 
 let (-->) e1 e2 = InfixOp ( Arrow, e1, e2) 
 
@@ -125,15 +124,15 @@ let rec mk_expr e =
   | [%expr [%e? e1] < [%e? e2] ] -> InfixOp(Less, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] >= [%e? e2] ] -> InfixOp(Greate, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] <= [%e? e2] ] -> InfixOp(Lesse, mk_expr e1, mk_expr e2)
-  | [%expr [%e? e1] + [%e? e2] ] -> mk_expr e1 + mk_expr e2
-  | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 * mk_expr e2
-  | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 - mk_expr e2
-  | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 / mk_expr e2
+  | [%expr [%e? e1] + [%e? e2] ] -> mk_expr e1 +/ mk_expr e2
+  | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 */ mk_expr e2
+  | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 -/ mk_expr e2
+  | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 // mk_expr e2
   | [%expr [%e? e1] --> [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
-  | [%expr true ] -> Value e
-  | [%expr false ] -> Value e
+  | [%expr true ] -> Value (Bool true)
+  | [%expr false ] -> Value (Bool false)
   | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
   (* a := NOEUD2 (x,y) *)
   | [%expr [%e? e1] [%e? e2] ] ->
@@ -145,7 +144,11 @@ let rec mk_expr e =
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
       pexp_attributes } ->
-    Value (e)
+      begin match c with
+      | Const_int i -> Value (Integer i )
+      | Const_float f -> Value (Float (float_of_string f))
+      | _ -> assert false   
+      end
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
      pexp_loc ;
      pexp_attributes} ->
@@ -184,6 +187,7 @@ let checkio body =
     end 
   | _ -> Error.syntax_error body.pexp_loc 
 
+(* Returns the idents inside each construct in a list *)
 let rec get_idents e =
   match e with 
   | Variable i -> [i]

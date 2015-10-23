@@ -34,20 +34,22 @@ let moveto = Disp.moveto
 let print_string = Disp.print_string
 
 
-let%node print_h () (h) =
-  h := print_string "h " 
-
-let%node print_w () (w) =
-  w := print_string "w "
-
+let%node cpt () (n) = 
+  n := 0 --> (pre n) + 1
+  
 let%node main () (a,b) =
-  a := print_h ();
-  b := print_w () 
-  
-  
+  a := cpt ();
+  b := cpt () 
+
 let _ =
+  Disp.init(); 
+  Disp.config (); 
   while true do
-    main ();
-    Sys.sleep 1;
+  let (a,b) = main () in
+    Disp.moveto 1 0;
+    Disp.print_int a;
+    Disp.moveto 1 4;
+    Disp.print_int b; 
+    Sys.sleep 1000;
   done
   

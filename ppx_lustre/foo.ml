@@ -17,10 +17,16 @@ end
 
 let%node entiers () (n) =
   n := 0 --> (pre n) + 1
+
+let%node main () (a,b) = 
+  a := entiers (); 
+  b := entiers ()
   
 let _ =
   while true do
-    print_int (entiers ());
+    let (a,b) = main () in 
+    print_int a;
+    print_int b; 
     print_endline "";
     Unix.sleep 1
   done

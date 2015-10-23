@@ -12,27 +12,30 @@
 BASE = led
 PIC = 18f4620
 
-all: $(BASE).hex
+all: $(BASE)_pure.hex
 
-$(BASE).hex: $(BASE).asm
-	gpasm -y $(BASE).asm
+$(BASE)_pure.hex: $(BASE)_pure.asm
+	gpasm -y $(BASE)_pure.asm
 
-$(BASE) $(BASE).asm: $(BASE).ml config.asm
-	ocapic $(PIC) -pp '/home/steven/.opam/4.02.2/lib/ppx_tools/rewriter ../../ppx_lustre.native' config.asm $(BASE).ml
+$(BASE)_pure.ml : $(BASE).ml 
+	$$(ocamlfind ppx_tools/rewriter ../../ppx_lustre.native $(BASE).ml -o $(BASE)_pure.ml)
+
+$(BASE)_pure $(BASE)_pure.asm: $(BASE)_pure.ml config.asm
+	ocapic $(PIC) config.asm $(BASE)_pure.ml
 
 
-simul1: $(BASE)
-	./$(BASE) ocapic_dip40_simulator \
+simul1: $(BASE)_pure
+	./$(BASE)_pure ocapic_dip40_simulator \
 	  'ocapic_lcd_simulator 16x2 e=RC5 rs=RD3 rw=RC4 bus=PORTB'
 
-simul2: $(BASE).hex
-	ocasim $(BASE).hex ocapic_dip40_simulator \
+simul2: $(BASE)_pure.hex
+	ocasim $(BASE)_pure.hex ocapic_dip40_simulator \
 	  'ocapic_lcd_simulator 16x2 e=RC5 rs=RD3 rw=RC4 bus=PORTB'
 
-prog: $(BASE).hex
-	picprog $(BASE).hex
+prog: $(BASE)_pure.hex
+	picprog $(BASE)_pure.hex
 
 clean:
-	@rm -f *~ *.o *.cmo *.cmi *.hex *.cod *.lst $(BASE).asm $(BASE)
+	@rm -f *~ *.o *.cmo *.cmi *.hex *.cod *.lst $(BASE)_pure.asm $(BASE)_pure $(BASE)_pure.ml
 
 .PHONY: all simul1 simul2 prog clean

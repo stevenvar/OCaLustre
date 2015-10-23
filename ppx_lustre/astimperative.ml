@@ -3,13 +3,13 @@ open Asttypes
 open Longident
 open Ast
 
-type constant = Parsetree.expression 
+
   
 type imp_init = (pattern * imp_expr option) list 
   
 and
   imp_expr =
-  | IValue of constant
+  | IValue of Ast.constant
   | IVariable of ident
   | ITuple of imp_expr list 
   | IRef of ident
@@ -53,6 +53,9 @@ type imp_node = {
   i_step_fun : imp_step;
 }
 
+let counter =
+  let count = ref (0) in
+  fun () -> incr count; !count
 
 
 let ident_to_stringloc i =
@@ -99,7 +102,7 @@ let rec compile_expression exp =
     | _ -> failwith "forbidden operator"
   in
   match exp with
-  | Value c -> IValue c
+  | Value v -> IValue v
   | Tuple t -> ITuple (List.map (compile_expression) t)
   | Variable v -> IVariable v
   | Ref v -> IRef v
@@ -116,6 +119,7 @@ let rec compile_expression exp =
 
 let printml_string fmt p =
   Format.fprintf fmt "%s" p
+
 
 
 let rec printml_tuple fmt l =
@@ -159,7 +163,7 @@ let rec printml_expression fmt exp =
                  printml_expressions tl
   in 
   match exp with
-  | IValue c -> Pprintast.expression fmt c
+  | IValue c -> Astprinter.print_value fmt c
   | ITuple t -> printml_expressions fmt t
   | IVariable v ->  Format.fprintf fmt "%s" v.content
   | IRef v -> Format.fprintf fmt "Option.get (!%s)" v.content
@@ -302,7 +306,10 @@ let compile_node node =
 let rec tocaml_expression e =
   Ast_helper.( 
     match e with
-    | IValue v -> v
+    | IValue (Integer i) -> Exp.constant (Const_int i)
+    | IValue (Float f) -> Exp.constant (Const_float (string_of_float f))
+    | IValue (Bool true) -> Exp.construct {txt= Lident "true" ; loc = Location.none } None
+    | IValue (Bool false) -> Exp.construct {txt=Lident "false" ; loc = Location.none }  None
     | ITuple t -> Exp.tuple (List.map tocaml_expression t)
     | IVariable i -> Exp.ident (ident_to_lid i)
     | IRef i -> [%expr Option.get ![%e Exp.ident (ident_to_lid i) ]  ]

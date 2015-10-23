@@ -1,5 +1,13 @@
 open Ast
 
+
+let print_value fmt v = 
+  match v with 
+  | Integer i -> Format.fprintf fmt "%d" i
+  | Float f -> Format.fprintf fmt "%f" f
+  | Bool true  -> Format.fprintf fmt "true"
+  | Bool false  -> Format.fprintf fmt "false"
+
 let rec print_list f fmt l = 
   match l with
   | h ::t when t <> []-> (Format.fprintf fmt  "%a , " f h ; print_list f fmt t) 
@@ -76,7 +84,7 @@ let rec print_expression fmt e =
       print_expression e2
   | Application (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
-  | Value v -> Pprintast.expression fmt v
+  | Value v -> print_value fmt v 
   | Unit -> Format.fprintf fmt " () "
   
 
