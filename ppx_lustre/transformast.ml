@@ -51,7 +51,6 @@ let rec transform_exp e l =
     let tuplist = List.map (fun e -> transform_exp e l) el in
     let (new_eqs, new_list) =
       List.fold_left (fun (l1,l2) (a,b) -> (a::l1,b@l2) ) ([],[]) tuplist in
-     
     let name = (i.content^"_step_"^(string_of_int (counter ()) ))in
     let new_exp = { pattern = mk_pattern name ; expression = Application (i,el)} in
      Application (mk_ident name,List.rev new_eqs), new_exp::new_list
