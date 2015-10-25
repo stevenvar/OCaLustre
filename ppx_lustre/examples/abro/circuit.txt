@@ -1,0 +1,7 @@
+window width=270 height=220 title="ABRO"
+
+button x=40 y=40 width=40 height=20 label="A" pin=RB0
+button x=100 y=40 width=40 height=20 label="B" pin=RB1
+button x=140 y=40 width=20 height=20 label="R" pin=RB2 color=red
+
+lcd x=10 y=100 column_nb=8 line_nb=1 e=RD0 rs=RD2 rw=RD1 bus=PORTC
