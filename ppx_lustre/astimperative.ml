@@ -3,9 +3,8 @@ open Asttypes
 open Longident
 open Ast
 
-
-  
-type imp_init = (pattern * imp_expr option) list 
+type app_inits = (pattern * imp_expr) list
+and  imp_inits = (pattern * imp_expr option) list 
   
 and
   imp_expr =
@@ -17,6 +16,7 @@ and
   | IPrefixOp of imp_preop * imp_expr
   | IAlternative of imp_expr * imp_expr * imp_expr
   | IApplication of ident * imp_expr list
+  | IApplication_init of ident * imp_expr list
   | IUnit
 and
   imp_infop =
@@ -30,6 +30,8 @@ and
   | IMinus
   | ITimes
   | IDiv
+  | IAnd
+  | IOr
 and
   imp_preop =
   | IPre
@@ -49,7 +51,8 @@ type imp_node = {
   i_name : ident;
   i_inputs : ident list;
   i_outputs : ident list;
-  i_inits : imp_init;
+  i_app_inits : app_inits; 
+  i_inits : imp_inits;
   i_step_fun : imp_step;
 }
 
@@ -99,6 +102,8 @@ let rec compile_expression exp =
     | Greate -> IGreate
     | Less -> ILess
     | Diff -> IDiff
+    | And -> IAnd
+    | Or -> IOr
     | _ -> failwith "forbidden operator"
   in
   match exp with
@@ -114,6 +119,8 @@ let rec compile_expression exp =
                                              compile_expression e2,
                                              compile_expression e3)
   | Application (id, el) -> IApplication (id,
+                                          List.map (compile_expression) el)
+  | Application_init (id, el) -> IApplication_init (id,
                                           List.map (compile_expression) el)
   | Unit -> IUnit
 
@@ -152,6 +159,8 @@ let rec printml_expression fmt exp =
     | ITimes -> Format.fprintf fmt " * "
     | IDiv -> Format.fprintf fmt " / "
     | IMinus -> Format.fprintf fmt " - "
+    | IAnd -> Format.fprintf fmt " and "
+    | IOr -> Format.fprintf fmt " or "
   in
   let rec printml_expressions fmt el =
     match el with
@@ -179,6 +188,9 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IApplication (s, el) -> Format.fprintf fmt "%a (%a)"
+                              printml_string s.content
+                              printml_expressions el
+  | IApplication_init (s, el) -> Format.fprintf fmt "%a (%a)"
                               printml_string s.content
                               printml_expressions el
   | IUnit -> Format.fprintf fmt " () "
@@ -257,6 +269,17 @@ let generate_inits node =
   (* list of couples (string, value) *) 
       generate_from_el node.equations
 
+let generate_app_inits node =
+  let generate_from_e equation l =
+    match equation.expression with
+    | Application_init (i, li) -> (equation.pattern, IApplication_init (i, (List.map compile_expression li)))::l
+    | _ -> l
+  in 
+  let generate_from_el equations = 
+    List.fold_left (fun l e -> let l = generate_from_e e l in l ) [] equations
+      in
+  (* list of couples (string, value) *) 
+      generate_from_el node.equations
 
 let generate_updates node =
   let generate_from_e equation l =
@@ -285,6 +308,7 @@ let remove_forbidden_op_list el =
     match e.expression with
     | PrefixOp (Pre, x) -> l
     | InfixOp (Arrow,x,y) -> l
+    | Application_init (i,li) -> l
     | _ -> e::l
   in List.fold_left (fun l e -> let l = remove_forbidden_op e l in l ) [] el  
 
@@ -293,6 +317,7 @@ let compile_node node =
     i_name = node.name;
     i_inputs = compile_io node.inputs;
     i_outputs =compile_io node.outputs;
+    i_app_inits = (generate_app_inits node);
     i_inits = (generate_inits node);
     i_step_fun =
       {
@@ -335,6 +360,10 @@ let rec tocaml_expression e =
     | IInfixOp (IDiv,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
     | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e] ]
+    | IInfixOp (IAnd,e1,e2) ->
+       [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
+    | IInfixOp (IOr,e1,e2) ->
+       [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
     | IAlternative (e1,e2,e3) -> 
       [%expr [%e Exp.ifthenelse
                 (tocaml_expression e1) 
@@ -347,8 +376,28 @@ let rec tocaml_expression e =
         | _ -> [("",Exp.tuple (List.map (fun x -> tocaml_expression x) el))] in 
       Exp.apply
         (Exp.ident (ident_to_lid id)) listexp
+    |IApplication_init (id, el) ->
+      let listexp = match el with
+        | [] ->  [("", [%expr () ] )]
+        | [x] ->  [("", tocaml_expression x)]
+        | _ -> [("",Exp.tuple (List.map (fun x -> tocaml_expression x) el))] in 
+      Exp.apply
+        (Exp.ident (ident_to_lid id)) listexp
     | IUnit -> [%expr ()]
+    | _ -> [%expr ()]
     )
+let tocaml_app_inits il acc =
+  let tocaml_app_init (s,e) acc =
+    match s with
+    | Simple p ->
+        [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc p)] =
+                 [%e tocaml_expression e ] in [%e acc ] ]
+    | List t ->
+      let stringloclist = List.map (ident_to_stringloc) t in
+      let patlist = List.map (fun x -> Ast_helper.Pat.var x) stringloclist in
+        [%expr let [%p Ast_helper.Pat.tuple patlist] =
+                 [%e tocaml_expression e ] in [%e acc ] ]
+      in List.fold_left (fun l i -> tocaml_app_init i l ) acc il 
 
 let tocaml_inits il acc =
   let tocaml_init (s,e) acc =
@@ -475,8 +524,9 @@ let tocaml_step_fun node =
 
 let tocaml_node inode =
   let pname = ident_to_stringloc inode.i_name in
+  let app_inits = inode.i_app_inits in
   let inits = inode.i_inits in
   
-  [%stri let [%p Ast_helper.Pat.var pname ] =
-           [%e (tocaml_inits inits (tocaml_step_fun inode)  ) ] ]
+  [%stri let [%p Ast_helper.Pat.var pname ]  = fun () ->
+           [%e tocaml_app_inits app_inits (tocaml_inits inits (tocaml_step_fun inode)  ) ] ]
 

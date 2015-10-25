@@ -33,6 +33,7 @@ and
  exp_desc =   
   | Alternative of exp_desc * exp_desc * exp_desc
   | Application of ident * expression list 
+  | Application_init of ident * expression list
   | InfixOp of inf_operator * exp_desc * exp_desc
   | PrefixOp of pre_operator * exp_desc
   | Value of constant 
@@ -54,6 +55,8 @@ and
   | Div
   | Arrow
   | When 
+  | And 
+  | Or
 and
  pre_operator = 
   | Not
@@ -124,6 +127,8 @@ let rec mk_expr e =
   | [%expr [%e? e1] < [%e? e2] ] -> InfixOp(Less, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] >= [%e? e2] ] -> InfixOp(Greate, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] <= [%e? e2] ] -> InfixOp(Lesse, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] && [%e? e2] ] -> InfixOp(And, mk_expr e1, mk_expr e2)
+  | [%expr [%e? e1] || [%e? e2] ] -> InfixOp(Or, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] + [%e? e2] ] -> mk_expr e1 +/ mk_expr e2
   | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 */ mk_expr e2
   | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 -/ mk_expr e2

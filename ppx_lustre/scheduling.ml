@@ -29,6 +29,7 @@ let rec get_expr_id e s =
     get_expr_id e3 s 
   | Application (i,l) ->
     List.fold_left (fun s e -> get_expr_id e s)  s l 
+  | Application_init (i,l) -> s
   | InfixOp (op, e1, e2) ->
     let s = get_expr_id e1 s in 
     get_expr_id e2 s

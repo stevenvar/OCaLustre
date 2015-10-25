@@ -15,6 +15,10 @@ module Option = struct
     | Some x -> x
 end 
 
+
+let%node edge (x) (y) = 
+  y := false --> (x && x)
+
 let%node entiers () (n) =
   n := 0 --> (pre n) + 1
 
@@ -23,8 +27,9 @@ let%node main () (a,b) =
   b := entiers ()
   
 let _ =
+  let main_init = main () in 
   while true do
-    let (a,b) = main () in 
+    let (a,b) = main_init () in 
     print_int a;
     print_int b; 
     print_endline "";

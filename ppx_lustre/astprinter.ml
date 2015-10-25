@@ -83,6 +83,7 @@ let rec print_expression fmt e =
       print_infop op
       print_expression e2
   | Application (i, el) -> print_application fmt (i,el)
+  | Application_init (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> print_value fmt v 
   | Unit -> Format.fprintf fmt " () "
