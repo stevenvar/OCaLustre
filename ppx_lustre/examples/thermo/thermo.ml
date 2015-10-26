@@ -72,14 +72,16 @@ let%node mode (plus, minus) (m)=
         (pre m))
 
 
-let%node thermo (plus,minus,def,t) (led,temp1, temp2) = 
-  led := true;
+let%node thermo (plus,minus,def,t) (temp1, temp2, heat) = 
   temp1 := def --> new_temp1;
   mode := mode (plus,minus);
   new_temp1 := def --> (if plus then value_plus else (if minus then value_moins else (pre temp1) ) );
   value_plus := def --> (if mode = 1 then (pre temp1) -3 else (pre temp1) -1);
   value_moins := def --> (if mode = 2 then (pre temp1) +3 else (pre temp1) +1);
-  temp2 := t 
+  temp2 := t;
+  heat := true --> ( if ( t < temp1 - 3) then false else
+                   if ( t > temp1 + 3) then true else
+                   (pre heat) ) 
 
 
 let _ =
@@ -88,11 +90,12 @@ let _ =
   let plus = test_bit plus_button in
   let minus = test_bit minus_button in
   let t = read_temp () in 
-  let (led,temp1, temp2) = main_step (plus,minus,def_temp,t) in
+  let (temp1, temp2,heat) = main_step (plus,minus,def_temp,t) in
     disp.moveto 1 1;
     disp.print_string (str_of_temp temp1);
     disp.moveto 2 1;
     disp.print_string (str_of_temp temp2);
+    if heat then set_bit output else clear_bit output;
     Sys.sleep 300;
   done
   
