@@ -37,6 +37,7 @@ let rec get_expr_id e s =
   | PrefixOp (op, e) ->
     get_expr_id e s 
   | Value v -> s
+  | Call e -> s
   | Unit -> s
 
 

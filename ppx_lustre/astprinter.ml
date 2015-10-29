@@ -51,6 +51,8 @@ let print_infop fmt op =
   | Less -> Format.fprintf fmt " < "
   | Lesse -> Format.fprintf fmt " <= "
   | Greate -> Format.fprintf fmt " >= "
+  | And -> Format.fprintf fmt " && "
+  | Or -> Format.fprintf fmt " || "
 
 let rec print_expression fmt e =
   let print_expressions fmt el =
@@ -86,6 +88,7 @@ let rec print_expression fmt e =
   | Application_init (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> print_value fmt v 
+  | Call e -> Format.fprintf fmt " call xxx"
   | Unit -> Format.fprintf fmt " () "
   
 

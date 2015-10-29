@@ -17,6 +17,7 @@ and
   | IAlternative of imp_expr * imp_expr * imp_expr
   | IApplication of ident * imp_expr list
   | IApplication_init of ident * imp_expr list
+  | ICall of Parsetree.expression
   | IUnit
 and
   imp_infop =
@@ -122,6 +123,7 @@ let rec compile_expression exp =
                                           List.map (compile_expression) el)
   | Application_init (id, el) -> IApplication_init (id,
                                           List.map (compile_expression) el)
+  | Call e -> ICall e 
   | Unit -> IUnit
 
 let printml_string fmt p =
@@ -194,6 +196,7 @@ let rec printml_expression fmt exp =
                               printml_string s.content
                               printml_expressions el
   | IUnit -> Format.fprintf fmt " () "
+  | ICall e -> Format.fprintf fmt " CALL XXX "
 
 let printml_inits fmt il =
   let printml_init fmt (s,e) =
@@ -384,6 +387,7 @@ let rec tocaml_expression e =
       Exp.apply
         (Exp.ident (ident_to_lid id)) listexp
     | IUnit -> [%expr ()]
+    | ICall e -> e
     | _ -> [%expr ()]
     )
 let tocaml_app_inits il acc =

@@ -15,12 +15,13 @@ module Option = struct
     | Some x -> x
 end 
 
+let square x = x*x
 
-let%node edge (x) (y) = 
-  y := false --> (x && x)
+
 
 let%node entiers () (n) =
-  n := 0 --> (pre n) + 1
+  n := call (square 2)
+  
 
 let%node main () (a,b) = 
   a := entiers (); 

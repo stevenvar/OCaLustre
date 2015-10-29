@@ -33,6 +33,7 @@ and
  exp_desc =   
   | Alternative of exp_desc * exp_desc * exp_desc
   | Application of ident * expression list 
+  | Call of Parsetree.expression
   | Application_init of ident * expression list
   | InfixOp of inf_operator * exp_desc * exp_desc
   | PrefixOp of pre_operator * exp_desc
@@ -115,6 +116,8 @@ let checkname_ident id =
     Pexp_ident {loc; txt=Lident s } -> mk_ident ~loc s
   | _ -> Error.print_error id.pexp_loc "this is not an expression" 
 
+
+
 (* transform expressions to node of the ocalustre AST *)
 let rec mk_expr e =
   match e with
@@ -139,6 +142,7 @@ let rec mk_expr e =
   | [%expr true ] -> Value (Bool true)
   | [%expr false ] -> Value (Bool false)
   | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
+  | [%expr call [%e? e1] ] -> Call (e1)
   (* a := NOEUD2 (x,y) *)
   | [%expr [%e? e1] [%e? e2] ] ->
     Application(checkname_ident e1, 
@@ -214,6 +218,7 @@ let rec get_idents e =
     end
   | Value v -> []
   | Unit -> []
+  | _ -> []
 
 (* creates a node "lustre node" in the AST *)
 let mk_node name body =
