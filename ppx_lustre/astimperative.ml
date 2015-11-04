@@ -31,6 +31,10 @@ and
   | IMinus
   | ITimes
   | IDiv
+  | IPlusf
+  | IMinusf
+  | ITimesf
+  | IDivf
   | IAnd
   | IOr
 and
@@ -98,6 +102,10 @@ let rec compile_expression exp =
     | Minus -> IMinus
     | Times -> ITimes
     | Div -> IDiv
+    | Plusf -> IPlusf
+    | Minusf -> IMinusf
+    | Timesf -> ITimesf
+    | Divf -> IDivf
     | Lesse -> ILesse
     | Great -> IGreat
     | Greate -> IGreate
@@ -161,6 +169,10 @@ let rec printml_expression fmt exp =
     | ITimes -> Format.fprintf fmt " * "
     | IDiv -> Format.fprintf fmt " / "
     | IMinus -> Format.fprintf fmt " - "
+    | IPlusf -> Format.fprintf fmt " +. "
+    | ITimesf -> Format.fprintf fmt " *. "
+    | IDivf -> Format.fprintf fmt " /. "
+    | IMinusf -> Format.fprintf fmt " - "
     | IAnd -> Format.fprintf fmt " and "
     | IOr -> Format.fprintf fmt " or "
   in
@@ -362,6 +374,14 @@ let rec tocaml_expression e =
        [%expr [%e tocaml_expression e1 ] * [%e tocaml_expression e2 ]]
     | IInfixOp (IDiv,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
+    | IInfixOp (IPlusf,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] +. [%e tocaml_expression e2 ]]
+    | IInfixOp (IMinusf,e1,e2) ->
+       [%expr [%e tocaml_expression e1 ] -. [%e tocaml_expression e2 ]]
+    | IInfixOp (ITimesf,e1,e2) ->
+       [%expr [%e tocaml_expression e1 ] *. [%e tocaml_expression e2 ]]
+    | IInfixOp (IDivf,e1,e2) ->
+      [%expr [%e tocaml_expression e1 ] /. [%e tocaml_expression e2 ]]
     | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e] ]
     | IInfixOp (IAnd,e1,e2) ->
        [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]

@@ -3,6 +3,10 @@
 open Pic
 open Lcd
 
+
+type kind = Nothing | Plus | Minus | Twice
+
+
 let output = RD1
 let plus_button = RD5
 let minus_button = RD4
@@ -39,6 +43,7 @@ let str_of_temp temp =
 
 let load_temp () =
   let temp = Eeprom.read 0 + Eeprom.read 1 * 256 in
+  if temp < max_temp || temp > min_temp then def_temp else
   temp 
 
  let read_temp () =
@@ -48,26 +53,42 @@ let load_temp () =
   while test_bit GO do () done;
   (read_reg ADRESH lsl 8) lor read_reg ADRES
 
-
+let counter = ref 0 
+let kind = ref Nothing 
 let buttons_state p m = 
-	match p , m with 
-	| true , false -> 1
-	| false , true -> 2
-	| true , true -> 3
-	| _ -> 0 
+	(* 	state = 
+		1 : +
+		10 : +++ 
+		2 : - 
+		20 : ---
+		3 : on/off
+		0 : nothing 
+	*)
+	match p , m, !kind, !counter with 
+	| true , false, Nothing , 0 -> kind := Plus; incr counter; 1
+	| true , false, Plus , 10 -> 10
+	| true , false, Plus , _ -> incr counter; 1
+	| false , true, Nothing, 0 -> kind := Minus; incr counter; 2
+	| false , true, Minus, 10 -> 20
+	| false , true, Minus, _ -> incr counter; 2
+	| true , true, _, _ -> counter := 1; kind := Twice; 3
+	| _ -> kind := Nothing; counter := 0 ; 0
+
 
 let%node change_wtemp (state) (w) = 
-	w := 654 --> (
-			if state = 1 then (pre w) - 1  
-	   else	if state = 2 then (pre w) + 1
-	   else (pre w)  )
+	w :=  default --> ( 
+			if state = 1 then pre w - 1 
+	   else	if state = 10 then pre w - 3 
+	   else	if state = 2 then pre w + 1
+	   else if state = 20 then pre w  + 3
+	   else pre w ) 
 
 let%node thermo_on (state) (on) = 
 	on := true --> (if state = 3 then not (pre on) else (pre on))
 
 let%node heat (w,c) (h) = 
-	h := false --> 
-		 (if (c < w - 3) then false 
+	h := false --> ( 
+		 if (c < w - 3) then false 
 	else if (c > w + 3) then true
 	else pre h )
 
@@ -75,10 +96,10 @@ let%node save_t (w) (save) =
 	changed := false --> (w <> (pre w));
 	save := if changed then call (save_temp w) else ()
 
-let%node main (plus,minus,ctemp) (wtemp, on, heat) =
+let%node main (default, plus,minus,ctemp) (wtemp, on, heat) =
 	state := call (buttons_state plus minus);
 	on := thermo_on (state); 
-	wtemp := (call (load_temp () ) ) --> (if on then change_wtemp (state) else 0); 
+	wtemp :=if on then change_wtemp (default, state) else 0; 
 	heat := if on then heat (wtemp, ctemp) else false;
 	save := save_t wtemp
 
@@ -101,7 +122,7 @@ disp.print_string "\00132.5\000C\002\n 32.5\000C ";
   let plus = test_bit plus_button in
   let minus = test_bit minus_button in
   let t = read_temp () in 
-  let (wtemp, on,heat) = main_step (plus,minus,t) in
+  let ( wtemp, on,heat) = main_step (def_temp, plus,minus,t) in
     if on then (
     disp.moveto 1 1;
     disp.print_string (str_of_temp wtemp);
@@ -109,7 +130,7 @@ disp.print_string "\00132.5\000C\002\n 32.5\000C ";
     disp.print_string (str_of_temp t);
     if heat then set_bit output else clear_bit output;
 	); 
-    Sys.sleep 300;
+    Sys.sleep 500;
   done
 
 

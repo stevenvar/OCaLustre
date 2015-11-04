@@ -54,6 +54,10 @@ and
   | Minus
   | Times
   | Div
+  | Plusf
+  | Minusf
+  | Timesf
+  | Divf
   | Arrow
   | When 
   | And 
@@ -94,6 +98,14 @@ let ( -/ ) e1 e2 = InfixOp ( Minus, e1, e2)
 
 let ( // ) e1 e2 = InfixOp (Div, e1, e2) 
 
+let ( +./ ) e1 e2 = InfixOp ( Plusf , e1 , e2 ) 
+
+let ( *./ ) e1 e2 = InfixOp ( Timesf , e1 , e2)
+
+let ( -./ ) e1 e2 = InfixOp ( Minusf, e1, e2)
+
+let ( /./ ) e1 e2 = InfixOp (Divf, e1, e2) 
+
 let (-->) e1 e2 = InfixOp ( Arrow, e1, e2) 
 
 let mk_pre e1 = PrefixOp ( Pre , e1) 
@@ -123,6 +135,7 @@ let rec mk_expr e =
   match e with
   | [%expr () ] -> Unit
   | [%expr pre [%e? e1] ] -> mk_pre (mk_expr e1)
+  | [%expr [%e? e1] --> [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2)
   | [%expr ( [%e? e1] , [%e? e2] ) ] -> Tuple ((mk_expr e2)::(mk_expr e1)::[])
   | [%expr [%e? e1] = [%e? e2] ] -> InfixOp(Equals, mk_expr e1, mk_expr e2)
   | [%expr [%e? e1] <> [%e? e2] ] -> InfixOp(Diff, mk_expr e1, mk_expr e2)
@@ -136,7 +149,10 @@ let rec mk_expr e =
   | [%expr [%e? e1] * [%e? e2] ] -> mk_expr e1 */ mk_expr e2
   | [%expr [%e? e1] - [%e? e2] ] -> mk_expr e1 -/ mk_expr e2
   | [%expr [%e? e1] / [%e? e2] ] -> mk_expr e1 // mk_expr e2
-  | [%expr [%e? e1] --> [%e? e2] ] -> (mk_expr e1) --> (mk_expr e2) 
+  | [%expr [%e? e1] +. [%e? e2] ] -> mk_expr e1 +./ mk_expr e2
+  | [%expr [%e? e1] *. [%e? e2] ] -> mk_expr e1 *./ mk_expr e2
+  | [%expr [%e? e1] -. [%e? e2] ] -> mk_expr e1 -./ mk_expr e2
+  | [%expr [%e? e1] /. [%e? e2] ] -> mk_expr e1 /./ mk_expr e2
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value (Bool true)
@@ -162,7 +178,6 @@ let rec mk_expr e =
      pexp_loc ;
      pexp_attributes} ->
     mk_variable v
-  | [%expr [%e? e1] iftrue [%e? e2] ] -> InfixOp(When,mk_expr e1,mk_expr e2)
   | _ ->
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc 
