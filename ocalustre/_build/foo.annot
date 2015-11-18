@@ -1,0 +1,273 @@
+"foo.ml" 13 784 790 "foo.ml" 13 784 793
+type(
+  'a option -> 'a
+)
+ident(
+  def get "foo.ml" 15 840 857 "foo.ml" 16 858 861
+)
+"foo.ml" 13 784 794 "foo.ml" 13 784 795
+type(
+  'a option
+)
+ident(
+  def o "foo.ml" 13 784 798 "foo.ml" 15 840 857
+)
+"foo.ml" 13 784 804 "foo.ml" 13 784 805
+type(
+  'a option
+)
+ident(
+  int_ref o "foo.ml" 13 784 794 "foo.ml" 13 784 795
+)
+"foo.ml" 14 811 817 "foo.ml" 14 811 821
+type(
+  'a option
+)
+"foo.ml" 14 811 825 "foo.ml" 14 811 833
+type(
+  string -> 'a
+)
+ident(
+  ext_ref Pervasives.failwith
+)
+"foo.ml" 14 811 834 "foo.ml" 14 811 839
+type(
+  string
+)
+"foo.ml" 14 811 825 "foo.ml" 14 811 839
+call(
+  tail
+)
+type(
+  'a
+)
+"foo.ml" 15 840 851 "foo.ml" 15 840 852
+type(
+  'a
+)
+ident(
+  def x "foo.ml" 15 840 856 "foo.ml" 15 840 857
+)
+"foo.ml" 15 840 846 "foo.ml" 15 840 852
+type(
+  'a option
+)
+"foo.ml" 15 840 856 "foo.ml" 15 840 857
+type(
+  'a
+)
+ident(
+  int_ref x "foo.ml" 15 840 851 "foo.ml" 15 840 852
+)
+"foo.ml" 13 784 798 "foo.ml" 15 840 857
+type(
+  'a
+)
+"foo.ml" 19 865 874 "foo.ml" 19 865 878
+ident(
+  def edge_step "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+ident(
+  def edge "_none_" 1 0 -1 "foo.ml" 1 0 -1
+)
+"foo.ml" 19 865 880 "foo.ml" 19 865 881
+ident(
+  def x "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"foo.ml" 20 890 892 "foo.ml" 20 890 893
+ident(
+  def y "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"foo.ml" 22 917 926 "foo.ml" 22 917 933
+ident(
+  def entiers_step "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+ident(
+  def entiers "_none_" 1 0 -1 "foo.ml" 1 0 -1
+)
+"foo.ml" 23 943 945 "foo.ml" 23 943 946
+ident(
+  def n "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"foo.ml" 25 969 978 "foo.ml" 25 969 982
+ident(
+  def main_step "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+ident(
+  def main "foo.ml" 29 1036 1036 "foo.ml" 1 0 -1
+)
+"foo.ml" 26 995 997 "foo.ml" 26 995 998
+ident(
+  def a "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"foo.ml" 27 1015 1017 "foo.ml" 27 1015 1018
+ident(
+  def b "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"foo.ml" 30 1044 1050 "foo.ml" 30 1044 1059
+type(
+  unit -> int * int
+)
+ident(
+  def main_init "foo.ml" 31 1074 1076 "foo.ml" 37 1197 1203
+)
+"foo.ml" 30 1044 1062 "foo.ml" 30 1044 1066
+type(
+  unit -> unit -> int * int
+)
+ident(
+  ext_ref main
+)
+"foo.ml" 30 1044 1067 "foo.ml" 30 1044 1069
+type(
+  unit
+)
+"foo.ml" 30 1044 1062 "foo.ml" 30 1044 1069
+call(
+  stack
+)
+type(
+  unit -> int * int
+)
+"foo.ml" 31 1074 1082 "foo.ml" 31 1074 1086
+type(
+  bool
+)
+"foo.ml" 32 1090 1099 "foo.ml" 32 1090 1100
+type(
+  int
+)
+ident(
+  def a "foo.ml" 33 1123 1127 "foo.ml" 36 1180 1196
+)
+"foo.ml" 32 1090 1101 "foo.ml" 32 1090 1102
+type(
+  int
+)
+ident(
+  def b "foo.ml" 33 1123 1127 "foo.ml" 36 1180 1196
+)
+"foo.ml" 32 1090 1098 "foo.ml" 32 1090 1103
+type(
+  int * int
+)
+"foo.ml" 32 1090 1106 "foo.ml" 32 1090 1115
+type(
+  unit -> int * int
+)
+ident(
+  int_ref main_init "foo.ml" 30 1044 1050 "foo.ml" 30 1044 1059
+)
+"foo.ml" 32 1090 1116 "foo.ml" 32 1090 1118
+type(
+  unit
+)
+"foo.ml" 32 1090 1106 "foo.ml" 32 1090 1118
+call(
+  stack
+)
+type(
+  int * int
+)
+"foo.ml" 33 1123 1127 "foo.ml" 33 1123 1136
+type(
+  int -> unit
+)
+ident(
+  ext_ref Pervasives.print_int
+)
+"foo.ml" 33 1123 1137 "foo.ml" 33 1123 1138
+type(
+  int
+)
+ident(
+  int_ref a "foo.ml" 32 1090 1099 "foo.ml" 32 1090 1100
+)
+"foo.ml" 33 1123 1127 "foo.ml" 33 1123 1138
+call(
+  stack
+)
+type(
+  unit
+)
+"foo.ml" 34 1140 1144 "foo.ml" 34 1140 1153
+type(
+  int -> unit
+)
+ident(
+  ext_ref Pervasives.print_int
+)
+"foo.ml" 34 1140 1154 "foo.ml" 34 1140 1155
+type(
+  int
+)
+ident(
+  int_ref b "foo.ml" 32 1090 1101 "foo.ml" 32 1090 1102
+)
+"foo.ml" 34 1140 1144 "foo.ml" 34 1140 1155
+call(
+  stack
+)
+type(
+  unit
+)
+"foo.ml" 35 1158 1162 "foo.ml" 35 1158 1175
+type(
+  string -> unit
+)
+ident(
+  ext_ref Pervasives.print_endline
+)
+"foo.ml" 35 1158 1176 "foo.ml" 35 1158 1178
+type(
+  string
+)
+"foo.ml" 35 1158 1162 "foo.ml" 35 1158 1178
+call(
+  stack
+)
+type(
+  unit
+)
+"foo.ml" 36 1180 1184 "foo.ml" 36 1180 1194
+type(
+  int -> unit
+)
+ident(
+  ext_ref Unix.sleep
+)
+"foo.ml" 36 1180 1195 "foo.ml" 36 1180 1196
+type(
+  int
+)
+"foo.ml" 36 1180 1184 "foo.ml" 36 1180 1196
+call(
+  stack
+)
+type(
+  unit
+)
+"foo.ml" 35 1158 1162 "foo.ml" 36 1180 1196
+type(
+  unit
+)
+"foo.ml" 34 1140 1144 "foo.ml" 36 1180 1196
+type(
+  unit
+)
+"foo.ml" 33 1123 1127 "foo.ml" 36 1180 1196
+type(
+  unit
+)
+"foo.ml" 32 1090 1094 "foo.ml" 36 1180 1196
+type(
+  unit
+)
+"foo.ml" 31 1074 1076 "foo.ml" 37 1197 1203
+type(
+  unit
+)
+"foo.ml" 30 1044 1046 "foo.ml" 37 1197 1203
+type(
+  unit
+)

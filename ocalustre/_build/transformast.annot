@@ -1,0 +1,2375 @@
+"transformast.ml" 6 13 17 "transformast.ml" 6 13 24
+type(
+  unit -> int
+)
+ident(
+  def counter "transformast.ml" 10 84 84 "transformast.ml" 1 0 -1
+)
+"transformast.ml" 7 27 33 "transformast.ml" 7 27 38
+type(
+  int ref
+)
+ident(
+  def count "transformast.ml" 8 52 54 "transformast.ml" 8 52 82
+)
+"transformast.ml" 7 27 41 "transformast.ml" 7 27 44
+type(
+  int -> int ref
+)
+ident(
+  ext_ref Pervasives.ref
+)
+"transformast.ml" 7 27 45 "transformast.ml" 7 27 48
+type(
+  int
+)
+"transformast.ml" 7 27 41 "transformast.ml" 7 27 48
+type(
+  int ref
+)
+"transformast.ml" 8 52 58 "transformast.ml" 8 52 60
+type(
+  unit
+)
+"transformast.ml" 8 52 64 "transformast.ml" 8 52 68
+type(
+  int ref -> unit
+)
+ident(
+  ext_ref Pervasives.incr
+)
+"transformast.ml" 8 52 69 "transformast.ml" 8 52 74
+type(
+  int ref
+)
+ident(
+  int_ref count "transformast.ml" 7 27 33 "transformast.ml" 7 27 38
+)
+"transformast.ml" 8 52 64 "transformast.ml" 8 52 74
+type(
+  unit
+)
+"transformast.ml" 8 52 76 "transformast.ml" 8 52 77
+type(
+  int ref -> int
+)
+ident(
+  ext_ref Pervasives.( ! )
+)
+"transformast.ml" 8 52 77 "transformast.ml" 8 52 82
+type(
+  int ref
+)
+ident(
+  int_ref count "transformast.ml" 7 27 33 "transformast.ml" 7 27 38
+)
+"transformast.ml" 8 52 76 "transformast.ml" 8 52 82
+type(
+  int
+)
+"transformast.ml" 8 52 64 "transformast.ml" 8 52 82
+type(
+  int
+)
+"transformast.ml" 8 52 54 "transformast.ml" 8 52 82
+type(
+  unit -> int
+)
+"transformast.ml" 7 27 29 "transformast.ml" 8 52 82
+type(
+  unit -> int
+)
+"transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  def transform_exp "transformast.ml" 10 84 84 "transformast.ml" 1 0 -1
+)
+"transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+type(
+  Ast.expression
+)
+ident(
+  def e "transformast.ml" 10 84 108 "transformast.ml" 59 1950 1962
+)
+"transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+type(
+  Ast.equation list
+)
+ident(
+  def l "transformast.ml" 12 114 116 "transformast.ml" 59 1950 1962
+)
+"transformast.ml" 12 114 120 "transformast.ml" 12 114 124
+type(
+  Ast.exp_desc
+)
+ident(
+  def init "transformast.ml" 13 144 146 "transformast.ml" 59 1950 1962
+)
+"transformast.ml" 12 114 127 "transformast.ml" 12 114 133
+type(
+  string -> Ast.exp_desc
+)
+ident(
+  ext_ref Ast.mk_ref
+)
+"transformast.ml" 12 114 134 "transformast.ml" 12 114 140
+type(
+  string
+)
+"transformast.ml" 12 114 127 "transformast.ml" 12 114 140
+call(
+  stack
+)
+type(
+  Ast.exp_desc
+)
+"transformast.ml" 13 144 152 "transformast.ml" 13 144 153
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 14 160 173 "transformast.ml" 14 160 175
+type(
+  Ast.inf_operator
+)
+ident(
+  def op "transformast.ml" 15 188 192 "transformast.ml" 27 655 662
+)
+"transformast.ml" 14 160 177 "transformast.ml" 14 160 179
+type(
+  Ast.exp_desc
+)
+ident(
+  def e1 "transformast.ml" 15 188 192 "transformast.ml" 27 655 662
+)
+"transformast.ml" 14 160 181 "transformast.ml" 14 160 183
+type(
+  Ast.exp_desc
+)
+ident(
+  def e2 "transformast.ml" 15 188 192 "transformast.ml" 27 655 662
+)
+"transformast.ml" 14 160 164 "transformast.ml" 14 160 184
+type(
+  Ast.expression
+)
+"transformast.ml" 15 188 204 "transformast.ml" 15 188 206
+type(
+  Ast.inf_operator
+)
+ident(
+  int_ref op "transformast.ml" 14 160 173 "transformast.ml" 14 160 175
+)
+"transformast.ml" 16 212 220 "transformast.ml" 16 212 225
+type(
+  Ast.inf_operator
+)
+"transformast.ml" 16 212 229 "transformast.ml" 16 212 242
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 16 212 244 "transformast.ml" 16 212 255
+type(
+  Ast.exp_desc -> Ast.exp_desc -> Ast.exp_desc -> Ast.expression
+)
+ident(
+  ext_ref Ast.alternative
+)
+"transformast.ml" 16 212 256 "transformast.ml" 16 212 260
+type(
+  Ast.exp_desc
+)
+ident(
+  int_ref init "transformast.ml" 12 114 120 "transformast.ml" 12 114 124
+)
+"transformast.ml" 16 212 261 "transformast.ml" 16 212 263
+type(
+  Ast.exp_desc
+)
+ident(
+  int_ref e1 "transformast.ml" 14 160 177 "transformast.ml" 14 160 179
+)
+"transformast.ml" 16 212 264 "transformast.ml" 16 212 266
+type(
+  Ast.exp_desc
+)
+ident(
+  int_ref e2 "transformast.ml" 14 160 181 "transformast.ml" 14 160 183
+)
+"transformast.ml" 16 212 243 "transformast.ml" 16 212 267
+call(
+  stack
+)
+type(
+  Ast.expression
+)
+"transformast.ml" 18 290 323 "transformast.ml" 18 290 333
+type(
+  ?loc:Location.t -> string -> Ast.pattern
+)
+ident(
+  ext_ref Ast.mk_pattern
+)
+"transformast.ml" 18 290 334 "transformast.ml" 18 290 340
+type(
+  string
+)
+"transformast.ml" 18 290 323 "transformast.ml" 18 290 340
+call(
+  stack
+)
+type(
+  Ast.pattern
+)
+"transformast.ml" 19 342 380 "transformast.ml" 19 342 387
+type(
+  Parsetree.expression -> Ast.expression
+)
+ident(
+  ext_ref Ast.mk_expr
+)
+"transformast.ml" 19 342 380 "transformast.ml" 19 342 400
+call(
+  stack
+)
+type(
+  Ast.expression
+)
+"transformast.ml" 20 401 439 "transformast.ml" 20 401 442
+type(
+  Ast.expression -> Ast.expression -> Ast.expression
+)
+ident(
+  ext_ref Ast.( --> )
+)
+"transformast.ml" 20 401 443 "transformast.ml" 20 401 450
+type(
+  Parsetree.expression -> Ast.expression
+)
+ident(
+  ext_ref Ast.mk_expr
+)
+"transformast.ml" 20 401 443 "transformast.ml" 20 401 464
+call(
+  stack
+)
+type(
+  Ast.expression
+)
+"transformast.ml" 19 342 378 "transformast.ml" 20 401 467
+call(
+  stack
+)
+type(
+  Ast.expression
+)
+"transformast.ml" 17 268 288 "transformast.ml" 21 468 490
+type(
+  Ast.equation
+)
+"transformast.ml" 21 468 492 "transformast.ml" 21 468 493
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 17 268 287 "transformast.ml" 21 468 494
+type(
+  Ast.equation list
+)
+"transformast.ml" 16 212 229 "transformast.ml" 21 468 494
+call(
+  tail
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 22 495 503 "transformast.ml" 22 495 504
+type(
+  Ast.inf_operator
+)
+"transformast.ml" 24 509 521 "transformast.ml" 24 509 524
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  def ne1 "transformast.ml" 25 552 560 "transformast.ml" 26 595 654
+)
+"transformast.ml" 24 509 527 "transformast.ml" 24 509 540
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 24 509 541 "transformast.ml" 24 509 545
+type(
+  Ast.expression
+)
+ident(
+  int_ref e1 "transformast.ml" 14 160 177 "transformast.ml" 14 160 179
+)
+"transformast.ml" 24 509 546 "transformast.ml" 24 509 547
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 24 509 527 "transformast.ml" 24 509 547
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 25 552 564 "transformast.ml" 25 552 567
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  def ne2 "transformast.ml" 26 595 603 "transformast.ml" 26 595 654
+)
+"transformast.ml" 25 552 570 "transformast.ml" 25 552 583
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 25 552 584 "transformast.ml" 25 552 588
+type(
+  Ast.expression
+)
+ident(
+  int_ref e2 "transformast.ml" 14 160 181 "transformast.ml" 14 160 183
+)
+"transformast.ml" 25 552 589 "transformast.ml" 25 552 590
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 25 552 570 "transformast.ml" 25 552 590
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 26 595 613 "transformast.ml" 26 595 615
+type(
+  Ast.inf_operator
+)
+ident(
+  int_ref op "transformast.ml" 14 160 173 "transformast.ml" 14 160 175
+)
+"transformast.ml" 26 595 617 "transformast.ml" 26 595 620
+type(
+  Ast.expression * Ast.equation list -> Ast.expression
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 26 595 621 "transformast.ml" 26 595 624
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne1 "transformast.ml" 24 509 521 "transformast.ml" 24 509 524
+)
+"transformast.ml" 26 595 617 "transformast.ml" 26 595 624
+type(
+  Ast.expression
+)
+"transformast.ml" 26 595 626 "transformast.ml" 26 595 629
+type(
+  Ast.expression * Ast.equation list -> Ast.expression
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 26 595 630 "transformast.ml" 26 595 633
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne2 "transformast.ml" 25 552 564 "transformast.ml" 25 552 567
+)
+"transformast.ml" 26 595 626 "transformast.ml" 26 595 633
+type(
+  Ast.expression
+)
+"transformast.ml" 26 595 603 "transformast.ml" 26 595 636
+type(
+  Ast.expression
+)
+"transformast.ml" 26 595 639 "transformast.ml" 26 595 642
+type(
+  Ast.expression * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 26 595 643 "transformast.ml" 26 595 646
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne1 "transformast.ml" 24 509 521 "transformast.ml" 24 509 524
+)
+"transformast.ml" 26 595 639 "transformast.ml" 26 595 646
+type(
+  Ast.equation list
+)
+"transformast.ml" 26 595 646 "transformast.ml" 26 595 647
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 26 595 647 "transformast.ml" 26 595 650
+type(
+  Ast.expression * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 26 595 651 "transformast.ml" 26 595 654
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne2 "transformast.ml" 25 552 564 "transformast.ml" 25 552 567
+)
+"transformast.ml" 26 595 647 "transformast.ml" 26 595 654
+type(
+  Ast.equation list
+)
+"transformast.ml" 26 595 639 "transformast.ml" 26 595 654
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 26 595 603 "transformast.ml" 26 595 654
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 25 552 560 "transformast.ml" 26 595 654
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 24 509 517 "transformast.ml" 26 595 654
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 15 188 192 "transformast.ml" 27 655 662
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 28 663 677 "transformast.ml" 28 663 679
+type(
+  Ast.pre_operator
+)
+ident(
+  def op "transformast.ml" 29 688 692 "transformast.ml" 37 1019 1026
+)
+"transformast.ml" 28 663 681 "transformast.ml" 28 663 683
+type(
+  Ast.exp_desc
+)
+ident(
+  def e1 "transformast.ml" 29 688 692 "transformast.ml" 37 1019 1026
+)
+"transformast.ml" 28 663 667 "transformast.ml" 28 663 684
+type(
+  Ast.expression
+)
+"transformast.ml" 29 688 704 "transformast.ml" 29 688 706
+type(
+  Ast.pre_operator
+)
+ident(
+  int_ref op "transformast.ml" 28 663 677 "transformast.ml" 28 663 679
+)
+"transformast.ml" 30 712 720 "transformast.ml" 30 712 723
+type(
+  Ast.pre_operator
+)
+"transformast.ml" 31 727 739 "transformast.ml" 31 727 744
+type(
+  string
+)
+ident(
+  def idstr "transformast.ml" 33 819 827 "transformast.ml" 34 856 926
+)
+"transformast.ml" 31 727 748 "transformast.ml" 31 727 762
+type(
+  (string -> Ast.ident -> string) -> string -> Ast.ident list -> string
+)
+ident(
+  ext_ref List.fold_left
+)
+"transformast.ml" 31 727 768 "transformast.ml" 31 727 769
+type(
+  string
+)
+ident(
+  def s "transformast.ml" 31 727 770 "transformast.ml" 31 727 786
+)
+"transformast.ml" 31 727 770 "transformast.ml" 31 727 771
+type(
+  Ast.ident
+)
+ident(
+  def x "transformast.ml" 31 727 775 "transformast.ml" 31 727 786
+)
+"transformast.ml" 31 727 775 "transformast.ml" 31 727 776
+type(
+  string
+)
+ident(
+  int_ref s "transformast.ml" 31 727 768 "transformast.ml" 31 727 769
+)
+"transformast.ml" 31 727 776 "transformast.ml" 31 727 777
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"transformast.ml" 31 727 777 "transformast.ml" 31 727 778
+type(
+  Ast.ident
+)
+ident(
+  int_ref x "transformast.ml" 31 727 770 "transformast.ml" 31 727 771
+)
+"transformast.ml" 31 727 777 "transformast.ml" 31 727 786
+type(
+  string
+)
+"transformast.ml" 31 727 775 "transformast.ml" 31 727 786
+call(
+  tail
+)
+type(
+  string
+)
+"transformast.ml" 31 727 763 "transformast.ml" 31 727 787
+type(
+  string -> Ast.ident -> string
+)
+"transformast.ml" 31 727 788 "transformast.ml" 31 727 790
+type(
+  string
+)
+"transformast.ml" 31 727 792 "transformast.ml" 31 727 802
+type(
+  Ast.expression -> Ast.ident list
+)
+ident(
+  ext_ref Ast.get_idents
+)
+"transformast.ml" 31 727 803 "transformast.ml" 31 727 805
+type(
+  Ast.expression
+)
+ident(
+  int_ref e1 "transformast.ml" 28 663 681 "transformast.ml" 28 663 683
+)
+"transformast.ml" 31 727 791 "transformast.ml" 31 727 806
+call(
+  stack
+)
+type(
+  Ast.ident list
+)
+"transformast.ml" 31 727 747 "transformast.ml" 31 727 807
+call(
+  stack
+)
+type(
+  string
+)
+"transformast.ml" 33 819 831 "transformast.ml" 33 819 835
+type(
+  string
+)
+ident(
+  def name "transformast.ml" 34 856 864 "transformast.ml" 34 856 926
+)
+"transformast.ml" 33 819 838 "transformast.ml" 33 819 844
+type(
+  string
+)
+"transformast.ml" 33 819 844 "transformast.ml" 33 819 845
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"transformast.ml" 33 819 845 "transformast.ml" 33 819 850
+type(
+  string
+)
+ident(
+  int_ref idstr "transformast.ml" 31 727 739 "transformast.ml" 31 727 744
+)
+"transformast.ml" 33 819 838 "transformast.ml" 33 819 850
+call(
+  stack
+)
+type(
+  string
+)
+"transformast.ml" 34 856 865 "transformast.ml" 34 856 871
+type(
+  string -> Ast.expression
+)
+ident(
+  ext_ref Ast.mk_ref
+)
+"transformast.ml" 34 856 872 "transformast.ml" 34 856 876
+type(
+  string
+)
+ident(
+  int_ref name "transformast.ml" 33 819 831 "transformast.ml" 33 819 835
+)
+"transformast.ml" 34 856 865 "transformast.ml" 34 856 876
+call(
+  stack
+)
+type(
+  Ast.expression
+)
+"transformast.ml" 34 856 889 "transformast.ml" 34 856 899
+type(
+  ?loc:Location.t -> string -> Ast.pattern
+)
+ident(
+  ext_ref Ast.mk_pattern
+)
+"transformast.ml" 34 856 900 "transformast.ml" 34 856 904
+type(
+  string
+)
+ident(
+  int_ref name "transformast.ml" 33 819 831 "transformast.ml" 33 819 835
+)
+"transformast.ml" 34 856 889 "transformast.ml" 34 856 904
+call(
+  stack
+)
+type(
+  Ast.pattern
+)
+"transformast.ml" 34 856 920 "transformast.ml" 34 856 921
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 34 856 878 "transformast.ml" 34 856 922
+type(
+  Ast.equation
+)
+"transformast.ml" 34 856 924 "transformast.ml" 34 856 925
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 34 856 878 "transformast.ml" 34 856 925
+type(
+  Ast.equation list
+)
+"transformast.ml" 34 856 864 "transformast.ml" 34 856 926
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 33 819 827 "transformast.ml" 34 856 926
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 31 727 735 "transformast.ml" 34 856 926
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 35 928 936 "transformast.ml" 35 928 937
+type(
+  Ast.pre_operator
+)
+"transformast.ml" 35 928 945 "transformast.ml" 35 928 948
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  def ne1 "transformast.ml" 36 975 983 "transformast.ml" 36 975 1018
+)
+"transformast.ml" 35 928 951 "transformast.ml" 35 928 964
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 35 928 965 "transformast.ml" 35 928 969
+type(
+  Ast.expression
+)
+ident(
+  int_ref e1 "transformast.ml" 28 663 681 "transformast.ml" 28 663 683
+)
+"transformast.ml" 35 928 970 "transformast.ml" 35 928 971
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 35 928 951 "transformast.ml" 35 928 971
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 36 975 994 "transformast.ml" 36 975 996
+type(
+  Ast.pre_operator
+)
+ident(
+  int_ref op "transformast.ml" 28 663 677 "transformast.ml" 28 663 679
+)
+"transformast.ml" 36 975 998 "transformast.ml" 36 975 1001
+type(
+  Ast.expression * Ast.equation list -> Ast.expression
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 36 975 1002 "transformast.ml" 36 975 1005
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne1 "transformast.ml" 35 928 945 "transformast.ml" 35 928 948
+)
+"transformast.ml" 36 975 998 "transformast.ml" 36 975 1005
+type(
+  Ast.expression
+)
+"transformast.ml" 36 975 983 "transformast.ml" 36 975 1007
+type(
+  Ast.expression
+)
+"transformast.ml" 36 975 1010 "transformast.ml" 36 975 1013
+type(
+  Ast.expression * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 36 975 1014 "transformast.ml" 36 975 1017
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne1 "transformast.ml" 35 928 945 "transformast.ml" 35 928 948
+)
+"transformast.ml" 36 975 1009 "transformast.ml" 36 975 1018
+type(
+  Ast.equation list
+)
+"transformast.ml" 36 975 983 "transformast.ml" 36 975 1018
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 35 928 941 "transformast.ml" 36 975 1018
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 29 688 692 "transformast.ml" 37 1019 1026
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 38 1027 1040 "transformast.ml" 38 1027 1041
+type(
+  Ast.ident
+)
+ident(
+  def i "transformast.ml" 38 1027 1045 "transformast.ml" 38 1027 1050
+)
+"transformast.ml" 38 1027 1031 "transformast.ml" 38 1027 1041
+type(
+  Ast.expression
+)
+"transformast.ml" 38 1027 1046 "transformast.ml" 38 1027 1047
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 38 1027 1048 "transformast.ml" 38 1027 1049
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 38 1027 1045 "transformast.ml" 38 1027 1050
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 39 1051 1061 "transformast.ml" 39 1051 1062
+type(
+  Ast.exp_desc list
+)
+ident(
+  def t "transformast.ml" 40 1066 1070 "transformast.ml" 43 1224 1259
+)
+"transformast.ml" 39 1051 1055 "transformast.ml" 39 1051 1062
+type(
+  Ast.expression
+)
+"transformast.ml" 40 1066 1074 "transformast.ml" 40 1066 1081
+type(
+  (Ast.expression * Ast.equation list) list
+)
+ident(
+  def tuplist "transformast.ml" 41 1127 1131 "transformast.ml" 43 1224 1259
+)
+"transformast.ml" 40 1066 1084 "transformast.ml" 40 1066 1092
+type(
+  (Ast.expression -> Ast.expression * Ast.equation list) ->
+  Ast.expression list -> (Ast.expression * Ast.equation list) list
+)
+ident(
+  ext_ref List.map
+)
+"transformast.ml" 40 1066 1098 "transformast.ml" 40 1066 1099
+type(
+  Ast.expression
+)
+ident(
+  def e "transformast.ml" 40 1066 1103 "transformast.ml" 40 1066 1120
+)
+"transformast.ml" 40 1066 1103 "transformast.ml" 40 1066 1116
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 40 1066 1117 "transformast.ml" 40 1066 1118
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 40 1066 1098 "transformast.ml" 40 1066 1099
+)
+"transformast.ml" 40 1066 1119 "transformast.ml" 40 1066 1120
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 40 1066 1103 "transformast.ml" 40 1066 1120
+call(
+  tail
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 40 1066 1093 "transformast.ml" 40 1066 1121
+type(
+  Ast.expression -> Ast.expression * Ast.equation list
+)
+"transformast.ml" 40 1066 1122 "transformast.ml" 40 1066 1123
+type(
+  Ast.expression list
+)
+ident(
+  int_ref t "transformast.ml" 39 1051 1061 "transformast.ml" 39 1051 1062
+)
+"transformast.ml" 40 1066 1084 "transformast.ml" 40 1066 1123
+call(
+  stack
+)
+type(
+  (Ast.expression * Ast.equation list) list
+)
+"transformast.ml" 41 1127 1135 "transformast.ml" 41 1127 1141
+type(
+  Ast.expression list * Ast.equation list
+)
+ident(
+  def listup "transformast.ml" 43 1224 1228 "transformast.ml" 43 1224 1259
+)
+"transformast.ml" 42 1144 1150 "transformast.ml" 42 1144 1164
+type(
+  (Ast.expression list * Ast.equation list ->
+   Ast.expression * Ast.equation list ->
+   Ast.expression list * Ast.equation list) ->
+  Ast.expression list * Ast.equation list ->
+  (Ast.expression * Ast.equation list) list ->
+  Ast.expression list * Ast.equation list
+)
+ident(
+  ext_ref List.fold_left
+)
+"transformast.ml" 42 1144 1170 "transformast.ml" 42 1144 1171
+type(
+  Ast.expression list * Ast.equation list
+)
+ident(
+  def l "transformast.ml" 42 1144 1172 "transformast.ml" 42 1144 1203
+)
+"transformast.ml" 42 1144 1173 "transformast.ml" 42 1144 1174
+type(
+  Ast.expression
+)
+ident(
+  def a "transformast.ml" 42 1144 1181 "transformast.ml" 42 1144 1203
+)
+"transformast.ml" 42 1144 1175 "transformast.ml" 42 1144 1176
+type(
+  Ast.equation list
+)
+ident(
+  def b "transformast.ml" 42 1144 1181 "transformast.ml" 42 1144 1203
+)
+"transformast.ml" 42 1144 1172 "transformast.ml" 42 1144 1177
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 42 1144 1182 "transformast.ml" 42 1144 1183
+type(
+  Ast.expression
+)
+ident(
+  int_ref a "transformast.ml" 42 1144 1173 "transformast.ml" 42 1144 1174
+)
+"transformast.ml" 42 1144 1186 "transformast.ml" 42 1144 1189
+type(
+  Ast.expression list * Ast.equation list -> Ast.expression list
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 42 1144 1190 "transformast.ml" 42 1144 1191
+type(
+  Ast.expression list * Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 42 1144 1170 "transformast.ml" 42 1144 1171
+)
+"transformast.ml" 42 1144 1185 "transformast.ml" 42 1144 1192
+type(
+  Ast.expression list
+)
+"transformast.ml" 42 1144 1182 "transformast.ml" 42 1144 1192
+type(
+  Ast.expression list
+)
+"transformast.ml" 42 1144 1193 "transformast.ml" 42 1144 1194
+type(
+  Ast.equation list
+)
+ident(
+  int_ref b "transformast.ml" 42 1144 1175 "transformast.ml" 42 1144 1176
+)
+"transformast.ml" 42 1144 1194 "transformast.ml" 42 1144 1195
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 42 1144 1196 "transformast.ml" 42 1144 1199
+type(
+  Ast.expression list * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 42 1144 1200 "transformast.ml" 42 1144 1201
+type(
+  Ast.expression list * Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 42 1144 1170 "transformast.ml" 42 1144 1171
+)
+"transformast.ml" 42 1144 1195 "transformast.ml" 42 1144 1202
+type(
+  Ast.equation list
+)
+"transformast.ml" 42 1144 1193 "transformast.ml" 42 1144 1202
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 42 1144 1181 "transformast.ml" 42 1144 1203
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 42 1144 1165 "transformast.ml" 42 1144 1204
+type(
+  Ast.expression list * Ast.equation list ->
+  Ast.expression * Ast.equation list ->
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 42 1144 1206 "transformast.ml" 42 1144 1208
+type(
+  Ast.expression list
+)
+"transformast.ml" 42 1144 1209 "transformast.ml" 42 1144 1211
+type(
+  Ast.equation list
+)
+"transformast.ml" 42 1144 1205 "transformast.ml" 42 1144 1212
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 42 1144 1213 "transformast.ml" 42 1144 1220
+type(
+  (Ast.expression * Ast.equation list) list
+)
+ident(
+  int_ref tuplist "transformast.ml" 40 1066 1074 "transformast.ml" 40 1066 1081
+)
+"transformast.ml" 42 1144 1150 "transformast.ml" 42 1144 1220
+call(
+  stack
+)
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 43 1224 1234 "transformast.ml" 43 1224 1237
+type(
+  Ast.expression list * Ast.equation list -> Ast.expression list
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 43 1224 1238 "transformast.ml" 43 1224 1244
+type(
+  Ast.expression list * Ast.equation list
+)
+ident(
+  int_ref listup "transformast.ml" 41 1127 1135 "transformast.ml" 41 1127 1141
+)
+"transformast.ml" 43 1224 1233 "transformast.ml" 43 1224 1245
+type(
+  Ast.expression list
+)
+"transformast.ml" 43 1224 1228 "transformast.ml" 43 1224 1245
+type(
+  Ast.expression
+)
+"transformast.ml" 43 1224 1248 "transformast.ml" 43 1224 1251
+type(
+  Ast.expression list * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 43 1224 1252 "transformast.ml" 43 1224 1258
+type(
+  Ast.expression list * Ast.equation list
+)
+ident(
+  int_ref listup "transformast.ml" 41 1127 1135 "transformast.ml" 41 1127 1141
+)
+"transformast.ml" 43 1224 1247 "transformast.ml" 43 1224 1259
+type(
+  Ast.equation list
+)
+"transformast.ml" 43 1224 1228 "transformast.ml" 43 1224 1259
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 41 1127 1131 "transformast.ml" 43 1224 1259
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 40 1066 1070 "transformast.ml" 43 1224 1259
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 44 1260 1268 "transformast.ml" 44 1260 1269
+type(
+  Ast.ident
+)
+ident(
+  def i "transformast.ml" 44 1260 1273 "transformast.ml" 44 1260 1278
+)
+"transformast.ml" 44 1260 1264 "transformast.ml" 44 1260 1269
+type(
+  Ast.expression
+)
+"transformast.ml" 44 1260 1274 "transformast.ml" 44 1260 1275
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 44 1260 1276 "transformast.ml" 44 1260 1277
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 44 1260 1273 "transformast.ml" 44 1260 1278
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 45 1279 1296 "transformast.ml" 45 1279 1298
+type(
+  Ast.exp_desc
+)
+ident(
+  def e1 "transformast.ml" 46 1309 1313 "transformast.ml" 49 1424 1492
+)
+"transformast.ml" 45 1279 1299 "transformast.ml" 45 1279 1301
+type(
+  Ast.exp_desc
+)
+ident(
+  def e2 "transformast.ml" 46 1309 1313 "transformast.ml" 49 1424 1492
+)
+"transformast.ml" 45 1279 1302 "transformast.ml" 45 1279 1304
+type(
+  Ast.exp_desc
+)
+ident(
+  def e3 "transformast.ml" 46 1309 1313 "transformast.ml" 49 1424 1492
+)
+"transformast.ml" 45 1279 1283 "transformast.ml" 45 1279 1305
+type(
+  Ast.expression
+)
+"transformast.ml" 46 1309 1317 "transformast.ml" 46 1309 1320
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  def ne1 "transformast.ml" 47 1347 1351 "transformast.ml" 49 1424 1492
+)
+"transformast.ml" 46 1309 1323 "transformast.ml" 46 1309 1336
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 46 1309 1337 "transformast.ml" 46 1309 1341
+type(
+  Ast.expression
+)
+ident(
+  int_ref e1 "transformast.ml" 45 1279 1296 "transformast.ml" 45 1279 1298
+)
+"transformast.ml" 46 1309 1342 "transformast.ml" 46 1309 1343
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 46 1309 1323 "transformast.ml" 46 1309 1343
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 47 1347 1355 "transformast.ml" 47 1347 1358
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  def ne2 "transformast.ml" 48 1385 1389 "transformast.ml" 49 1424 1492
+)
+"transformast.ml" 47 1347 1361 "transformast.ml" 47 1347 1374
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 47 1347 1375 "transformast.ml" 47 1347 1379
+type(
+  Ast.expression
+)
+ident(
+  int_ref e2 "transformast.ml" 45 1279 1299 "transformast.ml" 45 1279 1301
+)
+"transformast.ml" 47 1347 1380 "transformast.ml" 47 1347 1381
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 47 1347 1361 "transformast.ml" 47 1347 1381
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 48 1385 1393 "transformast.ml" 48 1385 1396
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  def ne3 "transformast.ml" 49 1424 1428 "transformast.ml" 49 1424 1492
+)
+"transformast.ml" 48 1385 1399 "transformast.ml" 48 1385 1412
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 48 1385 1413 "transformast.ml" 48 1385 1417
+type(
+  Ast.expression
+)
+ident(
+  int_ref e3 "transformast.ml" 45 1279 1302 "transformast.ml" 45 1279 1304
+)
+"transformast.ml" 48 1385 1418 "transformast.ml" 48 1385 1419
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 48 1385 1399 "transformast.ml" 48 1385 1419
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 49 1424 1440 "transformast.ml" 49 1424 1443
+type(
+  Ast.expression * Ast.equation list -> Ast.expression
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 49 1424 1444 "transformast.ml" 49 1424 1447
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne1 "transformast.ml" 46 1309 1317 "transformast.ml" 46 1309 1320
+)
+"transformast.ml" 49 1424 1440 "transformast.ml" 49 1424 1447
+type(
+  Ast.expression
+)
+"transformast.ml" 49 1424 1449 "transformast.ml" 49 1424 1452
+type(
+  Ast.expression * Ast.equation list -> Ast.expression
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 49 1424 1453 "transformast.ml" 49 1424 1456
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne2 "transformast.ml" 47 1347 1355 "transformast.ml" 47 1347 1358
+)
+"transformast.ml" 49 1424 1449 "transformast.ml" 49 1424 1456
+type(
+  Ast.expression
+)
+"transformast.ml" 49 1424 1458 "transformast.ml" 49 1424 1461
+type(
+  Ast.expression * Ast.equation list -> Ast.expression
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 49 1424 1462 "transformast.ml" 49 1424 1465
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne3 "transformast.ml" 48 1385 1393 "transformast.ml" 48 1385 1396
+)
+"transformast.ml" 49 1424 1458 "transformast.ml" 49 1424 1465
+type(
+  Ast.expression
+)
+"transformast.ml" 49 1424 1428 "transformast.ml" 49 1424 1466
+type(
+  Ast.expression
+)
+"transformast.ml" 49 1424 1468 "transformast.ml" 49 1424 1471
+type(
+  Ast.expression * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 49 1424 1472 "transformast.ml" 49 1424 1475
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne1 "transformast.ml" 46 1309 1317 "transformast.ml" 46 1309 1320
+)
+"transformast.ml" 49 1424 1468 "transformast.ml" 49 1424 1475
+type(
+  Ast.equation list
+)
+"transformast.ml" 49 1424 1475 "transformast.ml" 49 1424 1476
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 49 1424 1476 "transformast.ml" 49 1424 1479
+type(
+  Ast.expression * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 49 1424 1480 "transformast.ml" 49 1424 1483
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne2 "transformast.ml" 47 1347 1355 "transformast.ml" 47 1347 1358
+)
+"transformast.ml" 49 1424 1476 "transformast.ml" 49 1424 1483
+type(
+  Ast.equation list
+)
+"transformast.ml" 49 1424 1483 "transformast.ml" 49 1424 1484
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 49 1424 1484 "transformast.ml" 49 1424 1487
+type(
+  Ast.expression * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 49 1424 1488 "transformast.ml" 49 1424 1491
+type(
+  Ast.expression * Ast.equation list
+)
+ident(
+  int_ref ne3 "transformast.ml" 48 1385 1393 "transformast.ml" 48 1385 1396
+)
+"transformast.ml" 49 1424 1484 "transformast.ml" 49 1424 1491
+type(
+  Ast.equation list
+)
+"transformast.ml" 49 1424 1476 "transformast.ml" 49 1424 1491
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 49 1424 1467 "transformast.ml" 49 1424 1492
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 49 1424 1428 "transformast.ml" 49 1424 1492
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 48 1385 1389 "transformast.ml" 49 1424 1492
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 47 1347 1351 "transformast.ml" 49 1424 1492
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 46 1309 1313 "transformast.ml" 49 1424 1492
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 50 1493 1510 "transformast.ml" 50 1493 1511
+type(
+  Ast.ident
+)
+ident(
+  def i "transformast.ml" 51 1520 1524 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 50 1493 1512 "transformast.ml" 50 1493 1514
+type(
+  Ast.expression list
+)
+ident(
+  def el "transformast.ml" 51 1520 1524 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 50 1493 1497 "transformast.ml" 50 1493 1515
+type(
+  Ast.expression
+)
+"transformast.ml" 51 1520 1528 "transformast.ml" 51 1520 1535
+type(
+  (Ast.expression * Ast.equation list) list
+)
+ident(
+  def tuplist "transformast.ml" 52 1582 1586 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 51 1520 1538 "transformast.ml" 51 1520 1546
+type(
+  (Ast.expression -> Ast.expression * Ast.equation list) ->
+  Ast.expression list -> (Ast.expression * Ast.equation list) list
+)
+ident(
+  ext_ref List.map
+)
+"transformast.ml" 51 1520 1552 "transformast.ml" 51 1520 1553
+type(
+  Ast.expression
+)
+ident(
+  def e "transformast.ml" 51 1520 1557 "transformast.ml" 51 1520 1574
+)
+"transformast.ml" 51 1520 1557 "transformast.ml" 51 1520 1570
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 51 1520 1571 "transformast.ml" 51 1520 1572
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 51 1520 1552 "transformast.ml" 51 1520 1553
+)
+"transformast.ml" 51 1520 1573 "transformast.ml" 51 1520 1574
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 51 1520 1557 "transformast.ml" 51 1520 1574
+call(
+  tail
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 51 1520 1547 "transformast.ml" 51 1520 1575
+type(
+  Ast.expression -> Ast.expression * Ast.equation list
+)
+"transformast.ml" 51 1520 1576 "transformast.ml" 51 1520 1578
+type(
+  Ast.expression list
+)
+ident(
+  int_ref el "transformast.ml" 50 1493 1512 "transformast.ml" 50 1493 1514
+)
+"transformast.ml" 51 1520 1538 "transformast.ml" 51 1520 1578
+call(
+  stack
+)
+type(
+  (Ast.expression * Ast.equation list) list
+)
+"transformast.ml" 52 1582 1591 "transformast.ml" 52 1582 1598
+type(
+  Ast.expression list
+)
+ident(
+  def new_eqs "transformast.ml" 54 1689 1693 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 52 1582 1600 "transformast.ml" 52 1582 1608
+type(
+  Ast.equation list
+)
+ident(
+  def new_list "transformast.ml" 54 1689 1693 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 52 1582 1590 "transformast.ml" 52 1582 1609
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 53 1612 1618 "transformast.ml" 53 1612 1632
+type(
+  (Ast.expression list * Ast.equation list ->
+   Ast.expression * Ast.equation list ->
+   Ast.expression list * Ast.equation list) ->
+  Ast.expression list * Ast.equation list ->
+  (Ast.expression * Ast.equation list) list ->
+  Ast.expression list * Ast.equation list
+)
+ident(
+  ext_ref List.fold_left
+)
+"transformast.ml" 53 1612 1639 "transformast.ml" 53 1612 1641
+type(
+  Ast.expression list
+)
+ident(
+  def l1 "transformast.ml" 53 1612 1646 "transformast.ml" 53 1612 1667
+)
+"transformast.ml" 53 1612 1642 "transformast.ml" 53 1612 1644
+type(
+  Ast.equation list
+)
+ident(
+  def l2 "transformast.ml" 53 1612 1646 "transformast.ml" 53 1612 1667
+)
+"transformast.ml" 53 1612 1638 "transformast.ml" 53 1612 1645
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 53 1612 1647 "transformast.ml" 53 1612 1648
+type(
+  Ast.expression
+)
+ident(
+  def a "transformast.ml" 53 1612 1655 "transformast.ml" 53 1612 1667
+)
+"transformast.ml" 53 1612 1649 "transformast.ml" 53 1612 1650
+type(
+  Ast.equation list
+)
+ident(
+  def b "transformast.ml" 53 1612 1655 "transformast.ml" 53 1612 1667
+)
+"transformast.ml" 53 1612 1646 "transformast.ml" 53 1612 1651
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 53 1612 1656 "transformast.ml" 53 1612 1657
+type(
+  Ast.expression
+)
+ident(
+  int_ref a "transformast.ml" 53 1612 1647 "transformast.ml" 53 1612 1648
+)
+"transformast.ml" 53 1612 1659 "transformast.ml" 53 1612 1661
+type(
+  Ast.expression list
+)
+ident(
+  int_ref l1 "transformast.ml" 53 1612 1639 "transformast.ml" 53 1612 1641
+)
+"transformast.ml" 53 1612 1656 "transformast.ml" 53 1612 1661
+type(
+  Ast.expression list
+)
+"transformast.ml" 53 1612 1662 "transformast.ml" 53 1612 1663
+type(
+  Ast.equation list
+)
+ident(
+  int_ref b "transformast.ml" 53 1612 1649 "transformast.ml" 53 1612 1650
+)
+"transformast.ml" 53 1612 1663 "transformast.ml" 53 1612 1664
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 53 1612 1664 "transformast.ml" 53 1612 1666
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l2 "transformast.ml" 53 1612 1642 "transformast.ml" 53 1612 1644
+)
+"transformast.ml" 53 1612 1662 "transformast.ml" 53 1612 1666
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 53 1612 1655 "transformast.ml" 53 1612 1667
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 53 1612 1633 "transformast.ml" 53 1612 1669
+type(
+  Ast.expression list * Ast.equation list ->
+  Ast.expression * Ast.equation list ->
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 53 1612 1671 "transformast.ml" 53 1612 1673
+type(
+  Ast.expression list
+)
+"transformast.ml" 53 1612 1674 "transformast.ml" 53 1612 1676
+type(
+  Ast.equation list
+)
+"transformast.ml" 53 1612 1670 "transformast.ml" 53 1612 1677
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 53 1612 1678 "transformast.ml" 53 1612 1685
+type(
+  (Ast.expression * Ast.equation list) list
+)
+ident(
+  int_ref tuplist "transformast.ml" 51 1520 1528 "transformast.ml" 51 1520 1535
+)
+"transformast.ml" 53 1612 1618 "transformast.ml" 53 1612 1685
+call(
+  stack
+)
+type(
+  Ast.expression list * Ast.equation list
+)
+"transformast.ml" 54 1689 1697 "transformast.ml" 54 1689 1701
+type(
+  string
+)
+ident(
+  def name "transformast.ml" 55 1757 1761 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 54 1689 1705 "transformast.ml" 54 1689 1706
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "transformast.ml" 50 1493 1510 "transformast.ml" 50 1493 1511
+)
+"transformast.ml" 54 1689 1705 "transformast.ml" 54 1689 1714
+type(
+  string
+)
+"transformast.ml" 54 1689 1714 "transformast.ml" 54 1689 1715
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"transformast.ml" 54 1689 1715 "transformast.ml" 54 1689 1723
+type(
+  string
+)
+"transformast.ml" 54 1689 1723 "transformast.ml" 54 1689 1724
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"transformast.ml" 54 1689 1725 "transformast.ml" 54 1689 1738
+type(
+  int -> string
+)
+ident(
+  ext_ref Pervasives.string_of_int
+)
+"transformast.ml" 54 1689 1740 "transformast.ml" 54 1689 1747
+type(
+  unit -> int
+)
+ident(
+  int_ref counter "transformast.ml" 6 13 17 "transformast.ml" 6 13 24
+)
+"transformast.ml" 54 1689 1748 "transformast.ml" 54 1689 1750
+type(
+  unit
+)
+"transformast.ml" 54 1689 1739 "transformast.ml" 54 1689 1751
+call(
+  stack
+)
+type(
+  int
+)
+"transformast.ml" 54 1689 1724 "transformast.ml" 54 1689 1753
+call(
+  stack
+)
+type(
+  string
+)
+"transformast.ml" 54 1689 1715 "transformast.ml" 54 1689 1753
+call(
+  stack
+)
+type(
+  string
+)
+"transformast.ml" 54 1689 1704 "transformast.ml" 54 1689 1754
+call(
+  stack
+)
+type(
+  string
+)
+"transformast.ml" 55 1757 1765 "transformast.ml" 55 1757 1772
+type(
+  Ast.equation
+)
+ident(
+  def new_exp "transformast.ml" 56 1846 1851 "transformast.ml" 56 1846 1914
+)
+"transformast.ml" 55 1757 1787 "transformast.ml" 55 1757 1797
+type(
+  ?loc:Location.t -> string -> Ast.pattern
+)
+ident(
+  ext_ref Ast.mk_pattern
+)
+"transformast.ml" 55 1757 1798 "transformast.ml" 55 1757 1802
+type(
+  string
+)
+ident(
+  int_ref name "transformast.ml" 54 1689 1697 "transformast.ml" 54 1689 1701
+)
+"transformast.ml" 55 1757 1787 "transformast.ml" 55 1757 1802
+call(
+  stack
+)
+type(
+  Ast.pattern
+)
+"transformast.ml" 55 1757 1836 "transformast.ml" 55 1757 1837
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "transformast.ml" 50 1493 1510 "transformast.ml" 50 1493 1511
+)
+"transformast.ml" 55 1757 1838 "transformast.ml" 55 1757 1840
+type(
+  Ast.expression list
+)
+"transformast.ml" 55 1757 1818 "transformast.ml" 55 1757 1841
+type(
+  Ast.expression
+)
+"transformast.ml" 55 1757 1775 "transformast.ml" 55 1757 1842
+type(
+  Ast.equation
+)
+"transformast.ml" 56 1846 1864 "transformast.ml" 56 1846 1872
+type(
+  ?loc:Location.t -> string -> Ast.ident
+)
+ident(
+  ext_ref Ast.mk_ident
+)
+"transformast.ml" 56 1846 1873 "transformast.ml" 56 1846 1877
+type(
+  string
+)
+ident(
+  int_ref name "transformast.ml" 54 1689 1697 "transformast.ml" 54 1689 1701
+)
+"transformast.ml" 56 1846 1864 "transformast.ml" 56 1846 1877
+call(
+  stack
+)
+type(
+  Ast.ident
+)
+"transformast.ml" 56 1846 1878 "transformast.ml" 56 1846 1886
+type(
+  Ast.expression list -> Ast.expression list
+)
+ident(
+  ext_ref List.rev
+)
+"transformast.ml" 56 1846 1887 "transformast.ml" 56 1846 1894
+type(
+  Ast.expression list
+)
+ident(
+  int_ref new_eqs "transformast.ml" 52 1582 1591 "transformast.ml" 52 1582 1598
+)
+"transformast.ml" 56 1846 1878 "transformast.ml" 56 1846 1894
+call(
+  stack
+)
+type(
+  Ast.expression list
+)
+"transformast.ml" 56 1846 1851 "transformast.ml" 56 1846 1895
+type(
+  Ast.expression
+)
+"transformast.ml" 56 1846 1897 "transformast.ml" 56 1846 1904
+type(
+  Ast.equation
+)
+ident(
+  int_ref new_exp "transformast.ml" 55 1757 1765 "transformast.ml" 55 1757 1772
+)
+"transformast.ml" 56 1846 1906 "transformast.ml" 56 1846 1914
+type(
+  Ast.equation list
+)
+ident(
+  int_ref new_list "transformast.ml" 52 1582 1600 "transformast.ml" 52 1582 1608
+)
+"transformast.ml" 56 1846 1897 "transformast.ml" 56 1846 1914
+type(
+  Ast.equation list
+)
+"transformast.ml" 56 1846 1851 "transformast.ml" 56 1846 1914
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 55 1757 1761 "transformast.ml" 56 1846 1914
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 54 1689 1693 "transformast.ml" 56 1846 1914
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 52 1582 1586 "transformast.ml" 56 1846 1914
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 51 1520 1524 "transformast.ml" 56 1846 1914
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 57 1915 1925 "transformast.ml" 57 1915 1926
+type(
+  Ast.constant
+)
+ident(
+  def v "transformast.ml" 57 1915 1930 "transformast.ml" 57 1915 1933
+)
+"transformast.ml" 57 1915 1919 "transformast.ml" 57 1915 1926
+type(
+  Ast.expression
+)
+"transformast.ml" 57 1915 1930 "transformast.ml" 57 1915 1931
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 57 1915 1932 "transformast.ml" 57 1915 1933
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 57 1915 1930 "transformast.ml" 57 1915 1933
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 58 1934 1938 "transformast.ml" 58 1934 1942
+type(
+  Ast.expression
+)
+"transformast.ml" 58 1934 1946 "transformast.ml" 58 1934 1947
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 58 1934 1948 "transformast.ml" 58 1934 1949
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 58 1934 1946 "transformast.ml" 58 1934 1949
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 59 1950 1954 "transformast.ml" 59 1950 1955
+type(
+  Ast.expression
+)
+"transformast.ml" 59 1950 1959 "transformast.ml" 59 1950 1960
+type(
+  Ast.expression
+)
+ident(
+  int_ref e "transformast.ml" 10 84 106 "transformast.ml" 10 84 107
+)
+"transformast.ml" 59 1950 1961 "transformast.ml" 59 1950 1962
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l "transformast.ml" 10 84 108 "transformast.ml" 10 84 109
+)
+"transformast.ml" 59 1950 1959 "transformast.ml" 59 1950 1962
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 13 144 146 "transformast.ml" 59 1950 1962
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 12 114 116 "transformast.ml" 59 1950 1962
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 61 1964 1968 "transformast.ml" 61 1964 1980
+type(
+  Ast.equation -> Ast.equation * Ast.equation list
+)
+ident(
+  def transform_eq "transformast.ml" 65 2093 2093 "transformast.ml" 1 0 -1
+)
+"transformast.ml" 61 1964 1981 "transformast.ml" 61 1964 1983
+type(
+  Ast.equation
+)
+ident(
+  def eq "transformast.ml" 62 1986 1988 "transformast.ml" 63 2048 2089
+)
+"transformast.ml" 62 1986 1993 "transformast.ml" 62 1986 2000
+type(
+  Ast.expression
+)
+ident(
+  def new_exp "transformast.ml" 63 2048 2049 "transformast.ml" 63 2048 2089
+)
+"transformast.ml" 62 1986 2002 "transformast.ml" 62 1986 2009
+type(
+  Ast.equation list
+)
+ident(
+  def new_eql "transformast.ml" 63 2048 2049 "transformast.ml" 63 2048 2089
+)
+"transformast.ml" 62 1986 1992 "transformast.ml" 62 1986 2010
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 62 1986 2013 "transformast.ml" 62 1986 2026
+type(
+  Ast.expression -> Ast.equation list -> Ast.expression * Ast.equation list
+)
+ident(
+  int_ref transform_exp "transformast.ml" 10 84 92 "transformast.ml" 10 84 105
+)
+"transformast.ml" 62 1986 2027 "transformast.ml" 62 1986 2029
+type(
+  Ast.equation
+)
+ident(
+  int_ref eq "transformast.ml" 61 1964 1981 "transformast.ml" 61 1964 1983
+)
+"transformast.ml" 62 1986 2027 "transformast.ml" 62 1986 2040
+type(
+  Ast.expression
+)
+"transformast.ml" 62 1986 2041 "transformast.ml" 62 1986 2043
+type(
+  Ast.equation list
+)
+"transformast.ml" 62 1986 2013 "transformast.ml" 62 1986 2043
+call(
+  stack
+)
+type(
+  Ast.expression * Ast.equation list
+)
+"transformast.ml" 63 2048 2051 "transformast.ml" 63 2048 2053
+type(
+  Ast.equation
+)
+ident(
+  int_ref eq "transformast.ml" 61 1964 1981 "transformast.ml" 61 1964 1983
+)
+"transformast.ml" 63 2048 2072 "transformast.ml" 63 2048 2079
+type(
+  Ast.expression
+)
+ident(
+  int_ref new_exp "transformast.ml" 62 1986 1993 "transformast.ml" 62 1986 2000
+)
+"transformast.ml" 63 2048 2049 "transformast.ml" 63 2048 2080
+type(
+  Ast.equation
+)
+"transformast.ml" 63 2048 2082 "transformast.ml" 63 2048 2089
+type(
+  Ast.equation list
+)
+ident(
+  int_ref new_eql "transformast.ml" 62 1986 2002 "transformast.ml" 62 1986 2009
+)
+"transformast.ml" 63 2048 2049 "transformast.ml" 63 2048 2089
+type(
+  Ast.equation * Ast.equation list
+)
+"transformast.ml" 62 1986 1988 "transformast.ml" 63 2048 2089
+type(
+  Ast.equation * Ast.equation list
+)
+"transformast.ml" 65 2093 2101 "transformast.ml" 65 2093 2114
+type(
+  Ast.equation list -> Ast.equation list * Ast.equation list
+)
+ident(
+  def transform_eqs "transformast.ml" 65 2093 2093 "transformast.ml" 1 0 -1
+)
+"transformast.ml" 65 2093 2115 "transformast.ml" 65 2093 2118
+type(
+  Ast.equation list
+)
+ident(
+  def eqs "transformast.ml" 66 2121 2123 "transformast.ml" 67 2180 2253
+)
+"transformast.ml" 66 2121 2127 "transformast.ml" 66 2121 2134
+type(
+  (Ast.equation * Ast.equation list) list
+)
+ident(
+  def new_eqs "transformast.ml" 67 2180 2182 "transformast.ml" 67 2180 2253
+)
+"transformast.ml" 66 2121 2137 "transformast.ml" 66 2121 2145
+type(
+  (Ast.equation -> Ast.equation * Ast.equation list) ->
+  Ast.equation list -> (Ast.equation * Ast.equation list) list
+)
+ident(
+  ext_ref List.map
+)
+"transformast.ml" 66 2121 2151 "transformast.ml" 66 2121 2152
+type(
+  Ast.equation
+)
+ident(
+  def x "transformast.ml" 66 2121 2156 "transformast.ml" 66 2121 2170
+)
+"transformast.ml" 66 2121 2156 "transformast.ml" 66 2121 2168
+type(
+  Ast.equation -> Ast.equation * Ast.equation list
+)
+ident(
+  int_ref transform_eq "transformast.ml" 61 1964 1968 "transformast.ml" 61 1964 1980
+)
+"transformast.ml" 66 2121 2169 "transformast.ml" 66 2121 2170
+type(
+  Ast.equation
+)
+ident(
+  int_ref x "transformast.ml" 66 2121 2151 "transformast.ml" 66 2121 2152
+)
+"transformast.ml" 66 2121 2156 "transformast.ml" 66 2121 2170
+call(
+  tail
+)
+type(
+  Ast.equation * Ast.equation list
+)
+"transformast.ml" 66 2121 2146 "transformast.ml" 66 2121 2171
+type(
+  Ast.equation -> Ast.equation * Ast.equation list
+)
+"transformast.ml" 66 2121 2172 "transformast.ml" 66 2121 2175
+type(
+  Ast.equation list
+)
+ident(
+  int_ref eqs "transformast.ml" 65 2093 2115 "transformast.ml" 65 2093 2118
+)
+"transformast.ml" 66 2121 2137 "transformast.ml" 66 2121 2175
+call(
+  stack
+)
+type(
+  (Ast.equation * Ast.equation list) list
+)
+"transformast.ml" 67 2180 2182 "transformast.ml" 67 2180 2196
+type(
+  (Ast.equation list * Ast.equation list ->
+   Ast.equation * Ast.equation list -> Ast.equation list * Ast.equation list) ->
+  Ast.equation list * Ast.equation list ->
+  (Ast.equation * Ast.equation list) list ->
+  Ast.equation list * Ast.equation list
+)
+ident(
+  ext_ref List.fold_left
+)
+"transformast.ml" 67 2180 2203 "transformast.ml" 67 2180 2205
+type(
+  Ast.equation list
+)
+ident(
+  def l1 "transformast.ml" 67 2180 2210 "transformast.ml" 67 2180 2235
+)
+"transformast.ml" 67 2180 2206 "transformast.ml" 67 2180 2208
+type(
+  Ast.equation list
+)
+ident(
+  def l2 "transformast.ml" 67 2180 2210 "transformast.ml" 67 2180 2235
+)
+"transformast.ml" 67 2180 2202 "transformast.ml" 67 2180 2209
+type(
+  Ast.equation list * Ast.equation list
+)
+"transformast.ml" 67 2180 2211 "transformast.ml" 67 2180 2212
+type(
+  Ast.equation
+)
+ident(
+  def x "transformast.ml" 67 2180 2220 "transformast.ml" 67 2180 2235
+)
+"transformast.ml" 67 2180 2213 "transformast.ml" 67 2180 2215
+type(
+  Ast.equation list
+)
+ident(
+  def yl "transformast.ml" 67 2180 2220 "transformast.ml" 67 2180 2235
+)
+"transformast.ml" 67 2180 2210 "transformast.ml" 67 2180 2216
+type(
+  Ast.equation * Ast.equation list
+)
+"transformast.ml" 67 2180 2221 "transformast.ml" 67 2180 2222
+type(
+  Ast.equation
+)
+ident(
+  int_ref x "transformast.ml" 67 2180 2211 "transformast.ml" 67 2180 2212
+)
+"transformast.ml" 67 2180 2224 "transformast.ml" 67 2180 2226
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l1 "transformast.ml" 67 2180 2203 "transformast.ml" 67 2180 2205
+)
+"transformast.ml" 67 2180 2220 "transformast.ml" 67 2180 2227
+type(
+  Ast.equation list
+)
+"transformast.ml" 67 2180 2229 "transformast.ml" 67 2180 2231
+type(
+  Ast.equation list
+)
+ident(
+  int_ref l2 "transformast.ml" 67 2180 2206 "transformast.ml" 67 2180 2208
+)
+"transformast.ml" 67 2180 2231 "transformast.ml" 67 2180 2232
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 67 2180 2232 "transformast.ml" 67 2180 2234
+type(
+  Ast.equation list
+)
+ident(
+  int_ref yl "transformast.ml" 67 2180 2213 "transformast.ml" 67 2180 2215
+)
+"transformast.ml" 67 2180 2228 "transformast.ml" 67 2180 2235
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 67 2180 2220 "transformast.ml" 67 2180 2235
+type(
+  Ast.equation list * Ast.equation list
+)
+"transformast.ml" 67 2180 2197 "transformast.ml" 67 2180 2237
+type(
+  Ast.equation list * Ast.equation list ->
+  Ast.equation * Ast.equation list -> Ast.equation list * Ast.equation list
+)
+"transformast.ml" 67 2180 2239 "transformast.ml" 67 2180 2241
+type(
+  Ast.equation list
+)
+"transformast.ml" 67 2180 2242 "transformast.ml" 67 2180 2244
+type(
+  Ast.equation list
+)
+"transformast.ml" 67 2180 2238 "transformast.ml" 67 2180 2245
+type(
+  Ast.equation list * Ast.equation list
+)
+"transformast.ml" 67 2180 2246 "transformast.ml" 67 2180 2253
+type(
+  (Ast.equation * Ast.equation list) list
+)
+ident(
+  int_ref new_eqs "transformast.ml" 66 2121 2127 "transformast.ml" 66 2121 2134
+)
+"transformast.ml" 67 2180 2182 "transformast.ml" 67 2180 2253
+call(
+  tail
+)
+type(
+  Ast.equation list * Ast.equation list
+)
+"transformast.ml" 66 2121 2123 "transformast.ml" 67 2180 2253
+type(
+  Ast.equation list * Ast.equation list
+)
+"transformast.ml" 69 2255 2259 "transformast.ml" 69 2255 2273
+type(
+  Ast.node -> Ast.node
+)
+ident(
+  def transform_node "transformast.ml" 71 2327 2374 "transformast.ml" 1 0 -1
+)
+"transformast.ml" 69 2255 2274 "transformast.ml" 69 2255 2278
+type(
+  Ast.node
+)
+ident(
+  def node "transformast.ml" 70 2282 2284 "transformast.ml" 71 2327 2374
+)
+"transformast.ml" 70 2282 2288 "transformast.ml" 70 2282 2291
+type(
+  Ast.equation list * Ast.equation list
+)
+ident(
+  def eqs "transformast.ml" 71 2327 2329 "transformast.ml" 71 2327 2374
+)
+"transformast.ml" 70 2282 2294 "transformast.ml" 70 2282 2307
+type(
+  Ast.equation list -> Ast.equation list * Ast.equation list
+)
+ident(
+  int_ref transform_eqs "transformast.ml" 65 2093 2101 "transformast.ml" 65 2093 2114
+)
+"transformast.ml" 70 2282 2308 "transformast.ml" 70 2282 2312
+type(
+  Ast.node
+)
+ident(
+  int_ref node "transformast.ml" 69 2255 2274 "transformast.ml" 69 2255 2278
+)
+"transformast.ml" 70 2282 2308 "transformast.ml" 70 2282 2322
+type(
+  Ast.equation list
+)
+"transformast.ml" 70 2282 2294 "transformast.ml" 70 2282 2322
+call(
+  stack
+)
+type(
+  Ast.equation list * Ast.equation list
+)
+"transformast.ml" 71 2327 2331 "transformast.ml" 71 2327 2335
+type(
+  Ast.node
+)
+ident(
+  int_ref node "transformast.ml" 69 2255 2274 "transformast.ml" 69 2255 2278
+)
+"transformast.ml" 71 2327 2354 "transformast.ml" 71 2327 2357
+type(
+  Ast.equation list * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.fst
+)
+"transformast.ml" 71 2327 2358 "transformast.ml" 71 2327 2361
+type(
+  Ast.equation list * Ast.equation list
+)
+ident(
+  int_ref eqs "transformast.ml" 70 2282 2288 "transformast.ml" 70 2282 2291
+)
+"transformast.ml" 71 2327 2353 "transformast.ml" 71 2327 2362
+type(
+  Ast.equation list
+)
+"transformast.ml" 71 2327 2362 "transformast.ml" 71 2327 2363
+type(
+  Ast.equation list -> Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.( @ )
+)
+"transformast.ml" 71 2327 2364 "transformast.ml" 71 2327 2367
+type(
+  Ast.equation list * Ast.equation list -> Ast.equation list
+)
+ident(
+  ext_ref Pervasives.snd
+)
+"transformast.ml" 71 2327 2368 "transformast.ml" 71 2327 2371
+type(
+  Ast.equation list * Ast.equation list
+)
+ident(
+  int_ref eqs "transformast.ml" 70 2282 2288 "transformast.ml" 70 2282 2291
+)
+"transformast.ml" 71 2327 2363 "transformast.ml" 71 2327 2372
+type(
+  Ast.equation list
+)
+"transformast.ml" 71 2327 2353 "transformast.ml" 71 2327 2372
+call(
+  stack
+)
+type(
+  Ast.equation list
+)
+"transformast.ml" 71 2327 2329 "transformast.ml" 71 2327 2374
+type(
+  Ast.node
+)
+"transformast.ml" 70 2282 2284 "transformast.ml" 71 2327 2374
+type(
+  Ast.node
+)
