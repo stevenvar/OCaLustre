@@ -8,6 +8,7 @@ open Astprinter
 open Scheduling 
 open Transformast
 open Astimperative
+open Clocks
 
 (* maps structure_items of the form : 
 
@@ -28,6 +29,7 @@ let lustre_mapper argv =
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = transform_node _node in
             let _node = schedule _node in
+            let _cnode = typeclock_node _node in 
             let _inode = compile_node _node in
             (*print_node Format.std_formatter _node; 
               printml_node Format.std_formatter _inode;*)

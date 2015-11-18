@@ -2,7 +2,7 @@ open Parsetree
 open Asttypes
 open Longident
 (*
-* AST TYPES 
+* AST 
 *)
 
 type node = {
@@ -31,15 +31,15 @@ and
 }
 and
  exp_desc =   
-  | Alternative of exp_desc * exp_desc * exp_desc
+  | Alternative of expression * expression * expression
   | Application of ident * expression list 
   | Call of Parsetree.expression
   | Application_init of ident * expression list
-  | InfixOp of inf_operator * exp_desc * exp_desc
-  | PrefixOp of pre_operator * exp_desc
+  | InfixOp of inf_operator * expression * expression
+  | PrefixOp of pre_operator * expression
   | Value of constant 
   | Variable of ident
-  | Tuple of exp_desc list 
+  | Tuple of expression list 
   | Ref of ident
   | Unit
 and
