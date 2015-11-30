@@ -1,8 +1,8 @@
 OASISFormat: 0.4
 Name:        ppx_lustre
 Version:     0.01
-Synopsis:    ppx extension for list comprehension
-Authors:     Oui
+Synopsis:    ppx extension for lustre nodes 
+Authors:     steven varoumas
 License:     LGPL
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild

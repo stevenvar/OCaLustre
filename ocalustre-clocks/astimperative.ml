@@ -18,6 +18,7 @@ and
   | IApplication of ident * imp_expr list
   | IApplication_init of ident * imp_expr list
   | ICall of Parsetree.expression
+  | IWhen of imp_expr * ident 
   | IUnit
 and
   imp_infop =
@@ -132,6 +133,7 @@ let rec compile_expression exp =
   | Application_init (id, el) -> IApplication_init (id,
                                           List.map (compile_expression) el)
   | Call e -> ICall e 
+  | When (e,i) -> IWhen (compile_expression e,i)
   | Unit -> IUnit
 
 let printml_string fmt p =
@@ -208,6 +210,9 @@ let rec printml_expression fmt exp =
                               printml_string s.content
                               printml_expressions el
   | IUnit -> Format.fprintf fmt " () "
+  | IWhen (e,i) -> Format.fprintf fmt " %a when %a "
+      printml_expression e 
+      printml_string i.content 
   | ICall e -> Format.fprintf fmt " CALL XXX "
 
 let printml_inits fmt il =
@@ -343,7 +348,7 @@ let compile_node node =
   }
 
 
-let rec tocaml_expression e =
+let rec tocaml_expression e   =
   Ast_helper.( 
     match e with
     | IValue (Integer i) -> Exp.constant (Const_int i)
@@ -353,6 +358,11 @@ let rec tocaml_expression e =
     | ITuple t -> Exp.tuple (List.map tocaml_expression t)
     | IVariable i -> Exp.ident (ident_to_lid i)
     | IRef i -> [%expr Option.get ![%e Exp.ident (ident_to_lid i) ]  ]
+    | IWhen (e1,i) ->
+      [%expr [%e Exp.ifthenelse
+                (Exp.ident (ident_to_lid i))
+                (tocaml_expression e1) 
+                (None)  ] ]
     | IInfixOp (IDiff,e1,e2) ->
       [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
     | IInfixOp (ILess,e1,e2) ->

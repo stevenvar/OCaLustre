@@ -37,6 +37,7 @@ and
   | Application_init of ident * expression list
   | InfixOp of inf_operator * expression * expression
   | PrefixOp of pre_operator * expression
+  | When of expression * ident 
   | Value of constant 
   | Variable of ident
   | Tuple of expression list 
@@ -153,6 +154,7 @@ let rec mk_expr e =
   | [%expr [%e? e1] *. [%e? e2] ] -> mk_expr e1 *./ mk_expr e2
   | [%expr [%e? e1] -. [%e? e2] ] -> mk_expr e1 -./ mk_expr e2
   | [%expr [%e? e1] /. [%e? e2] ] -> mk_expr e1 /./ mk_expr e2
+  | [%expr [%e? e1] on [%e? e2] ] -> When (mk_expr e1, checkname_ident e2)   
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value (Bool true)

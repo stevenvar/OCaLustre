@@ -93,6 +93,9 @@ let rec print_expression fmt e =
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> print_value fmt v 
   | Call e -> Format.fprintf fmt " call xxx"
+  | When (e,i) -> Format.fprintf fmt " %a when %a "
+    print_expression e
+    print_ident i
   | Unit -> Format.fprintf fmt " () "
   
 
