@@ -75,7 +75,7 @@ module Clocks = struct
   let find env x = 
   try 
     M.find x env
-  with Not_found -> failwith x
+  with Not_found -> Global
 
 end
 
@@ -93,6 +93,7 @@ let rec clock_expression e env =
   match e with
   | Value v -> C_Value v, Constant
   | Variable v -> C_Variable v, (Clocks.find env v.content)
+  | Ref i -> C_Ref i, (Clocks.find env i.content)
   | InfixOp (op,e1,e2) -> 
       let ce1 = clock_expression e1 env in 
       let ce2 = clock_expression e2 env in 
@@ -104,6 +105,17 @@ let rec clock_expression e env =
   | When (e, i) -> 
       let ce = clock_expression e env in 
       C_When (ce,i) , (Clock i.content) 
+  | Alternative (e1,e2,e3) ->
+      let ce1 = clock_expression e1 env in 
+      let ce2 = clock_expression e2 env in 
+      let ce3 = clock_expression e3 env in 
+      C_Alternative (ce1,ce2,ce3), get_clock ce2 ce3
+  | Application_init (i, el) -> 
+      let cel = List.map (fun e -> clock_expression e env) el  in 
+      C_Application_init (i, cel), Global 
+  | Application (i, el) -> 
+     let cel = List.map (fun e -> clock_expression e env) el  in 
+      C_Application (i, cel), Global 
   | _ -> C_Unit, Global 
 
 
@@ -133,7 +145,6 @@ let clock_node n =
   let cout = List.map (fun i -> (i.content, Global)) n.outputs in
   let env = Clocks.adds Clocks.empty cin in 
   let env = Clocks.adds env cout in 
-
   {
   c_name = n.name ;
   c_inputs = n.inputs;

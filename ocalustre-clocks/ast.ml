@@ -77,7 +77,7 @@ module Error = struct
     raise (Location.(Error(error ~loc:loc ("Error:"^string))))
 
   let syntax_error loc =
-    print_error loc "Syntax Error"
+    print_error loc "Syntax Error in "
 end 
 
 (*
