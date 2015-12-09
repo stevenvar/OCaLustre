@@ -1,5 +1,5 @@
 open Ast
-open Astprinter
+open Ast_printer
 
 type vertice = string * equation 
 

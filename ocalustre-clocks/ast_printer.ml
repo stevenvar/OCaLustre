@@ -92,7 +92,8 @@ let rec print_expression fmt e =
   | Application_init (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> print_value fmt v 
-  | Call e -> Format.fprintf fmt " call xxx"
+  | Call e -> Format.fprintf fmt "call (%a)"
+        Pprintast.expression e
   | When (e,i) -> Format.fprintf fmt " %a when %a "
     print_expression e
     print_ident i

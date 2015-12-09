@@ -1,4 +1,6 @@
-open Astimperative
+open Ast_imperative
+open Ast 
+open Ast_clock
 
 let printml_string fmt p =
   Format.fprintf fmt "%s" p
@@ -13,8 +15,8 @@ let rec printml_tuple fmt l =
 
 let printml_pattern fmt p =
   match p with
-  | Simple x -> printml_string fmt x.content
-  | List t -> printml_tuple fmt t
+  | C_Simple (x,c) -> printml_string fmt x.content
+  | C_List t -> printml_tuple fmt (List.map fst t)
 
 
 let rec printml_expression fmt exp =
@@ -52,7 +54,7 @@ let rec printml_expression fmt exp =
                  printml_expressions tl
   in 
   match exp with
-  | IValue c -> Astprinter.print_value fmt c
+  | IValue c -> Ast_printer.print_value fmt c
   | ITuple t -> printml_expressions fmt t
   | IVariable v ->  Format.fprintf fmt "%s" v.content
   | IRef v -> Format.fprintf fmt "Option.get (!%s)" v.content
@@ -132,7 +134,7 @@ let printml_step fmt node =
     printml_io outputs
     
 let printml_node fmt node =
-  Format.fprintf fmt "\n let %a =\n%a %a \nin %a_step \n\n"
+  Format.fprintf fmt "\n let %a ()  =\n%a %a \nin %a_step \n\n"
     printml_string node.i_name.content
     printml_inits node.i_inits
     printml_step node

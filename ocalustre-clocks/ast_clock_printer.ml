@@ -1,5 +1,5 @@
-open Astprinter
-open Ast_clocks
+open Ast_printer
+open Ast_clock
 
 let print_clock fmt c = 
   match c with 
@@ -28,7 +28,7 @@ let rec print_cexpression fmt (e,c) =
     List.iter (fun x -> print_cexpression fmt x) el
   in 
   let print_application fmt (i,el) =
-    Format.fprintf fmt "%a %a"
+    Format.fprintf fmt "%a (%a)"
       print_ident i 
       print_cexpressions el
     in
@@ -51,7 +51,7 @@ let rec print_cexpression fmt (e,c) =
   | C_When (e,i) -> Format.fprintf fmt "(%a when %a)"
       print_cexpression e
       print_ident i
-  | C_Unit -> Format.fprintf fmt " () "
+  | C_Unit -> Format.fprintf fmt "()"
   | C_Alternative (e1,e2,e3) -> 
       Format.fprintf fmt "(if %a then %a else %a )"
       print_cexpression e1
@@ -61,6 +61,8 @@ let rec print_cexpression fmt (e,c) =
     print_application fmt (i,cel) 
   | C_Application (i, cel) ->  
     print_application fmt (i,cel) 
+  | C_Call e -> Format.fprintf fmt "call (%a) (global)"
+        Pprintast.expression e
 
 
 let print_cequation fmt e =

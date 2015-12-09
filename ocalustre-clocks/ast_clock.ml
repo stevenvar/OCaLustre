@@ -116,6 +116,7 @@ let rec clock_expression e env =
   | Application (i, el) -> 
      let cel = List.map (fun e -> clock_expression e env) el  in 
       C_Application (i, cel), Global 
+  | Call e -> C_Call e, Global 
   | _ -> C_Unit, Global 
 
 

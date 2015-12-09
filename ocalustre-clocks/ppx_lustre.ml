@@ -4,13 +4,13 @@ open Asttypes
 open Parsetree
 open Longident
 open Ast
-open Astprinter
+open Ast_printer
 open Scheduling 
 open Transformast
-open Astimperative
-open Ast_clocks
+open Ast_imperative
+open Ast_clock
 open Ast_clock_printer
-
+open Ast_imperative_printer 
 (* maps structure_items of the form : 
 
    let%node NAME (IN1,IN2,...) (OUT1, OUT2, ...) = 
@@ -32,8 +32,9 @@ let lustre_mapper argv =
             let _cnode = clock_node _node in 
             let _inode = compile_node _cnode in
             (*print_node Format.std_formatter _node; 
-              printml_node Format.std_formatter _inode; *)
+            printml_node Format.std_formatter _inode; *)
             print_cnode Format.std_formatter _cnode; 
+            print_endline ""; 
             (tocaml_node _inode)
           | _ -> Error.syntax_error s.pstr_loc
         end
