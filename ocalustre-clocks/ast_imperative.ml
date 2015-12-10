@@ -236,71 +236,71 @@ let compile_node (node:c_node) =
 let rec tocaml_expression e   =
   Ast_helper.( 
     match e with
-    | IValue (Integer i) -> Exp.constant (Const_int i)
+    | IValue (Integer i) -> [%expr Value [%e Exp.constant (Const_int i) ] ] 
     | IValue (Float f) -> Exp.constant (Const_float (string_of_float f))
     | IValue (Bool true) -> Exp.construct {txt= Lident "true" ; loc = Location.none } None
     | IValue (Bool false) -> Exp.construct {txt=Lident "false" ; loc = Location.none }  None
     | ITuple t -> Exp.tuple (List.map tocaml_expression t)
-    | IVariable i -> [%expr Flow.get [%e Exp.ident (ident_to_lid i) ] ]
-    | IRef i -> [%expr Flow.get ![%e Exp.ident (ident_to_lid i) ]  ]
+    | IVariable i -> [%expr  [%e Exp.ident (ident_to_lid i) ] ]
+    | IRef i -> [%expr ![%e Exp.ident (ident_to_lid i) ]  ]
     | IWhen (e1,i) ->
       [%expr [%e Exp.ifthenelse
                 ([%expr Flow.get [%e Exp.ident (ident_to_lid i) ]])
-                ( [%expr Value [%e (tocaml_expression e1) ] ] )  
+                ( [%expr [%e (tocaml_expression e1) ] ] )  
                 (Some [%expr None ])  ] ]
     | IInfixOp (IDiff,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (<>) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (ILess,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] < [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (<) [%e tocaml_expression e1 ][%e tocaml_expression e2 ]]
     | IInfixOp (IGreat,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] > [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (>) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (IGreate,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] >= [%e tocaml_expression e2 ]] 
+      [%expr Flow.map2 (>=) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]] 
     | IInfixOp (ILesse,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] < [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (<) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (IEquals,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (=) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
 
     | IInfixOp (IPlus,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
+      [%expr  Flow.map2 (+) ([%e tocaml_expression e1 ]) ([%e tocaml_expression e2 ]) ]
     | IInfixOp (IMinus,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] - [%e tocaml_expression e2 ]]
+       [%expr Flow.map2 (-) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (ITimes,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] * [%e tocaml_expression e2 ]]
+       [%expr Flow.map2 ( * ) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (IDiv,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (/) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (IPlusf,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] +. [%e tocaml_expression e2 ]]
+      [%expr Flow.map2 (+.) [%e tocaml_expression e1 ]  [%e tocaml_expression e2 ]]
     | IInfixOp (IMinusf,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] -. [%e tocaml_expression e2 ]]
+       [%expr Flow.map2 (-.) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (ITimesf,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] *. [%e tocaml_expression e2 ]]
+       [%expr Flow.map2 ( *.) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (IDivf,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] /. [%e tocaml_expression e2 ]]
-    | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e] ]
+      [%expr Flow.map2 (/.)[%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
+    | IPrefixOp (INot, e) -> [%expr Flow.map (not) [%e tocaml_expression e] ]
     | IInfixOp (IAnd,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
+       [%expr Flow.map2 (&&) [%e tocaml_expression e1 ] [%e tocaml_expression e2 ]]
     | IInfixOp (IOr,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
+       [%expr Flow.map2 (||) [%e tocaml_expression e1 ]  [%e tocaml_expression e2 ]]
     | IAlternative (e1,e2,e3) -> 
       [%expr [%e Exp.ifthenelse
-                (tocaml_expression e1) 
-                [%expr Value [%e (tocaml_expression e2) ] ] 
-                (Some ( [%expr Value [%e tocaml_expression e3 ] ] ))  
+                [%expr Flow.get [%e (tocaml_expression e1) ]]
+                [%expr  [%e (tocaml_expression e2) ] ] 
+                (Some ( [%expr  [%e tocaml_expression e3 ] ] ))  
                 ] 
       ]
     | IApplication (id, el) ->
       let listexp = match el with
         | [] ->  [("", [%expr () ] )]
         | [x] ->  [("", tocaml_expression x)]
-        | _ -> [("",Exp.tuple (List.map (fun x -> [%expr Value [%e tocaml_expression x ]]) el))] in 
+        | _ -> [("",Exp.tuple (List.map (fun x -> [%expr [%e tocaml_expression x ]]) el))] in 
       Exp.apply
         (Exp.ident (ident_to_lid id)) listexp
     |IApplication_init (id, el) ->
       let listexp = match el with
         | [] ->  [("", [%expr () ] )]
         | [x] ->  [("", tocaml_expression x)]
-        | _ -> [("",Exp.tuple (List.map (fun x -> [%expr Value [%e tocaml_expression x ]]) el))] in 
+        | _ -> [("",Exp.tuple (List.map (fun x -> [%expr [%e tocaml_expression x ]]) el))] in 
       Exp.apply
         (Exp.ident (ident_to_lid id)) listexp
     | IUnit -> [%expr ()]
@@ -327,7 +327,7 @@ let tocaml_inits il acc =
       begin match e with
       | None ->
         [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc p)] =
-                 ref Init in [%e acc ] ]  
+                 ref Nil in [%e acc ] ]  
       | Some x ->
         [%expr let [%p Ast_helper.Pat.var (ident_to_stringloc p)] =
                  ref (Value [%e tocaml_expression x ]) in [%e acc ] ]
@@ -338,7 +338,7 @@ let tocaml_inits il acc =
       begin match e with
       | None ->
         [%expr let [%p Ast_helper.Pat.tuple patlist ] =
-                 ref Init in [%e acc ] ]  
+                 ref Nil in [%e acc ] ]  
       | Some x ->
         [%expr let [%p Ast_helper.Pat.tuple patlist] =
                  ref (Value [%e tocaml_expression x ]) in [%e acc ] ]
@@ -374,10 +374,13 @@ let tocaml_updates ul acc =
       begin match e with
         | None ->
           [%expr [%p Ast_helper.Exp.ident (ident_to_lid p)] :=
-                   Init ; [%e acc ] ]  
+                   Init ; [%e acc ] ] 
+        | Some (IValue v ) ->
+          [%expr [%e Ast_helper.Exp.ident (ident_to_lid p)] :=
+                   ( Value [%e tocaml_expression (IValue v) ]); [%e acc ] ] 
         | Some x ->
           [%expr [%e Ast_helper.Exp.ident (ident_to_lid p)] :=
-                   (Value [%e tocaml_expression x ]) ; [%e acc ] ]
+                   ([%e tocaml_expression x ]); [%e acc ] ]
       end
     | C_List t ->
       let lidlist = List.map ident_to_lid (List.map fst t) in
@@ -388,7 +391,7 @@ let tocaml_updates ul acc =
                    Init ; [%e acc ] ]  
         | Some x ->
           [%expr [%e Ast_helper.Exp.tuple explist] :=
-                   (Value [%e tocaml_expression x ]) ; [%e acc ] ]
+                   ([%e tocaml_expression x ]) ; [%e acc ] ]
       end
   in
   List.fold_left (fun l u -> tocaml_update u l) acc ul

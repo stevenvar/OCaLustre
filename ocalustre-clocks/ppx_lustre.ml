@@ -28,6 +28,7 @@ let lustre_mapper argv =
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = transform_node _node in
+            print_node Format.std_formatter _node;
             let _node = schedule _node in
             let _cnode = clock_node _node in 
             let _inode = compile_node _cnode in
