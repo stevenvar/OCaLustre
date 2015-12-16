@@ -28,13 +28,12 @@ let lustre_mapper argv =
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = transform_node _node in
-            print_node Format.std_formatter _node;
             let _node = schedule _node in
             let _cnode = clock_node _node in 
             let _inode = compile_node _cnode in
-            (*print_node Format.std_formatter _node; *)
+            (*print_node Format.std_formatter _node; 
             printml_node Format.std_formatter _inode; 
-            print_cnode Format.std_formatter _cnode; 
+            print_cnode Format.std_formatter _cnode;  *)
             print_endline ""; 
             (tocaml_node _inode)
           | _ -> Error.syntax_error s.pstr_loc
