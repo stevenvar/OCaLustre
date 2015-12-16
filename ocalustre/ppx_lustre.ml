@@ -18,7 +18,6 @@ open Astimperative
 *)
 
 let lustre_mapper argv =
-
   { default_mapper with
     structure_item = fun mapper str ->
        match str.pstr_desc with

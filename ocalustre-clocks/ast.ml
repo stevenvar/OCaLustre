@@ -62,7 +62,6 @@ and
   | Timesf
   | Divf
   | Arrow
-  | When 
   | And 
   | Or
 and

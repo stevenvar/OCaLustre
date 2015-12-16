@@ -49,7 +49,6 @@ let print_infop fmt op =
   | Divf -> Format.fprintf fmt " /. "
   | Minusf -> Format.fprintf fmt " -. "
   | Arrow -> Format.fprintf fmt " -> "
-  | When -> Format.fprintf fmt " when "
   | Diff -> Format.fprintf fmt " <> "
   | Great -> Format.fprintf fmt " > "
   | Less -> Format.fprintf fmt " < "
