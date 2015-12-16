@@ -39,6 +39,8 @@ let rec get_expr_id e s =
   | Value v -> s
   | Call e -> s
   | When (e,i) -> get_expr_id e s
+  | Current e -> get_expr_id e s
+  | Current_init e -> get_expr_id e s 
   | Unit -> s
 
 

@@ -6,20 +6,18 @@ module Option = struct
 end 
 
 
-let%node entiers () (n) =
-  n := 0.0 --> ( (pre n) +. 1.0)  
-  
+let%node entiers (a,b,c) (n) =
+  n := (a+b) --> ( (pre n) + 1 )  
 
-let%node main () (a,b) = 
-  a := entiers (); 
-  b := entiers ()
-  
+let%node main () (n) =
+  h:= true --> false; 
+  n := entiers (1,2, true)
+
 let _ =
-  let main_init = main () in 
+  let entiers_step = main () in 
   while true do
-    let (a,b) = main_init () in 
-    print_float a;
-    print_float b; 
+    let n = entiers_step () in 
+    print_int n; 
     print_endline "";
     Unix.sleep 1
   done

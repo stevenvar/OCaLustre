@@ -43,7 +43,9 @@ and
   | C_Variable of ident
   | C_Tuple of c_expression list 
   | C_Ref of ident
-  | C_When of c_expression * ident 
+  | C_When of c_expression * ident
+  | C_Current of c_expression
+  | C_Current_init of c_expression 
   | C_Unit
 
 
@@ -114,9 +116,13 @@ let rec clock_expression e env =
       let cel = List.map (fun e -> clock_expression e env) el  in 
       C_Application_init (i, cel), Global 
   | Application (i, el) -> 
-     let cel = List.map (fun e -> clock_expression e env) el  in 
+    let cel = List.map (fun e -> clock_expression e env) el  in 
       C_Application (i, cel), Global 
-  | Call e -> C_Call e, Global 
+  | Call e -> C_Call e, Global
+  | Current e -> let ce = clock_expression e env in
+    C_Current ce, Global
+  | Current_init e -> let ce = clock_expression e env in
+    C_Current_init ce, (snd ce )
   | _ -> C_Unit, Global 
 
 

@@ -42,6 +42,8 @@ and
   | Variable of ident
   | Tuple of expression list 
   | Ref of ident
+  | Current of expression
+  | Current_init of expression
   | Unit
 and
   inf_operator =
@@ -66,7 +68,7 @@ and
 and
  pre_operator = 
   | Not
-  | Pre 
+  | Pre
 
 (*
 * Errors 
@@ -154,13 +156,14 @@ let rec mk_expr e =
   | [%expr [%e? e1] *. [%e? e2] ] -> mk_expr e1 *./ mk_expr e2
   | [%expr [%e? e1] -. [%e? e2] ] -> mk_expr e1 -./ mk_expr e2
   | [%expr [%e? e1] /. [%e? e2] ] -> mk_expr e1 /./ mk_expr e2
-  | [%expr [%e? e1] on [%e? e2] ] -> When (mk_expr e1, checkname_ident e2)   
+  | [%expr [%e? e1] on [%e? e2] ] -> When (mk_expr e1, checkname_ident e2)
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     alternative (mk_expr e1) (mk_expr e2) (mk_expr e3)
   | [%expr true ] -> Value (Bool true)
   | [%expr false ] -> Value (Bool false)
-  | [%expr not [%e? e1] ] -> mk_not (mk_expr e1)
-  | [%expr call [%e? e1] ] -> Call (e1)
+  | [%expr not [%e? e] ] -> mk_not (mk_expr e)
+  | [%expr call [%e? e] ] -> Call (e)
+  | [%expr current [%e? e ]] -> Current(mk_expr e) 
   (* a := NOEUD2 (x,y) *)
   | [%expr [%e? e1] [%e? e2] ] ->
     Application(checkname_ident e1, 

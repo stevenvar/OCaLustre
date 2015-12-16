@@ -60,9 +60,12 @@ let rec print_cexpression fmt (e,c) =
   | C_Application_init (i, cel) ->  
     print_application fmt (i,cel) 
   | C_Application (i, cel) ->  
-    print_application fmt (i,cel) 
+    print_application fmt (i,cel)
+  | C_Current ce -> Format.fprintf fmt "current (%a) (global)"
+                      print_cexpression ce
   | C_Call e -> Format.fprintf fmt "call (%a) (global)"
-        Pprintast.expression e
+                  Pprintast.expression e
+  | C_Current_init e -> Format.fprintf fmt "curr %a" print_cexpression e
 
 
 let print_cequation fmt e =

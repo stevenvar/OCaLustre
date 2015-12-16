@@ -1,5 +1,5 @@
 OASISFormat: 0.4
-Name:        ppx_lustre
+Name:        ocalustre
 Version:     0.01
 Synopsis:    ppx extension for lustre nodes 
 Authors:     steven varoumas
@@ -8,18 +8,18 @@ Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
 OCamlVersion: >= 4.02
 
-PreInstallCommand:   $ocamlfind install ppx_lustre lib/META
-PreUninstallCommand: $ocamlfind remove ppx_lustre
+PreInstallCommand:   $ocamlfind install ocalustre lib/META
+PreUninstallCommand: $ocamlfind remove ocalustre
 
-Executable ppx_lustre
+Executable ocalustre
   Path:           ./
   BuildDepends:
     compiler-libs.common,
     ppx_tools.metaquot
-  MainIs:         ppx_lustre.ml
+  MainIs:         ocalustre.ml
   CompiledObject: best
 
 Test test_ppx_proto
   Run$: flag(tests)
-  Command:        ocamlbuild  -use-ocamlfind -package unix -cflags '-ppx ./ppx_lustre.native -dsource' foo.byte 
-  TestTools:      ppx_lustre
+  Command:        ocamlbuild -use-ocamlfind -package unix -cflags '-ppx ./ocalustre.native -dsource' foo.byte 
+  TestTools:      ocalustre

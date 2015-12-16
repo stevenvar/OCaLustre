@@ -81,10 +81,11 @@ let rec print_expression fmt e =
   | Ref i -> print_ident fmt i
   | Alternative (e1,e2,e3) ->
     Format.fprintf fmt  "if %a then %a else %a" 
-    print_expression e1 
-    print_expression e2 
-    print_expression e3
-  | InfixOp (op, e1, e2) -> Format.fprintf fmt "%a %a %a"
+      print_expression e1 
+      print_expression e2 
+      print_expression e3
+  | InfixOp (op, e1, e2) ->
+    Format.fprintf fmt "%a %a %a"
       print_expression e1
       print_infop op
       print_expression e2
@@ -92,12 +93,19 @@ let rec print_expression fmt e =
   | Application_init (i, el) -> print_application fmt (i,el)
   | PrefixOp (op, e1) -> print_preop fmt op ; print_expression fmt e1
   | Value v -> print_value fmt v 
-  | Call e -> Format.fprintf fmt "call (%a)"
-        Pprintast.expression e
-  | When (e,i) -> Format.fprintf fmt " %a when %a "
-    print_expression e
-    print_ident i
-  | Unit -> Format.fprintf fmt " () "
+  | Call e ->
+    Format.fprintf fmt "call (%a)"
+      Pprintast.expression e
+  | When (e,i) ->
+    Format.fprintf fmt "%a when %a"
+      print_expression e
+      print_ident i
+  | Current e ->
+    Format.fprintf fmt "current (%a)"
+      print_expression e
+  | Current_init e -> Format.fprintf fmt "curr_%a"
+                        print_expression e
+  | Unit -> Format.fprintf fmt "()"
   
 
 let print_equation fmt e =

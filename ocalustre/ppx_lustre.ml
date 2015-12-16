@@ -29,8 +29,8 @@ let lustre_mapper argv =
             let _node = transform_node _node in
             let _node = schedule _node in
             let _inode = compile_node _node in
-            (*print_node Format.std_formatter _node; 
-              printml_node Format.std_formatter _inode;*)
+            (*print_node Format.std_formatter _node; *)
+              print_node Format.std_formatter _node;
             (tocaml_node _inode)
           | _ -> Error.syntax_error s.pstr_loc
         end

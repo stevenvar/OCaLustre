@@ -52,10 +52,8 @@ let rec expand_exp e l =
   | Application (i,el) -> 
     let tuplist = List.map (fun e -> expand_exp e l) el in
     let (new_eqs, new_list) =
-      List.fold_left (fun (l1,l2) (a,b) -> (a::l1,b@l2) ) ([],[]) tuplist in
-    let name = (i.content^"_step_"^(string_of_int (counter ()) ))in
-    let new_exp = { pattern = mk_pattern name ; expression = Application_init (i,[])} in
-     Application (mk_ident name,List.rev new_eqs), new_exp::new_list
+      List.fold_right (fun (a,b) (l1,l2) -> (a::l1,b@l2) ) tuplist ([],[]) in
+    Application (i,new_eqs), new_list
   | Value v -> e,l
   | Unit -> e,l
   | _ -> e,l
@@ -70,6 +68,8 @@ let rec expand_eqs eqs =
   let new_eqs = List.map (fun x -> expand_eq x) eqs in 
   List.fold_left (fun (l1,l2) (x,yl) -> (x::l1),(l2@yl) ) ([],[]) new_eqs
 
+
+
 let rec transform_exp e l =
  
   let init = mk_ref "init" in
@@ -81,7 +81,7 @@ let rec transform_exp e l =
                        pattern = mk_pattern "init";
                        expression = ( mk_expr [%expr true]
                                       --> mk_expr [%expr false]  )
-                     }::l)
+                   }::l)
       | _ ->
 
         let ne1 = transform_exp (e1) l in 
@@ -94,10 +94,15 @@ let rec transform_exp e l =
         let idstr = (List.fold_left (fun s x -> s^x.content) "" (get_idents e1))
         in
         let name = "pre_"^idstr in  
-        (mk_ref name, {pattern = mk_pattern name ; expression = e}::l) 
+        (mk_ref name, {pattern = mk_pattern name ; expression = e}::l)
       | _ -> let ne1 = transform_exp (e1) l in
         (PrefixOp (op, fst ne1)), (snd ne1)
     end
+  | Current exp ->
+    let idstr = (List.fold_left (fun s x -> s^x.content) "" (get_idents exp))
+    in
+    let name = "curr_"^idstr in  
+    e, {pattern = mk_pattern name ; expression = Current_init exp}::l
   | Variable i -> (e,l)
   | Tuple t ->
     let tuplist = List.map (fun e -> transform_exp e l) t in
