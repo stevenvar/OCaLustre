@@ -247,7 +247,7 @@ let generate_updates node =
   generate_from_el node.c_equations       
 
 let compile_io l =
-  List.map (fun io -> io) l
+  List.map (fun (io,c) -> io) l
     
 let compile_equation e = {
   i_pattern = e.c_pattern;
