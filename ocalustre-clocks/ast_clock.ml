@@ -4,18 +4,15 @@ open Longident
 open Ast
 
 module M = Map.Make(String)
-
-type clock = 
-  Global | Clock of string | Constant 
-
+    
 (*
 * AST with clocks as types 
 *)
 
 type c_node = {
  c_name : ident ;
- c_inputs : ident list;  
- c_outputs : ident list;
+ c_inputs : stream list;  
+ c_outputs : stream list;
  c_equations : c_equation list; 
 }
 and 
@@ -24,28 +21,19 @@ and
  c_expression : c_expression; 
 } 
 and 
-  c_pattern =
-  | C_Simple of ident * clock 
-  | C_List of (ident * clock) list
+  c_pattern = stream
 and
-  c_constant = Integer of int | Float of float | Bool of bool 
+  c_constant = Integer of int
 and
  c_expression = c_exp_desc * clock 
 and
  c_exp_desc =   
   | C_Alternative of c_expression * c_expression * c_expression
-  | C_Application of ident * c_expression list 
-  | C_Call of Parsetree.expression
-  | C_Application_init of ident * c_expression list
   | C_InfixOp of inf_operator * c_expression * c_expression
   | C_PrefixOp of pre_operator * c_expression
   | C_Value of constant 
-  | C_Variable of ident
-  | C_Tuple of c_expression list 
-  | C_Ref of ident
-  | C_When of c_expression * ident
-  | C_Current of c_expression
-  | C_Current_init of c_expression 
+  | C_Variable of stream
+  | C_Fby of constant * c_expression
   | C_Unit
 
 
@@ -77,7 +65,7 @@ module Clocks = struct
   let find env x = 
   try 
     M.find x env
-  with Not_found -> Global
+  with Not_found -> Base
 
 end
 
@@ -85,17 +73,14 @@ let loc_default = Location.none
 
 let get_clock ce1 ce2 = 
   match snd ce1, snd ce2 with
-  | Global, Global -> Global 
-  | Constant, x -> x
-  | x , Constant -> x
-  | Clock x, Clock y when (x=y) -> Clock x
+  | Base, Base -> Base
+  | On (ck1, x), On (ck2,y) when x = y && ck1 = ck2  -> On (ck1, x)
   | _ -> failwith "the two expressions are not on the same clock "
 
 let rec clock_expression e env = 
   match e with
-  | Value v -> C_Value v, Constant
-  | Variable v -> C_Variable v, (Clocks.find env v.content)
-  | Ref i -> C_Ref i, (Clocks.find env i.content)
+  | Value v -> C_Value v, Base
+  | Variable (v,c) -> C_Variable (v,c), c
   | InfixOp (op,e1,e2) -> 
       let ce1 = clock_expression e1 env in 
       let ce2 = clock_expression e2 env in 
@@ -104,33 +89,19 @@ let rec clock_expression e env =
   | PrefixOp (op, e) -> 
       let ce = clock_expression e env in 
       C_PrefixOp (op, ce), (snd ce) 
-  | When (e, i) -> 
-      let ce = clock_expression e env in 
-      C_When (ce,i) , (Clock i.content) 
   | Alternative (e1,e2,e3) ->
       let ce1 = clock_expression e1 env in 
       let ce2 = clock_expression e2 env in 
       let ce3 = clock_expression e3 env in 
       C_Alternative (ce1,ce2,ce3), get_clock ce2 ce3
-  | Application_init (i, el) -> 
-      let cel = List.map (fun e -> clock_expression e env) el  in 
-      C_Application_init (i, cel), Global 
-  | Application (i, el) -> 
-    let cel = List.map (fun e -> clock_expression e env) el  in 
-      C_Application (i, cel), Global 
-  | Call e -> C_Call e, Global
-  | Current e -> let ce = clock_expression e env in
-    C_Current ce, Global
-  | Current_init e -> let ce = clock_expression e env in
-    C_Current_init ce, (snd ce )
-  | _ -> C_Unit, Global 
+  | Fby (v,e) ->
+    let ce = clock_expression e env in
+    C_Fby(v,ce), (snd ce)
+  | _ -> C_Unit, Base
 
 
 
-let clock_pattern p c env = 
-  match p with 
-  | Simple i -> C_Simple (i,c), Clocks.add env i.content c 
-  | List il -> C_List (List.map (fun i -> i,c) il), Clocks.adds env (List.map (fun i -> i.content,c) il)
+let clock_pattern p c env = p , env
 
 
 let clock_equation env e = 
@@ -148,8 +119,8 @@ let rec clock_equations env eqs =
     c_e :: c_eqs , new_env 
 
 let clock_node n = 
-  let cin = List.map (fun i -> (i.content, Global)) n.inputs in
-  let cout = List.map (fun i -> (i.content, Global)) n.outputs in
+  let cin = List.map (fun (i,c) -> (i.content, c)) n.inputs in
+  let cout = List.map (fun (i,c) -> (i.content, c)) n.outputs in
   let env = Clocks.adds Clocks.empty cin in 
   let env = Clocks.adds env cout in 
   {

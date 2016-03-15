@@ -15,35 +15,24 @@ let rec printml_tuple fmt l =
 
 let printml_pattern fmt p =
   match p with
-  | C_Simple (x,c) -> printml_string fmt x.content
-  | C_List t -> printml_tuple fmt (List.map fst t)
+    (x,c) -> printml_string fmt x.content
+  
 
 
 let rec printml_expression fmt exp =
   let printml_preop fmt op =
     match op with
-    | IPre -> Format.fprintf fmt "pre "
     | INot -> Format.fprintf fmt "not "
   in
   let printml_infop fmt op =
     match op with
     | IDiff -> Format.fprintf fmt " <> "
-    | ILess -> Format.fprintf fmt " < "
-    | ILesse -> Format.fprintf fmt " <= "
-    | IGreat -> Format.fprintf fmt " > "
-    | IGreate -> Format.fprintf fmt " >= "
     | IEquals -> Format.fprintf fmt " = "  
     | IPlus -> Format.fprintf fmt " + "
     | ITimes -> Format.fprintf fmt " * "
     | IDiv -> Format.fprintf fmt " / "
     | IMinus -> Format.fprintf fmt " - "
-    | IPlusf -> Format.fprintf fmt " +. "
-    | ITimesf -> Format.fprintf fmt " *. "
-    | IDivf -> Format.fprintf fmt " /. "
-    | IMinusf -> Format.fprintf fmt " - "
-    | IAnd -> Format.fprintf fmt " and "
-    | IOr -> Format.fprintf fmt " or "
-  in
+    in
   let rec printml_expressions fmt el =
     match el with
     | [] -> ()
@@ -56,7 +45,7 @@ let rec printml_expression fmt exp =
   match exp with
   | IValue c -> Ast_printer.print_value fmt c
   | ITuple t -> printml_expressions fmt t
-  | IVariable v ->  Format.fprintf fmt "%s" v.content
+  | IVariable (v,c) ->  Format.fprintf fmt "%s" v.content
   | IRef v -> Format.fprintf fmt "Option.get (!%s)" v.content
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
                              printml_expression e1
@@ -69,24 +58,13 @@ let rec printml_expression fmt exp =
                                  printml_expression e1
                                  printml_expression e2
                                  printml_expression e3
-  | IApplication (s, el) -> Format.fprintf fmt "%a (%a)"
-                              printml_string s.content
-                              printml_expressions el
-  | IApplication_init (s, el) -> Format.fprintf fmt "%a (%a)"
-                              printml_string s.content
-                              printml_expressions el
   | IUnit -> Format.fprintf fmt " () "
-  | IWhen (e,i) -> Format.fprintf fmt " %a when %a "
-      printml_expression e 
-      printml_string i.content 
-  | ICall e -> Format.fprintf fmt " CALL XXX "
+               
 
 let printml_inits fmt il =
   let printml_init fmt (s,e) =
     begin match e with
-      | None -> Format.fprintf fmt "let %a = ref None in\n"
-                  printml_pattern s
-      | Some x -> Format.fprintf fmt "let %a = ref (Some %a) in\n"
+      | x -> Format.fprintf fmt "let %a = ref (Some %a) in\n"
                     printml_pattern s
                     printml_expression x
     end 
@@ -96,9 +74,7 @@ let printml_inits fmt il =
 let printml_updates fmt il =
   let printml_init fmt (s,e) =
     begin match e with
-      | None -> Format.fprintf fmt "%a := None;\n"
-                  printml_pattern s
-      | Some x -> Format.fprintf fmt "%a := (Some %a);\n"
+      | x -> Format.fprintf fmt "%a := (Some %a);\n"
                     printml_pattern s
                     printml_expression x
     end 

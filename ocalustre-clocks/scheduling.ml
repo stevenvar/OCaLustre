@@ -4,46 +4,38 @@ open Ast_printer
 type vertice = string * equation 
 
 module S = Set.Make(String)
-    
+
+(* We use a graph to represent dependences *) 
 module G = Set.Make(
   struct
     type t = vertice * S.t
     let compare ((s1,_),_) ((s2,_),_) =
       compare s1 s2
-  end
-  )
+  end)
 
-let rec get_patt_id p =
-  match p with
-  | Simple x -> [x.content]
-  | List t -> List.map (fun x -> x.content) t
+(* get the ids of each construct in order to 
+ * determine what are the dependences of the 
+ * caller *)
+let rec get_patt_id p = [p.content]
 
-let rec get_expr_id e s =
+let rec get_expr_id (e,c) s =
   match e with 
   | Variable i -> S.add i.content s
-  | Tuple t -> List.fold_left (fun s e -> get_expr_id e s) s t
-  | Ref i -> S.add i.content s
   | Alternative (e1,e2,e3) ->
     let s = get_expr_id e1 s in
     let s = get_expr_id e2 s in 
     get_expr_id e3 s 
-  | Application (i,l) ->
-    List.fold_left (fun s e -> get_expr_id e s)  s l 
-  | Application_init (i,l) -> s
   | InfixOp (op, e1, e2) ->
     let s = get_expr_id e1 s in 
     get_expr_id e2 s
-  | PrefixOp (Pre, _) -> s
   | PrefixOp (op, e) ->
     get_expr_id e s 
   | Value v -> s
-  | Call e -> s
-  | When (e,i) -> get_expr_id e s
-  | Current e -> get_expr_id e s
-  | Current_init e -> get_expr_id e s 
+  | Fby (v,e) -> s (* not dependent on e since it appears at the next instant *) 
+  | When (e,i) -> get_expr_id e s 
   | Unit -> s
 
-
+(* make the graph *)
 let mk_dep_graph eqs =
   let eq_dep eq =
     let dep = get_expr_id eq.expression (S.empty) in
@@ -59,6 +51,7 @@ let print_set fmt s =
 let print_graph fmt g =
   G.iter (fun ((x,_),s) -> Format.fprintf fmt " %s -> %a " x print_set s ) g 
 
+(* useless now *)
 let remove_init_dependency g =
   let init =
     S.add ("init") (S.empty)
@@ -67,6 +60,9 @@ let remove_init_dependency g =
     (fun ((y,e),s) g -> G.add ((y,e),S.diff s init) g)
     g G.empty
 
+(* equations do not depend (for scheduling) on the 
+ * inputs *)
+    
 let remove_inputs_dependency g inputs =
   let inputs' =
     List.fold_left (fun l x -> S.add x.content l) (S.empty) inputs
@@ -74,7 +70,7 @@ let remove_inputs_dependency g inputs =
   G.fold (fun ((y,e),s) g -> G.add ((y,e),S.diff s inputs') g)
     g G.empty
 
-
+(* reverse topological sort of the graph = order of the dependencies *)
 let rec toposort topo g name =
   if G.is_empty g then List.rev topo
   else
@@ -110,7 +106,6 @@ let schedule node =
          List.fold_left (fun g x -> G.add ((x,eq),ev) g) g pv )
       (G.empty) eqs
   in
-  (* let g = remove_init_dependency g  in *) 
   let g = remove_inputs_dependency g inputs
   in 
   let eqs = toposort [] g node.name in 

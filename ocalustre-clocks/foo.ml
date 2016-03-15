@@ -7,18 +7,8 @@ module Option = struct
     | Some x -> x
 end
 
-let%node truc (a,h) (z) =
-  y := a on h;
-  z := current y
-
-
-let _ = 
-  let main_step = truc () in
-  let cpt = ref 1 in 
-  while true do 
-    let z = main_step (!cpt,true) in
-    print_int z;
-    print_endline "";
-    Unix.sleep 1;
-    incr cpt
-  done 
+let%node naturels (a,b) (n, v, t) =
+  v = n on a ;
+  n = 0 fby (n + 1);
+  t = (0 on a) + (1 on a)  
+  

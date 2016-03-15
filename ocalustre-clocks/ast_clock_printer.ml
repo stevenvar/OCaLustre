@@ -1,12 +1,8 @@
 open Ast_printer
 open Ast_clock
 
-let print_clock fmt c = 
-  match c with 
-  | Global -> Format.fprintf fmt "(global)"
-  | Clock x -> Format.fprintf fmt "(%s)" x
-  | Constant -> Format.fprintf fmt "(constant)"
-(*)
+
+(*
 let rec print_ctuple fmt l =
   match l with
   | [x,c] -> Format.fprintf fmt "%s %a" x.content print_clock c 
@@ -18,54 +14,37 @@ let rec print_ctuple fmt l =
 *)
 
 
-let print_cpattern fmt pp =
-  match pp with
-  | C_Simple (x,c) ->  Format.fprintf fmt "%s %a" x.content print_clock c 
-  | C_List t -> ()
+let print_cpattern = print_pattern
+
 
 let rec print_cexpression fmt (e,c) =
-  let print_cexpressions fmt el =
-    List.iter (fun x -> print_cexpression fmt x) el
-  in 
-  let print_application fmt (i,el) =
-    Format.fprintf fmt "%a (%a)"
-      print_ident i 
-      print_cexpressions el
-    in
   match e with 
-  | C_Variable i -> Format.fprintf fmt "%a %a " 
+  | C_Variable (i,c) -> Format.fprintf fmt "%a%a" 
             print_ident i 
             print_clock c
-  | C_Ref i -> Format.fprintf fmt "%a %a " 
-            print_ident i 
-            print_clock c
-  | C_InfixOp (op, e1, e2) -> Format.fprintf fmt "(%a %a %a)"
+  | C_InfixOp (op, e1, e2) -> Format.fprintf fmt "(%a %a %a)%a"
       print_cexpression e1
       print_infop op
       print_cexpression e2
+      print_clock c
   | C_PrefixOp (op, e1) -> 
-      Format.fprintf fmt "(%a %a)"
+      Format.fprintf fmt "(%a %a)%a"
       print_preop op
       print_cexpression e1
+      print_clock c
   | C_Value v -> print_value fmt v 
-  | C_When (e,i) -> Format.fprintf fmt "(%a when %a)"
-      print_cexpression e
-      print_ident i
   | C_Unit -> Format.fprintf fmt "()"
   | C_Alternative (e1,e2,e3) -> 
-      Format.fprintf fmt "(if %a then %a else %a )"
+      Format.fprintf fmt "(if %a then %a else %a )%a"
       print_cexpression e1
       print_cexpression e2
       print_cexpression e3
-  | C_Application_init (i, cel) ->  
-    print_application fmt (i,cel) 
-  | C_Application (i, cel) ->  
-    print_application fmt (i,cel)
-  | C_Current ce -> Format.fprintf fmt "current (%a) (global)"
-                      print_cexpression ce
-  | C_Call e -> Format.fprintf fmt "call (%a) (global)"
-                  Pprintast.expression e
-  | C_Current_init e -> Format.fprintf fmt "curr %a" print_cexpression e
+      print_clock c
+  | C_Fby (v,e) ->
+    Format.fprintf fmt "(%a fby %a)%a"
+      print_value v
+      print_cexpression e
+      print_clock c
 
 
 let print_cequation fmt e =
@@ -85,7 +64,7 @@ let rec print_cequations fmt le =
 
  
 let print_cnode fmt n =
-  Format.fprintf fmt  "node %s %a returns %a ; \nlet \n%a\ntel \n "
+  Format.fprintf fmt  "\n node %s %a returns %a = \n%a\n \n "
     n.c_name.content
     print_io n.c_inputs 
     print_io n.c_outputs 
