@@ -7,8 +7,9 @@ module Option = struct
     | Some x -> x
 end
 
-let%node naturels (a,b) (n, v, t) =
-  v = n on a ;
-  n = 0 fby (n + 1);
-  t = (0 on a) + (1 on a)  
+let%node naturels ~inf:(a,b,c) ~outf:(d,e,f) =
+  d = 1 on a;
+  e = 2 on d;
+  f = current (d on e)
+    
   

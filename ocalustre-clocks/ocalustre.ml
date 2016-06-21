@@ -6,7 +6,9 @@ open Longident
 open Ast
 open Ast_printer
 open Scheduling
-open Clocking 
+open Clocked_ast
+open Clocked_ast_printer
+
 (*open Transform
 open Ast_imperative
 open Ast_clock
@@ -15,8 +17,8 @@ open Ast_clock_printer
     
 (* maps structure_items of the form : 
 
-   let%node NAME (IN1,IN2,...) (OUT1, OUT2, ...) = 
-    IN1 := OUT1;
+   let%node NAME ~fin:(IN1,IN2,...) ~fout:(OUT1, OUT2, ...) = 
+    OUT1 = IN1;
     ...
   
 *)
@@ -30,8 +32,9 @@ let lustre_mapper argv =
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = schedule _node in
-            let _node = clock _node in 
+            let cnode = cl_node _node in 
             print_node Format.std_formatter _node;
+            print_cnode Format.std_formatter cnode;
             assert false 
             (* let _node = transform_node _node in
             let _node = schedule _node in

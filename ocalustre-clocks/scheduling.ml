@@ -18,7 +18,7 @@ module G = Set.Make(
  * caller *)
 let rec get_patt_id p = [p.content]
 
-let rec get_expr_id (e,c) s =
+let rec get_expr_id e s =
   match e with 
   | Variable i -> S.add i.content s
   | Alternative (e1,e2,e3) ->
@@ -34,6 +34,7 @@ let rec get_expr_id (e,c) s =
   | Fby (v,e) -> s (* not dependent on e since it appears at the next instant *) 
   | When (e,i) -> get_expr_id e s 
   | Unit -> s
+  | Current e -> get_expr_id e s
 
 (* make the graph *)
 let mk_dep_graph eqs =
