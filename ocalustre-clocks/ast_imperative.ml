@@ -2,11 +2,11 @@ open Parsetree
 open Asttypes
 open Longident
 open Ast
-open Ast_clock
+open Clocked_ast
 
 
-type app_inits = (c_pattern * imp_expr) list
-and imp_inits = (c_pattern * imp_expr) list 
+type app_inits = (cpattern * imp_expr) list
+and imp_inits = (cpattern * imp_expr) list 
 and imp_expr =
   | IValue of Ast.constant
   | IVariable of stream
@@ -27,13 +27,13 @@ and imp_preop =
   | INot
 
 type imp_equation =  {
-  i_pattern : c_pattern;
+  i_pattern : cpattern;
   i_expression : imp_expr;
 } 
 
 type imp_step = {
   i_equations : imp_equation list;
-  i_updates : (c_pattern * imp_expr) list;
+  i_updates : (cpattern * imp_expr) list;
 }
 
 type imp_node = {
@@ -100,20 +100,20 @@ let rec compile_expression (exp,clock) =
   in
   let rec compile_expression_without_clock exp = 
     match exp with
-      | C_Value v -> IValue v
-      | C_Variable v -> IVariable v
-      | C_InfixOp (op,e1,e2) ->
+      | CValue v -> IValue v
+      | CVariable v -> IVariable v
+      | CInfixOp (op,e1,e2) ->
         IInfixOp(compile_infop op,
                  compile_expression_without_clock (fst e1),
                  compile_expression_without_clock (fst e2))
-      | C_PrefixOp (op, e) ->
+      | CPrefixOp (op, e) ->
         IPrefixOp (compile_preop op, compile_expression_without_clock (fst e))
-      | C_Alternative (e1,e2,e3) ->
+      | CAlternative (e1,e2,e3) ->
         IAlternative (compile_expression_without_clock (fst e1),
                       compile_expression_without_clock (fst e2),
                       compile_expression_without_clock (fst e3))
-      | C_Unit -> IUnit
-      | C_Fby (v,e) -> compile_expression_without_clock (fst e) 
+      | CUnit -> IUnit
+      | CFby (v,e) -> compile_expression_without_clock (fst e) 
   in
   match clock with 
   | Base  ->

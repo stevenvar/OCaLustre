@@ -9,6 +9,7 @@ open Scheduling
 open Clocked_ast
 open Clocked_ast_printer
 
+
 (*open Transform
 open Ast_imperative
 open Ast_clock
@@ -32,9 +33,11 @@ let lustre_mapper argv =
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             let _node = schedule _node in
-            let cnode = cl_node _node in 
+            let cnode = cl_node _node in
+(*            let inode = compile_node _node in *)
             print_node Format.std_formatter _node;
             print_cnode Format.std_formatter cnode;
+            (* printml_node Format.std_formatter inode; *)
             assert false 
             (* let _node = transform_node _node in
             let _node = schedule _node in
