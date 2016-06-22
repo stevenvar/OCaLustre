@@ -1,23 +1,25 @@
-open Ast_imperative
+open Compiling
 open Ast 
-open Ast_clock
+open Clocked_ast
 
+(*
 let printml_string fmt p =
   Format.fprintf fmt "%s" p
 
-
+*)
 
 let rec printml_tuple fmt l =
   match l with
   | [] -> ()
-  | [x] -> printml_string fmt x.content
-  | h::t -> printml_string fmt (h.content^",") ; printml_tuple fmt t
+  | [x] -> Format.fprintf fmt "%s"  x.content
+  | h::t -> Format.fprintf fmt "%s," h.content; printml_tuple fmt t
+
+(*
 
 let printml_pattern fmt p =
-  match p with
-    (x,c) -> printml_string fmt x.content
+  -> printml_string fmt x.content
   
-
+*)
 
 let rec printml_expression fmt exp =
   let printml_preop fmt op =
@@ -26,12 +28,16 @@ let rec printml_expression fmt exp =
   in
   let printml_infop fmt op =
     match op with
-    | IDiff -> Format.fprintf fmt " <> "
-    | IEquals -> Format.fprintf fmt " = "  
-    | IPlus -> Format.fprintf fmt " + "
-    | ITimes -> Format.fprintf fmt " * "
-    | IDiv -> Format.fprintf fmt " / "
-    | IMinus -> Format.fprintf fmt " - "
+    | IDiff -> Format.fprintf fmt "<>"
+    | IEquals -> Format.fprintf fmt "="  
+    | IPlus -> Format.fprintf fmt "+"
+    | ITimes -> Format.fprintf fmt "*"
+    | IDiv -> Format.fprintf fmt "/"
+    | IMinus -> Format.fprintf fmt "-"
+    | IMinusf -> Format.fprintf fmt "-."
+    | IDivf -> Format.fprintf fmt "/."
+    | IPlusf -> Format.fprintf fmt "+."
+    | ITimesf -> Format.fprintf fmt "*."
     in
   let rec printml_expressions fmt el =
     match el with
@@ -45,8 +51,8 @@ let rec printml_expression fmt exp =
   match exp with
   | IValue c -> Ast_printer.print_value fmt c
   | ITuple t -> printml_expressions fmt t
-  | IVariable (v,c) ->  Format.fprintf fmt "%s" v.content
-  | IRef v -> Format.fprintf fmt "Option.get (!%s)" v.content
+  | IVariable v ->  Format.fprintf fmt "%s" v.content
+  | IRef v -> Format.fprintf fmt "!pre_%s" v.content
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
                              printml_expression e1
                              printml_infop op
@@ -58,37 +64,26 @@ let rec printml_expression fmt exp =
                                  printml_expression e1
                                  printml_expression e2
                                  printml_expression e3
-  | IUnit -> Format.fprintf fmt " () "
-               
-
-let printml_inits fmt il =
-  let printml_init fmt (s,e) =
-    begin match e with
-      | x -> Format.fprintf fmt "let %a = ref (Some %a) in\n"
-                    printml_pattern s
-                    printml_expression x
-    end 
-  in
-  List.iter (fun i -> printml_init fmt i) il
+  | IUnit -> Format.fprintf fmt "()"
 
 let printml_updates fmt il =
-  let printml_init fmt (s,e) =
-    begin match e with
-      | x -> Format.fprintf fmt "%a := (Some %a);\n"
-                    printml_pattern s
-                    printml_expression x
-    end 
+  let aux fmt (s,e) =
+    match e with
+    | x -> Format.fprintf fmt "pre_%s := %a;\n"
+             s.content
+             printml_expression x
   in
-  List.iter (fun i -> printml_init fmt i) il
+  List.iter (fun i -> aux fmt i) il
 
 let printml_equations fmt el = 
   let printml_equation fmt e =
-    Format.fprintf fmt "let %a = %a in \n"
-      printml_pattern e.i_pattern
+    Format.fprintf fmt "let %s = %a in \n"
+      e.i_pattern.content
       printml_expression e.i_expression
   in
   List.iter (fun x -> printml_equation fmt x) el
-  
+
+(* 
 let rec printml_io fmt il =
   match il with
   |  [] -> ()
@@ -96,22 +91,34 @@ let rec printml_io fmt il =
   | s::tl -> Format.fprintf fmt "%a,%a"
                printml_string s.content
                printml_io tl
-               
+   *)
+
 let printml_step fmt node =
-  let name = node.i_name in
-  let inputs = node.i_inputs in
-  let outputs = node.i_outputs in 
-  let step = node.i_step_fun in 
-  Format.fprintf fmt "let %a_step (%a) = \n %a %a (%a)"
-    printml_string name.content
-    printml_io inputs
-    printml_equations step.i_equations
-    printml_updates step.i_updates
-    printml_io outputs
-    
+    Format.fprintf fmt "let %s_step (%a) = \n%a%a(%a)"
+    node.i_name.content
+    printml_tuple node.i_inputs
+    printml_equations node.i_step_fun.i_equations
+    printml_updates node.i_step_fun.i_updates
+    printml_tuple node.i_outputs
+
+
+let printml_inits fmt il =
+  let printml_init fmt (s,e) =
+    begin match e with
+      | x -> Format.fprintf fmt "let pre_%s = ref %a in\n"
+                    s.content 
+                    printml_expression x
+    end 
+  in
+  List.iter (fun i -> printml_init fmt i) il
+
 let printml_node fmt node =
-  Format.fprintf fmt "\n let %a ()  =\n%a %a \nin %a_step \n\n"
-    printml_string node.i_name.content
+  Format.fprintf fmt "let %s () =\n%a \n%a \n\n"
+    node.i_name.content
     printml_inits node.i_inits
+    
+    printml_step node
+    (*
     printml_step node
     printml_string node.i_name.content
+*)

@@ -43,6 +43,11 @@ let print_infop fmt op =
   | Div -> Format.fprintf fmt "/"
   | Minus -> Format.fprintf fmt "-"
   | Diff -> Format.fprintf fmt "<>"
+  | Plusf -> Format.fprintf fmt "+."
+  | Timesf -> Format.fprintf fmt "*."
+  | Divf -> Format.fprintf fmt "/."
+  | Minusf -> Format.fprintf fmt "-." 
+    
 
 
 let rec print_expression fmt e =
@@ -72,7 +77,9 @@ let rec print_expression fmt e =
                     print_expression e
                     print_ident i
   | Current e -> Format.fprintf fmt "( current %a)"
-                   print_expression e 
+                   print_expression e
+  | Pre v -> Format.fprintf fmt "(pre %s)"
+               v.content  
 
 
 let print_equation fmt e =

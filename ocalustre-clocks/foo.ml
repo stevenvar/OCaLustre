@@ -1,13 +1,11 @@
 
-module Option = struct
-  type 'a t = 'a option
 
-  let get o = match o with
-    | None -> failwith "No value"
-    | Some x -> x
-end
+let%node naturels ~inf:() ~outf:(d) =
+  d = 0 --> (pre d + 1)
 
-let%node naturels ~inf:(a,b,c) ~outf:(d,e,f) =
-  d = 0 fby (n + 1) 
-    
+let _ =
+    let nat_step = naturels () in  
+  for i = 0 to 10 do
+    print_int (nat_step ())
+  done; 
   

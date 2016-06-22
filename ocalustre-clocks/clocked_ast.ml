@@ -24,6 +24,7 @@ and cexp_desc =
   | CFby of constant * cexpression
   | CWhen of cexpression * cident 
   | CUnit
+  | CPre of cstream
   | CCurrent of cexpression
 
 let rec get_clock hst e =
@@ -40,9 +41,14 @@ let rec get_clock hst e =
   | When (e, i) -> On ((get_clock hst e), i) (* the clock is in the expression *)
   | Unit -> Base
   | Current e ->
-    match get_clock hst e with
-    | Base -> Base
-    | On (c,i) -> c 
+    begin 
+      match get_clock hst e with
+      | Base -> Base
+      | On (c,i) -> c
+    end 
+  | Pre v ->
+    (try Hashtbl.find hst v.content
+     with  _ -> Base) 
 
 let rec clock_err cl =
   match cl with
@@ -94,6 +100,10 @@ let rec clock_exp hst e =
     | Base -> Base
     | On (c,i) -> c in
     CCurrent ce, ck
+  | Pre v ->
+    let ck = try Hashtbl.find hst v.content with _ -> Base in
+    CPre (v,ck), ck
+    
 
 let clock_equations hst el =
   let clock_eq e =
@@ -109,8 +119,6 @@ let clock_io hst ios =
     (io, ck)
   in
   List.map (fun x -> aux hst x) ios  
-
-    
 
 let cl_node node =
   let hst =  Hashtbl.create (List.length node.inputs + List.length node.outputs) in 

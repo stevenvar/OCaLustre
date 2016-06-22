@@ -32,7 +32,8 @@ and exp_desc =
   | Variable of stream
   | Fby of constant * expression
   | When of expression * ident
-  | Current of expression 
+  | Current of expression
+  | Pre of stream
   | Unit
   (* merge ? *)
 and inf_operator =
@@ -42,6 +43,11 @@ and inf_operator =
   | Minus
   | Times
   | Div
+  | Plusf
+  | Minusf
+  | Timesf
+  | Divf
+
 and pre_operator = 
   | Not
 
@@ -63,8 +69,7 @@ end
 
 let loc_default = Location.none
 
-let mk_pattern ?(loc=loc_default) v = {loc; content = v}
-let mk_ident ?(loc=loc_default) v = { loc ; content = v } 
+let mk_ident ?(loc=loc_default) v = { loc ; content = v }
 
 let alternative e1 e2 e3 = Alternative (e1, e2, e3)
 
@@ -107,6 +112,7 @@ let rec get_idents l e =
   | Fby (i,e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
   | Current e' -> get_idents l e'
+  | Pre v -> v::l
                 
 
 (* transform expressions to node of the ocalustre AST *)
@@ -133,18 +139,21 @@ let rec mk_expr e =
      pexp_loc ;
      pexp_attributes} ->
     mk_variable loc v
-  | [%expr [%e? e1] fby [%e? e2] ]  ->
+  | [%expr [%e? e1] --> [%e? e2] ]  ->
     begin match e1 with
       | {pexp_desc = Pexp_constant c; pexp_loc ; pexp_attributes } ->
         begin match c with
           | Pconst_integer (i,suffix) -> Fby (Integer (int_of_string i), mk_expr e2)
-          | _ -> failwith "error"
+          | _ -> failwith "todo"
         end
       | _ -> failwith "syntax error"
     end
   | [%expr [%e? e1] on [%e? e2] ] -> let i = List.hd (get_idents [] (mk_expr e2)) in
     When ((mk_expr e1), i)
   | [%expr current [%e? e] ] -> Current (mk_expr e)
+  | [%expr pre [%e? e]] ->
+    let v = List.hd (get_idents [] (mk_expr e)) in
+    Pre v 
   | _ ->
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc 
@@ -155,7 +164,9 @@ let mk_equation eq =
   | [%expr [%e? p] = [%e? e] ] -> 
     {pattern= (checkname_ident p);
      expression = mk_expr e}
-  | _ -> Error.syntax_error eq.pexp_loc 
+  | _ -> Error.syntax_error eq.pexp_loc
+
+
 
 (* creates list of equations nodes in the AST *)
 let rec mk_equations eqs =

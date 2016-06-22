@@ -29,15 +29,6 @@ let print_preop fmt op =
   | Not -> Format.fprintf fmt "not "
 
 
-let print_infop fmt op =
-  match op with
-  | Equals -> Format.fprintf fmt "=" 
-  | Plus -> Format.fprintf fmt "+"
-  | Times -> Format.fprintf fmt "*"
-  | Div -> Format.fprintf fmt "/"
-  | Minus -> Format.fprintf fmt "-"
-  | Diff -> Format.fprintf fmt "<>"
-
 
 let rec print_cexpression fmt (e,c) =
   match e with 
@@ -72,7 +63,11 @@ let rec print_cexpression fmt (e,c) =
                     print_clock c
   | CCurrent e -> Format.fprintf fmt "(current %a)%a"
                     print_cexpression e
-                    print_clock c 
+                    print_clock c
+  | CPre (v,ck) -> Format.fprintf fmt "(pre %s)%a"
+                     v.content
+                     print_clock c
+
 
 
 let print_cequation fmt e =

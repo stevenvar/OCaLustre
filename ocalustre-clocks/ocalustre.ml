@@ -8,6 +8,9 @@ open Ast_printer
 open Scheduling
 open Clocked_ast
 open Clocked_ast_printer
+open Compiling
+open Ast_imperative_printer
+open Extract
 
 
 (*open Transform
@@ -35,10 +38,14 @@ let lustre_mapper argv =
             let _node = schedule _node in
             let cnode = cl_node _node in
 (*            let inode = compile_node _node in *)
-            print_node Format.std_formatter _node;
+            (*print_node Format.std_formatter _node;
             print_cnode Format.std_formatter cnode;
+            *)
+            let inode = compile_cnode cnode in
+            (*printml_node Format.std_formatter inode;*)
+            extract_node inode
             (* printml_node Format.std_formatter inode; *)
-            assert false 
+            
             (* let _node = transform_node _node in
             let _node = schedule _node in
             let _cnode = clock_node _node in 

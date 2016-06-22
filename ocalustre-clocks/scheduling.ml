@@ -35,6 +35,7 @@ let rec get_expr_id e s =
   | When (e,i) -> get_expr_id e s 
   | Unit -> s
   | Current e -> get_expr_id e s
+  | Pre v -> S.add v.content s
 
 (* make the graph *)
 let mk_dep_graph eqs =
