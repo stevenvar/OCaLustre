@@ -1,0 +1,2698 @@
+"extract.ml" 8 85 89 "extract.ml" 8 85 101
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  def lid_of_ident "extract.ml" 14 202 202 "extract.ml" 1 0 -1
+)
+"extract.ml" 8 85 104 "extract.ml" 8 85 110
+type(
+  string
+)
+"extract.ml" 8 85 111 "extract.ml" 8 85 113
+type(
+  string
+)
+type(
+  string
+)
+ident(
+  int_ref *sth* "extract.ml" 8 85 111 "extract.ml" 8 85 113
+)
+type(
+  string option
+)
+type(
+  string option
+)
+type(
+  string
+)
+"extract.ml" 8 85 117 "extract.ml" 8 85 123
+type(
+  string
+)
+"extract.ml" 8 85 124 "extract.ml" 8 85 126
+type(
+  string
+)
+type(
+  string
+)
+ident(
+  int_ref *sth* "extract.ml" 8 85 124 "extract.ml" 8 85 126
+)
+type(
+  string option
+)
+type(
+  string option
+)
+type(
+  string
+)
+"extract.ml" 8 85 128 "extract.ml" 8 85 129
+type(
+  Ast.ident
+)
+ident(
+  def i "extract.ml" 9 132 134 "extract.ml" 12 197 200
+)
+"extract.ml" 10 136 154 "extract.ml" 10 136 160
+type(
+  string
+)
+ident(
+  int_ref prefix "extract.ml" 8 85 104 "extract.ml" 8 85 110
+)
+"extract.ml" 10 136 160 "extract.ml" 10 136 161
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"extract.ml" 10 136 161 "extract.ml" 10 136 162
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "extract.ml" 8 85 128 "extract.ml" 8 85 129
+)
+"extract.ml" 10 136 161 "extract.ml" 10 136 170
+type(
+  string
+)
+"extract.ml" 10 136 170 "extract.ml" 10 136 171
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"extract.ml" 10 136 171 "extract.ml" 10 136 177
+type(
+  string
+)
+ident(
+  int_ref suffix "extract.ml" 8 85 117 "extract.ml" 8 85 123
+)
+"extract.ml" 10 136 161 "extract.ml" 10 136 177
+call(
+  stack
+)
+type(
+  string
+)
+"extract.ml" 10 136 153 "extract.ml" 10 136 178
+call(
+  stack
+)
+type(
+  string
+)
+"extract.ml" 10 136 146 "extract.ml" 10 136 178
+type(
+  Longident.t
+)
+"extract.ml" 11 180 190 "extract.ml" 11 180 191
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "extract.ml" 8 85 128 "extract.ml" 8 85 129
+)
+"extract.ml" 11 180 190 "extract.ml" 11 180 195
+type(
+  Location.t
+)
+"extract.ml" 9 132 134 "extract.ml" 12 197 200
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 14 202 210 "extract.ml" 14 202 227
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  def tocaml_expression "extract.ml" 14 202 202 "extract.ml" 1 0 -1
+)
+"extract.ml" 14 202 228 "extract.ml" 14 202 229
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e "extract.ml" 16 235 239 "extract.ml" 41 1445 1466
+)
+"extract.ml" 16 235 245 "extract.ml" 16 235 246
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e "extract.ml" 14 202 228 "extract.ml" 14 202 229
+)
+"extract.ml" 17 252 274 "extract.ml" 17 252 275
+type(
+  int
+)
+ident(
+  def i "extract.ml" 17 252 280 "extract.ml" 17 252 332
+)
+"extract.ml" 17 252 265 "extract.ml" 17 252 276
+type(
+  Ast.constant
+)
+"extract.ml" 17 252 258 "extract.ml" 17 252 276
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 17 252 280 "extract.ml" 17 252 292
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Parsetree.constant -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.constant
+)
+"extract.ml" 17 252 310 "extract.ml" 17 252 323
+type(
+  int -> string
+)
+ident(
+  ext_ref Pervasives.string_of_int
+)
+"extract.ml" 17 252 324 "extract.ml" 17 252 325
+type(
+  int
+)
+ident(
+  int_ref i "extract.ml" 17 252 274 "extract.ml" 17 252 275
+)
+"extract.ml" 17 252 310 "extract.ml" 17 252 325
+call(
+  stack
+)
+type(
+  string
+)
+"extract.ml" 17 252 326 "extract.ml" 17 252 330
+type(
+  char option
+)
+"extract.ml" 17 252 293 "extract.ml" 17 252 332
+type(
+  Parsetree.constant
+)
+"extract.ml" 17 252 280 "extract.ml" 17 252 332
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 18 335 348 "extract.ml" 18 335 349
+type(
+  Compiling.imp_expr list
+)
+ident(
+  def t "extract.ml" 18 335 353 "extract.ml" 18 335 393
+)
+"extract.ml" 18 335 341 "extract.ml" 18 335 349
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 18 335 353 "extract.ml" 18 335 362
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs ->
+  Parsetree.expression list -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.tuple
+)
+"extract.ml" 18 335 364 "extract.ml" 18 335 372
+type(
+  (Compiling.imp_expr -> Parsetree.expression) ->
+  Compiling.imp_expr list -> Parsetree.expression list
+)
+ident(
+  ext_ref List.map
+)
+"extract.ml" 18 335 373 "extract.ml" 18 335 390
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 18 335 391 "extract.ml" 18 335 392
+type(
+  Compiling.imp_expr list
+)
+ident(
+  int_ref t "extract.ml" 18 335 348 "extract.ml" 18 335 349
+)
+"extract.ml" 18 335 363 "extract.ml" 18 335 393
+call(
+  stack
+)
+type(
+  Parsetree.expression list
+)
+"extract.ml" 18 335 353 "extract.ml" 18 335 393
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 19 394 410 "extract.ml" 19 394 411
+type(
+  Ast.stream
+)
+ident(
+  def i "extract.ml" 19 394 427 "extract.ml" 19 394 453
+)
+"extract.ml" 19 394 400 "extract.ml" 19 394 411
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 19 394 427 "extract.ml" 19 394 436
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 19 394 438 "extract.ml" 19 394 450
+type(
+  ?prefix:string -> ?suffix:string -> Ast.stream -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 19 394 451 "extract.ml" 19 394 452
+type(
+  Ast.stream
+)
+ident(
+  int_ref i "extract.ml" 19 394 410 "extract.ml" 19 394 411
+)
+"extract.ml" 19 394 437 "extract.ml" 19 394 453
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 19 394 427 "extract.ml" 19 394 453
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 20 458 469 "extract.ml" 20 458 470
+type(
+  Ast.ident
+)
+ident(
+  def i "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 20 458 464 "extract.ml" 20 458 470
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 20 458 486 "extract.ml" 20 458 495
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 20 458 497 "extract.ml" 20 458 509
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 20 458 518 "extract.ml" 20 458 524
+type(
+  string
+)
+"extract.ml" 20 458 525 "extract.ml" 20 458 526
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "extract.ml" 20 458 469 "extract.ml" 20 458 470
+)
+"extract.ml" 20 458 496 "extract.ml" 20 458 527
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 20 458 486 "extract.ml" 20 458 527
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 21 533 549 "extract.ml" 21 533 554
+type(
+  Compiling.imp_infop
+)
+"extract.ml" 21 533 555 "extract.ml" 21 533 557
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 21 533 558 "extract.ml" 21 533 560
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 21 533 539 "extract.ml" 21 533 561
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 22 565 582 "extract.ml" 22 565 599
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 22 565 600 "extract.ml" 22 565 602
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 21 533 555 "extract.ml" 21 533 557
+)
+"extract.ml" 22 565 582 "extract.ml" 22 565 602
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 22 565 612 "extract.ml" 22 565 629
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 22 565 630 "extract.ml" 22 565 632
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 21 533 558 "extract.ml" 21 533 560
+)
+"extract.ml" 22 565 612 "extract.ml" 22 565 632
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 23 636 652 "extract.ml" 23 636 659
+type(
+  Compiling.imp_infop
+)
+"extract.ml" 23 636 660 "extract.ml" 23 636 662
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 23 636 663 "extract.ml" 23 636 665
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 23 636 642 "extract.ml" 23 636 666
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 24 670 687 "extract.ml" 24 670 704
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 24 670 705 "extract.ml" 24 670 707
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 23 636 660 "extract.ml" 23 636 662
+)
+"extract.ml" 24 670 687 "extract.ml" 24 670 707
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 24 670 716 "extract.ml" 24 670 733
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 24 670 734 "extract.ml" 24 670 736
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 23 636 663 "extract.ml" 23 636 665
+)
+"extract.ml" 24 670 716 "extract.ml" 24 670 736
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 25 740 756 "extract.ml" 25 740 761
+type(
+  Compiling.imp_infop
+)
+"extract.ml" 25 740 762 "extract.ml" 25 740 764
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 25 740 765 "extract.ml" 25 740 767
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 25 740 746 "extract.ml" 25 740 768
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 26 772 789 "extract.ml" 26 772 806
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 26 772 807 "extract.ml" 26 772 809
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 25 740 762 "extract.ml" 25 740 764
+)
+"extract.ml" 26 772 789 "extract.ml" 26 772 809
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 26 772 818 "extract.ml" 26 772 835
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 26 772 836 "extract.ml" 26 772 838
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 25 740 765 "extract.ml" 25 740 767
+)
+"extract.ml" 26 772 818 "extract.ml" 26 772 838
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 27 842 858 "extract.ml" 27 842 864
+type(
+  Compiling.imp_infop
+)
+"extract.ml" 27 842 865 "extract.ml" 27 842 867
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 27 842 868 "extract.ml" 27 842 870
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 27 842 848 "extract.ml" 27 842 871
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 28 875 893 "extract.ml" 28 875 910
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 28 875 911 "extract.ml" 28 875 913
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 27 842 865 "extract.ml" 27 842 867
+)
+"extract.ml" 28 875 893 "extract.ml" 28 875 913
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 28 875 922 "extract.ml" 28 875 939
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 28 875 940 "extract.ml" 28 875 942
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 27 842 868 "extract.ml" 27 842 870
+)
+"extract.ml" 28 875 922 "extract.ml" 28 875 942
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 29 946 962 "extract.ml" 29 946 968
+type(
+  Compiling.imp_infop
+)
+"extract.ml" 29 946 969 "extract.ml" 29 946 971
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 29 946 972 "extract.ml" 29 946 974
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 29 946 952 "extract.ml" 29 946 975
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 30 979 997 "extract.ml" 30 979 1014
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 30 979 1015 "extract.ml" 30 979 1017
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 29 946 969 "extract.ml" 29 946 971
+)
+"extract.ml" 30 979 997 "extract.ml" 30 979 1017
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 30 979 1026 "extract.ml" 30 979 1043
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 30 979 1044 "extract.ml" 30 979 1046
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 29 946 972 "extract.ml" 29 946 974
+)
+"extract.ml" 30 979 1026 "extract.ml" 30 979 1046
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 31 1050 1066 "extract.ml" 31 1050 1070
+type(
+  Compiling.imp_infop
+)
+"extract.ml" 31 1050 1071 "extract.ml" 31 1050 1073
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 31 1050 1074 "extract.ml" 31 1050 1076
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 31 1050 1056 "extract.ml" 31 1050 1077
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 32 1081 1098 "extract.ml" 32 1081 1115
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 32 1081 1116 "extract.ml" 32 1081 1118
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 31 1050 1071 "extract.ml" 31 1050 1073
+)
+"extract.ml" 32 1081 1098 "extract.ml" 32 1081 1118
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 32 1081 1127 "extract.ml" 32 1081 1144
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 32 1081 1145 "extract.ml" 32 1081 1147
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 31 1050 1074 "extract.ml" 31 1050 1076
+)
+"extract.ml" 32 1081 1127 "extract.ml" 32 1081 1147
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 33 1151 1171 "extract.ml" 33 1151 1173
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e1 "extract.ml" 34 1185 1202 "extract.ml" 37 1326 1389
+)
+"extract.ml" 33 1151 1174 "extract.ml" 33 1151 1176
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e2 "extract.ml" 34 1185 1202 "extract.ml" 37 1326 1389
+)
+"extract.ml" 33 1151 1177 "extract.ml" 33 1151 1179
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e3 "extract.ml" 34 1185 1202 "extract.ml" 37 1326 1389
+)
+"extract.ml" 33 1151 1157 "extract.ml" 33 1151 1180
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 34 1185 1202 "extract.ml" 34 1185 1216
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs ->
+  Parsetree.expression ->
+  Parsetree.expression -> Parsetree.expression option -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ifthenelse
+)
+"extract.ml" 35 1217 1245 "extract.ml" 35 1217 1262
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 35 1217 1263 "extract.ml" 35 1217 1265
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e1 "extract.ml" 33 1151 1171 "extract.ml" 33 1151 1173
+)
+"extract.ml" 35 1217 1244 "extract.ml" 35 1217 1266
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 36 1270 1299 "extract.ml" 36 1270 1316
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 36 1270 1317 "extract.ml" 36 1270 1319
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e2 "extract.ml" 33 1151 1174 "extract.ml" 33 1151 1176
+)
+"extract.ml" 36 1270 1298 "extract.ml" 36 1270 1320
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 37 1326 1362 "extract.ml" 37 1326 1379
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 37 1326 1380 "extract.ml" 37 1326 1382
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e3 "extract.ml" 33 1151 1177 "extract.ml" 33 1151 1179
+)
+"extract.ml" 37 1326 1362 "extract.ml" 37 1326 1382
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 37 1326 1342 "extract.ml" 37 1326 1389
+type(
+  Parsetree.expression option
+)
+"extract.ml" 34 1185 1202 "extract.ml" 37 1326 1389
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 40 1419 1425 "extract.ml" 40 1419 1430
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 41 1445 1451 "extract.ml" 41 1445 1452
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 16 235 239 "extract.ml" 41 1445 1466
+type(
+  Parsetree.expression
+)
+"extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> string Asttypes.loc
+)
+ident(
+  def stringloc_of_ident "extract.ml" 51 1589 1589 "extract.ml" 1 0 -1
+)
+"extract.ml" 45 1474 1499 "extract.ml" 45 1474 1505
+type(
+  string
+)
+"extract.ml" 45 1474 1506 "extract.ml" 45 1474 1508
+type(
+  string
+)
+type(
+  string
+)
+ident(
+  int_ref *sth* "extract.ml" 45 1474 1506 "extract.ml" 45 1474 1508
+)
+type(
+  string option
+)
+type(
+  string option
+)
+type(
+  string
+)
+"extract.ml" 45 1474 1512 "extract.ml" 45 1474 1518
+type(
+  string
+)
+"extract.ml" 45 1474 1519 "extract.ml" 45 1474 1521
+type(
+  string
+)
+type(
+  string
+)
+ident(
+  int_ref *sth* "extract.ml" 45 1474 1519 "extract.ml" 45 1474 1521
+)
+type(
+  string option
+)
+type(
+  string option
+)
+type(
+  string
+)
+"extract.ml" 45 1474 1523 "extract.ml" 45 1474 1524
+type(
+  Ast.ident
+)
+ident(
+  def i "extract.ml" 46 1527 1529 "extract.ml" 49 1584 1587
+)
+"extract.ml" 47 1531 1541 "extract.ml" 47 1531 1547
+type(
+  string
+)
+ident(
+  int_ref prefix "extract.ml" 45 1474 1499 "extract.ml" 45 1474 1505
+)
+"extract.ml" 47 1531 1547 "extract.ml" 47 1531 1548
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"extract.ml" 47 1531 1548 "extract.ml" 47 1531 1549
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "extract.ml" 45 1474 1523 "extract.ml" 45 1474 1524
+)
+"extract.ml" 47 1531 1548 "extract.ml" 47 1531 1557
+type(
+  string
+)
+"extract.ml" 47 1531 1557 "extract.ml" 47 1531 1558
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"extract.ml" 47 1531 1558 "extract.ml" 47 1531 1564
+type(
+  string
+)
+ident(
+  int_ref suffix "extract.ml" 45 1474 1512 "extract.ml" 45 1474 1518
+)
+"extract.ml" 47 1531 1548 "extract.ml" 47 1531 1564
+call(
+  stack
+)
+type(
+  string
+)
+"extract.ml" 47 1531 1541 "extract.ml" 47 1531 1564
+call(
+  stack
+)
+type(
+  string
+)
+"extract.ml" 48 1566 1576 "extract.ml" 48 1566 1577
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "extract.ml" 45 1474 1523 "extract.ml" 45 1474 1524
+)
+"extract.ml" 48 1566 1576 "extract.ml" 48 1566 1581
+type(
+  Location.t
+)
+"extract.ml" 46 1527 1529 "extract.ml" 49 1584 1587
+type(
+  string Asttypes.loc
+)
+"extract.ml" 51 1589 1593 "extract.ml" 51 1589 1607
+type(
+  Compiling.imp_node -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def tocaml_updates "extract.ml" 59 1836 1836 "extract.ml" 1 0 -1
+)
+"extract.ml" 51 1589 1608 "extract.ml" 51 1589 1612
+type(
+  Compiling.imp_node
+)
+ident(
+  def node "extract.ml" 51 1589 1613 "extract.ml" 56 1760 1832
+)
+"extract.ml" 51 1589 1613 "extract.ml" 51 1589 1617
+type(
+  Parsetree.expression
+)
+ident(
+  def outs "extract.ml" 52 1620 1622 "extract.ml" 56 1760 1832
+)
+"extract.ml" 52 1620 1626 "extract.ml" 52 1620 1629
+type(
+  Ast.ident * Compiling.imp_expr ->
+  Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def aux "extract.ml" 56 1760 1762 "extract.ml" 56 1760 1832
+)
+"extract.ml" 52 1620 1631 "extract.ml" 52 1620 1632
+type(
+  Ast.ident
+)
+ident(
+  def p "extract.ml" 52 1620 1636 "extract.ml" 54 1733 1754
+)
+"extract.ml" 52 1620 1633 "extract.ml" 52 1620 1634
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e "extract.ml" 52 1620 1636 "extract.ml" 54 1733 1754
+)
+"extract.ml" 52 1620 1630 "extract.ml" 52 1620 1635
+type(
+  Ast.ident * Compiling.imp_expr
+)
+"extract.ml" 52 1620 1636 "extract.ml" 52 1620 1639
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 53 1642 1657 "extract.ml" 53 1642 1666
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 53 1642 1668 "extract.ml" 53 1642 1680
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 53 1642 1689 "extract.ml" 53 1642 1695
+type(
+  string
+)
+"extract.ml" 53 1642 1696 "extract.ml" 53 1642 1697
+type(
+  Ast.ident
+)
+ident(
+  int_ref p "extract.ml" 52 1620 1631 "extract.ml" 52 1620 1632
+)
+"extract.ml" 53 1642 1667 "extract.ml" 53 1642 1698
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 53 1642 1657 "extract.ml" 53 1642 1698
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 53 1642 1709 "extract.ml" 53 1642 1726
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 53 1642 1727 "extract.ml" 53 1642 1728
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e "extract.ml" 52 1620 1633 "extract.ml" 52 1620 1634
+)
+"extract.ml" 53 1642 1709 "extract.ml" 53 1642 1728
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 54 1733 1748 "extract.ml" 54 1733 1751
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 52 1620 1636 "extract.ml" 52 1620 1639
+)
+"extract.ml" 56 1760 1762 "extract.ml" 56 1760 1776
+type(
+  (Parsetree.expression ->
+   Ast.pattern * Compiling.imp_expr -> Parsetree.expression) ->
+  Parsetree.expression ->
+  (Ast.pattern * Compiling.imp_expr) list -> Parsetree.expression
+)
+ident(
+  ext_ref List.fold_left
+)
+"extract.ml" 56 1760 1782 "extract.ml" 56 1760 1785
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "extract.ml" 56 1760 1786 "extract.ml" 56 1760 1800
+)
+"extract.ml" 56 1760 1786 "extract.ml" 56 1760 1787
+type(
+  Ast.pattern * Compiling.imp_expr
+)
+ident(
+  def u "extract.ml" 56 1760 1791 "extract.ml" 56 1760 1800
+)
+"extract.ml" 56 1760 1791 "extract.ml" 56 1760 1794
+type(
+  Ast.pattern * Compiling.imp_expr ->
+  Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref aux "extract.ml" 52 1620 1626 "extract.ml" 52 1620 1629
+)
+"extract.ml" 56 1760 1795 "extract.ml" 56 1760 1796
+type(
+  Ast.pattern * Compiling.imp_expr
+)
+ident(
+  int_ref u "extract.ml" 56 1760 1786 "extract.ml" 56 1760 1787
+)
+"extract.ml" 56 1760 1797 "extract.ml" 56 1760 1800
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 56 1760 1782 "extract.ml" 56 1760 1785
+)
+"extract.ml" 56 1760 1791 "extract.ml" 56 1760 1800
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 56 1760 1777 "extract.ml" 56 1760 1801
+type(
+  Parsetree.expression ->
+  Ast.pattern * Compiling.imp_expr -> Parsetree.expression
+)
+"extract.ml" 56 1760 1802 "extract.ml" 56 1760 1806
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref outs "extract.ml" 51 1589 1613 "extract.ml" 51 1589 1617
+)
+"extract.ml" 56 1760 1807 "extract.ml" 56 1760 1811
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 51 1589 1608 "extract.ml" 51 1589 1612
+)
+"extract.ml" 56 1760 1807 "extract.ml" 56 1760 1822
+type(
+  Compiling.imp_step
+)
+"extract.ml" 56 1760 1807 "extract.ml" 56 1760 1832
+type(
+  (Ast.pattern * Compiling.imp_expr) list
+)
+"extract.ml" 56 1760 1762 "extract.ml" 56 1760 1832
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 52 1620 1622 "extract.ml" 56 1760 1832
+type(
+  Parsetree.expression
+)
+"extract.ml" 59 1836 1840 "extract.ml" 59 1836 1854
+type(
+  Compiling.imp_node -> Parsetree.expression
+)
+ident(
+  def tocaml_outputs "extract.ml" 68 2095 2095 "extract.ml" 1 0 -1
+)
+"extract.ml" 59 1836 1855 "extract.ml" 59 1836 1859
+type(
+  Compiling.imp_node
+)
+ident(
+  def node "extract.ml" 60 1862 1864 "extract.ml" 66 2039 2093
+)
+"extract.ml" 60 1862 1868 "extract.ml" 60 1862 1871
+type(
+  Ast.ident list -> Parsetree.expression list
+)
+ident(
+  def aux "extract.ml" 63 1937 1939 "extract.ml" 66 2039 2093
+)
+"extract.ml" 60 1862 1872 "extract.ml" 60 1862 1874
+type(
+  Ast.ident list
+)
+ident(
+  def ol "extract.ml" 61 1877 1881 "extract.ml" 61 1877 1930
+)
+"extract.ml" 61 1877 1881 "extract.ml" 61 1877 1889
+type(
+  (Ast.ident -> Parsetree.expression) ->
+  Ast.ident list -> Parsetree.expression list
+)
+ident(
+  ext_ref List.map
+)
+"extract.ml" 61 1877 1895 "extract.ml" 61 1877 1896
+type(
+  Ast.ident
+)
+ident(
+  def o "extract.ml" 61 1877 1900 "extract.ml" 61 1877 1926
+)
+"extract.ml" 61 1877 1900 "extract.ml" 61 1877 1909
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 61 1877 1911 "extract.ml" 61 1877 1923
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 61 1877 1924 "extract.ml" 61 1877 1925
+type(
+  Ast.ident
+)
+ident(
+  int_ref o "extract.ml" 61 1877 1895 "extract.ml" 61 1877 1896
+)
+"extract.ml" 61 1877 1910 "extract.ml" 61 1877 1926
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 61 1877 1900 "extract.ml" 61 1877 1926
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 61 1877 1890 "extract.ml" 61 1877 1927
+type(
+  Ast.ident -> Parsetree.expression
+)
+"extract.ml" 61 1877 1928 "extract.ml" 61 1877 1930
+type(
+  Ast.ident list
+)
+ident(
+  int_ref ol "extract.ml" 60 1862 1872 "extract.ml" 60 1862 1874
+)
+"extract.ml" 61 1877 1881 "extract.ml" 61 1877 1930
+call(
+  tail
+)
+type(
+  Parsetree.expression list
+)
+"extract.ml" 63 1937 1945 "extract.ml" 63 1937 1949
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 59 1836 1855 "extract.ml" 59 1836 1859
+)
+"extract.ml" 63 1937 1945 "extract.ml" 63 1937 1959
+type(
+  Ast.ident list
+)
+"extract.ml" 64 1965 1969 "extract.ml" 64 1965 1971
+type(
+  Ast.ident list
+)
+"extract.ml" 65 1987 1992 "extract.ml" 65 1987 1993
+type(
+  Ast.ident
+)
+ident(
+  def x "extract.ml" 65 1987 2009 "extract.ml" 65 1987 2035
+)
+"extract.ml" 65 1987 1991 "extract.ml" 65 1987 1994
+type(
+  Ast.ident list
+)
+"extract.ml" 65 1987 2009 "extract.ml" 65 1987 2018
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 65 1987 2020 "extract.ml" 65 1987 2032
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 65 1987 2033 "extract.ml" 65 1987 2034
+type(
+  Ast.ident
+)
+ident(
+  int_ref x "extract.ml" 65 1987 1992 "extract.ml" 65 1987 1993
+)
+"extract.ml" 65 1987 2019 "extract.ml" 65 1987 2035
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 65 1987 2009 "extract.ml" 65 1987 2035
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 66 2039 2043 "extract.ml" 66 2039 2044
+type(
+  Ast.ident list
+)
+"extract.ml" 66 2039 2059 "extract.ml" 66 2039 2068
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs ->
+  Parsetree.expression list -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.tuple
+)
+"extract.ml" 66 2039 2070 "extract.ml" 66 2039 2073
+type(
+  Ast.ident list -> Parsetree.expression list
+)
+ident(
+  int_ref aux "extract.ml" 60 1862 1868 "extract.ml" 60 1862 1871
+)
+"extract.ml" 66 2039 2074 "extract.ml" 66 2039 2078
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 59 1836 1855 "extract.ml" 59 1836 1859
+)
+"extract.ml" 66 2039 2074 "extract.ml" 66 2039 2088
+type(
+  Ast.ident list
+)
+"extract.ml" 66 2039 2069 "extract.ml" 66 2039 2089
+call(
+  stack
+)
+type(
+  Parsetree.expression list
+)
+"extract.ml" 66 2039 2059 "extract.ml" 66 2039 2089
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 63 1937 1939 "extract.ml" 66 2039 2093
+type(
+  Parsetree.expression
+)
+"extract.ml" 60 1862 1864 "extract.ml" 66 2039 2093
+type(
+  Parsetree.expression
+)
+"extract.ml" 68 2095 2099 "extract.ml" 68 2095 2113
+type(
+  Compiling.imp_equation list -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def tocaml_eq_list "extract.ml" 77 2404 2404 "extract.ml" 1 0 -1
+)
+"extract.ml" 68 2095 2114 "extract.ml" 68 2095 2116
+type(
+  Compiling.imp_equation list
+)
+ident(
+  def el "extract.ml" 68 2095 2117 "extract.ml" 75 2350 2400
+)
+"extract.ml" 68 2095 2117 "extract.ml" 68 2095 2120
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "extract.ml" 69 2123 2125 "extract.ml" 75 2350 2400
+)
+"extract.ml" 69 2123 2129 "extract.ml" 69 2123 2138
+type(
+  Compiling.imp_equation -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def tocaml_eq "extract.ml" 75 2350 2352 "extract.ml" 75 2350 2400
+)
+"extract.ml" 69 2123 2139 "extract.ml" 69 2123 2140
+type(
+  Compiling.imp_equation
+)
+ident(
+  def e "extract.ml" 69 2123 2141 "extract.ml" 73 2267 2344
+)
+"extract.ml" 69 2123 2141 "extract.ml" 69 2123 2144
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "extract.ml" 70 2147 2151 "extract.ml" 73 2267 2344
+)
+"extract.ml" 70 2147 2155 "extract.ml" 70 2147 2156
+type(
+  Ast.pattern
+)
+ident(
+  def x "extract.ml" 71 2175 2179 "extract.ml" 73 2267 2344
+)
+"extract.ml" 70 2147 2159 "extract.ml" 70 2147 2160
+type(
+  Compiling.imp_equation
+)
+ident(
+  int_ref e "extract.ml" 69 2123 2139 "extract.ml" 69 2123 2140
+)
+"extract.ml" 70 2147 2159 "extract.ml" 70 2147 2170
+type(
+  Ast.pattern
+)
+"extract.ml" 71 2175 2183 "extract.ml" 71 2175 2187
+type(
+  string Asttypes.loc
+)
+ident(
+  def ppat "extract.ml" 72 2214 2218 "extract.ml" 73 2267 2344
+)
+"extract.ml" 71 2175 2190 "extract.ml" 71 2175 2208
+type(
+  ?prefix:string -> ?suffix:string -> Ast.pattern -> string Asttypes.loc
+)
+ident(
+  int_ref stringloc_of_ident "extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+)
+"extract.ml" 71 2175 2209 "extract.ml" 71 2175 2210
+type(
+  Ast.pattern
+)
+ident(
+  int_ref x "extract.ml" 70 2147 2155 "extract.ml" 70 2147 2156
+)
+"extract.ml" 71 2175 2190 "extract.ml" 71 2175 2210
+call(
+  stack
+)
+type(
+  string Asttypes.loc
+)
+"extract.ml" 72 2214 2222 "extract.ml" 72 2214 2227
+type(
+  Parsetree.expression
+)
+ident(
+  def pexpr "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 72 2214 2230 "extract.ml" 72 2214 2247
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 72 2214 2248 "extract.ml" 72 2214 2249
+type(
+  Compiling.imp_equation
+)
+ident(
+  int_ref e "extract.ml" 69 2123 2139 "extract.ml" 69 2123 2140
+)
+"extract.ml" 72 2214 2248 "extract.ml" 72 2214 2262
+type(
+  Compiling.imp_expr
+)
+"extract.ml" 72 2214 2230 "extract.ml" 72 2214 2262
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 73 2267 2286 "extract.ml" 73 2267 2304
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 73 2267 2305 "extract.ml" 73 2267 2309
+type(
+  string Asttypes.loc
+)
+ident(
+  int_ref ppat "extract.ml" 71 2175 2183 "extract.ml" 71 2175 2187
+)
+"extract.ml" 73 2267 2286 "extract.ml" 73 2267 2309
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 73 2267 2320 "extract.ml" 73 2267 2325
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref pexpr "extract.ml" 72 2214 2222 "extract.ml" 72 2214 2227
+)
+"extract.ml" 73 2267 2338 "extract.ml" 73 2267 2341
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 69 2123 2141 "extract.ml" 69 2123 2144
+)
+"extract.ml" 72 2214 2218 "extract.ml" 73 2267 2344
+type(
+  Parsetree.expression
+)
+"extract.ml" 71 2175 2179 "extract.ml" 73 2267 2344
+type(
+  Parsetree.expression
+)
+"extract.ml" 70 2147 2151 "extract.ml" 73 2267 2344
+type(
+  Parsetree.expression
+)
+"extract.ml" 75 2350 2352 "extract.ml" 75 2350 2366
+type(
+  (Parsetree.expression -> Compiling.imp_equation -> Parsetree.expression) ->
+  Parsetree.expression -> Compiling.imp_equation list -> Parsetree.expression
+)
+ident(
+  ext_ref List.fold_left
+)
+"extract.ml" 75 2350 2372 "extract.ml" 75 2350 2373
+type(
+  Parsetree.expression
+)
+ident(
+  def l "extract.ml" 75 2350 2374 "extract.ml" 75 2350 2392
+)
+"extract.ml" 75 2350 2374 "extract.ml" 75 2350 2375
+type(
+  Compiling.imp_equation
+)
+ident(
+  def e "extract.ml" 75 2350 2379 "extract.ml" 75 2350 2392
+)
+"extract.ml" 75 2350 2379 "extract.ml" 75 2350 2388
+type(
+  Compiling.imp_equation -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_eq "extract.ml" 69 2123 2129 "extract.ml" 69 2123 2138
+)
+"extract.ml" 75 2350 2389 "extract.ml" 75 2350 2390
+type(
+  Compiling.imp_equation
+)
+ident(
+  int_ref e "extract.ml" 75 2350 2374 "extract.ml" 75 2350 2375
+)
+"extract.ml" 75 2350 2391 "extract.ml" 75 2350 2392
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref l "extract.ml" 75 2350 2372 "extract.ml" 75 2350 2373
+)
+"extract.ml" 75 2350 2379 "extract.ml" 75 2350 2392
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 75 2350 2367 "extract.ml" 75 2350 2393
+type(
+  Parsetree.expression -> Compiling.imp_equation -> Parsetree.expression
+)
+"extract.ml" 75 2350 2394 "extract.ml" 75 2350 2397
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 68 2095 2117 "extract.ml" 68 2095 2120
+)
+"extract.ml" 75 2350 2398 "extract.ml" 75 2350 2400
+type(
+  Compiling.imp_equation list
+)
+ident(
+  int_ref el "extract.ml" 68 2095 2114 "extract.ml" 68 2095 2116
+)
+"extract.ml" 75 2350 2352 "extract.ml" 75 2350 2400
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 69 2123 2125 "extract.ml" 75 2350 2400
+type(
+  Parsetree.expression
+)
+"extract.ml" 77 2404 2408 "extract.ml" 77 2404 2420
+type(
+  (Ast.ident * Compiling.imp_expr) list ->
+  Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def tocaml_inits "extract.ml" 84 2641 2641 "extract.ml" 1 0 -1
+)
+"extract.ml" 77 2404 2421 "extract.ml" 77 2404 2426
+type(
+  (Ast.ident * Compiling.imp_expr) list
+)
+ident(
+  def inits "extract.ml" 77 2404 2427 "extract.ml" 82 2588 2639
+)
+"extract.ml" 77 2404 2427 "extract.ml" 77 2404 2430
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "extract.ml" 78 2433 2435 "extract.ml" 82 2588 2639
+)
+"extract.ml" 78 2433 2439 "extract.ml" 78 2433 2442
+type(
+  Ast.ident * Compiling.imp_expr ->
+  Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def aux "extract.ml" 82 2588 2590 "extract.ml" 82 2588 2639
+)
+"extract.ml" 78 2433 2444 "extract.ml" 78 2433 2445
+type(
+  Ast.ident
+)
+ident(
+  def p "extract.ml" 78 2433 2449 "extract.ml" 80 2524 2582
+)
+"extract.ml" 78 2433 2446 "extract.ml" 78 2433 2447
+type(
+  Compiling.imp_expr
+)
+ident(
+  def e "extract.ml" 78 2433 2449 "extract.ml" 80 2524 2582
+)
+"extract.ml" 78 2433 2443 "extract.ml" 78 2433 2448
+type(
+  Ast.ident * Compiling.imp_expr
+)
+"extract.ml" 78 2433 2449 "extract.ml" 78 2433 2452
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 79 2455 2475 "extract.ml" 79 2455 2482
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 79 2455 2484 "extract.ml" 79 2455 2502
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> string Asttypes.loc
+)
+ident(
+  int_ref stringloc_of_ident "extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+)
+"extract.ml" 79 2455 2511 "extract.ml" 79 2455 2517
+type(
+  string
+)
+"extract.ml" 79 2455 2518 "extract.ml" 79 2455 2519
+type(
+  Ast.ident
+)
+ident(
+  int_ref p "extract.ml" 78 2433 2444 "extract.ml" 78 2433 2445
+)
+"extract.ml" 79 2455 2483 "extract.ml" 79 2455 2520
+call(
+  stack
+)
+type(
+  string Asttypes.loc
+)
+"extract.ml" 79 2455 2475 "extract.ml" 79 2455 2520
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 80 2524 2547 "extract.ml" 80 2524 2564
+type(
+  Compiling.imp_expr -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_expression "extract.ml" 14 202 210 "extract.ml" 14 202 227
+)
+"extract.ml" 80 2524 2565 "extract.ml" 80 2524 2566
+type(
+  Compiling.imp_expr
+)
+ident(
+  int_ref e "extract.ml" 78 2433 2446 "extract.ml" 78 2433 2447
+)
+"extract.ml" 80 2524 2547 "extract.ml" 80 2524 2566
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 80 2524 2576 "extract.ml" 80 2524 2579
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 78 2433 2449 "extract.ml" 78 2433 2452
+)
+"extract.ml" 82 2588 2590 "extract.ml" 82 2588 2604
+type(
+  (Parsetree.expression ->
+   Ast.ident * Compiling.imp_expr -> Parsetree.expression) ->
+  Parsetree.expression ->
+  (Ast.ident * Compiling.imp_expr) list -> Parsetree.expression
+)
+ident(
+  ext_ref List.fold_left
+)
+"extract.ml" 82 2588 2610 "extract.ml" 82 2588 2613
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "extract.ml" 82 2588 2614 "extract.ml" 82 2588 2628
+)
+"extract.ml" 82 2588 2614 "extract.ml" 82 2588 2615
+type(
+  Ast.ident * Compiling.imp_expr
+)
+ident(
+  def i "extract.ml" 82 2588 2619 "extract.ml" 82 2588 2628
+)
+"extract.ml" 82 2588 2619 "extract.ml" 82 2588 2622
+type(
+  Ast.ident * Compiling.imp_expr ->
+  Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref aux "extract.ml" 78 2433 2439 "extract.ml" 78 2433 2442
+)
+"extract.ml" 82 2588 2623 "extract.ml" 82 2588 2624
+type(
+  Ast.ident * Compiling.imp_expr
+)
+ident(
+  int_ref i "extract.ml" 82 2588 2614 "extract.ml" 82 2588 2615
+)
+"extract.ml" 82 2588 2625 "extract.ml" 82 2588 2628
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 82 2588 2610 "extract.ml" 82 2588 2613
+)
+"extract.ml" 82 2588 2619 "extract.ml" 82 2588 2628
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 82 2588 2605 "extract.ml" 82 2588 2629
+type(
+  Parsetree.expression ->
+  Ast.ident * Compiling.imp_expr -> Parsetree.expression
+)
+"extract.ml" 82 2588 2630 "extract.ml" 82 2588 2633
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 77 2404 2427 "extract.ml" 77 2404 2430
+)
+"extract.ml" 82 2588 2634 "extract.ml" 82 2588 2639
+type(
+  (Ast.ident * Compiling.imp_expr) list
+)
+ident(
+  int_ref inits "extract.ml" 77 2404 2421 "extract.ml" 77 2404 2426
+)
+"extract.ml" 82 2588 2590 "extract.ml" 82 2588 2639
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 78 2433 2435 "extract.ml" 82 2588 2639
+type(
+  Parsetree.expression
+)
+"extract.ml" 84 2641 2645 "extract.ml" 84 2641 2658
+type(
+  Compiling.imp_node ->
+  Ast_helper.str -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  def tocaml_inputs "extract.ml" 108 3367 3367 "extract.ml" 1 0 -1
+)
+"extract.ml" 84 2641 2659 "extract.ml" 84 2641 2663
+type(
+  Compiling.imp_node
+)
+ident(
+  def node "extract.ml" 84 2641 2664 "extract.ml" 104 3294 3363
+)
+"extract.ml" 84 2641 2664 "extract.ml" 84 2641 2669
+type(
+  Ast_helper.str
+)
+ident(
+  def pname "extract.ml" 84 2641 2670 "extract.ml" 104 3294 3363
+)
+"extract.ml" 84 2641 2670 "extract.ml" 84 2641 2673
+type(
+  Parsetree.expression
+)
+ident(
+  def acc "extract.ml" 85 2676 2678 "extract.ml" 104 3294 3363
+)
+"extract.ml" 85 2676 2682 "extract.ml" 85 2676 2685
+type(
+  Ast.ident list -> Parsetree.pattern list
+)
+ident(
+  def aux "extract.ml" 88 2755 2757 "extract.ml" 104 3294 3363
+)
+"extract.ml" 85 2676 2686 "extract.ml" 85 2676 2688
+type(
+  Ast.ident list
+)
+ident(
+  def il "extract.ml" 86 2691 2695 "extract.ml" 86 2691 2748
+)
+"extract.ml" 86 2691 2695 "extract.ml" 86 2691 2703
+type(
+  (Ast.ident -> Parsetree.pattern) ->
+  Ast.ident list -> Parsetree.pattern list
+)
+ident(
+  ext_ref List.map
+)
+"extract.ml" 86 2691 2709 "extract.ml" 86 2691 2710
+type(
+  Ast.ident
+)
+ident(
+  def i "extract.ml" 86 2691 2714 "extract.ml" 86 2691 2744
+)
+"extract.ml" 86 2691 2714 "extract.ml" 86 2691 2721
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 86 2691 2723 "extract.ml" 86 2691 2741
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> string Asttypes.loc
+)
+ident(
+  int_ref stringloc_of_ident "extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+)
+"extract.ml" 86 2691 2742 "extract.ml" 86 2691 2743
+type(
+  Ast.ident
+)
+ident(
+  int_ref i "extract.ml" 86 2691 2709 "extract.ml" 86 2691 2710
+)
+"extract.ml" 86 2691 2722 "extract.ml" 86 2691 2744
+call(
+  stack
+)
+type(
+  string Asttypes.loc
+)
+"extract.ml" 86 2691 2714 "extract.ml" 86 2691 2744
+call(
+  tail
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 86 2691 2704 "extract.ml" 86 2691 2745
+type(
+  Ast.ident -> Parsetree.pattern
+)
+"extract.ml" 86 2691 2746 "extract.ml" 86 2691 2748
+type(
+  Ast.ident list
+)
+ident(
+  int_ref il "extract.ml" 85 2676 2686 "extract.ml" 85 2676 2688
+)
+"extract.ml" 86 2691 2695 "extract.ml" 86 2691 2748
+call(
+  tail
+)
+type(
+  Parsetree.pattern list
+)
+"extract.ml" 88 2755 2761 "extract.ml" 88 2755 2767
+type(
+  Ast.ident list
+)
+ident(
+  def inputs "extract.ml" 89 2788 2790 "extract.ml" 104 3294 3363
+)
+"extract.ml" 88 2755 2770 "extract.ml" 88 2755 2774
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 84 2641 2659 "extract.ml" 84 2641 2663
+)
+"extract.ml" 88 2755 2770 "extract.ml" 88 2755 2783
+type(
+  Ast.ident list
+)
+"extract.ml" 89 2788 2796 "extract.ml" 89 2788 2802
+type(
+  Ast.ident list
+)
+ident(
+  int_ref inputs "extract.ml" 88 2755 2761 "extract.ml" 88 2755 2767
+)
+"extract.ml" 90 2808 2812 "extract.ml" 90 2808 2814
+type(
+  Ast.ident list
+)
+"extract.ml" 91 2818 2837 "extract.ml" 91 2818 2844
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 91 2818 2845 "extract.ml" 91 2818 2850
+type(
+  Ast_helper.str
+)
+ident(
+  int_ref pname "extract.ml" 84 2641 2664 "extract.ml" 84 2641 2669
+)
+"extract.ml" 91 2818 2837 "extract.ml" 91 2818 2850
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 92 2855 2882 "extract.ml" 92 2855 2885
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 84 2641 2670 "extract.ml" 84 2641 2673
+)
+"extract.ml" 94 2902 2917 "extract.ml" 94 2902 2926
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 94 2902 2928 "extract.ml" 94 2902 2940
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 94 2902 2949 "extract.ml" 94 2902 2956
+type(
+  string
+)
+"extract.ml" 94 2902 2957 "extract.ml" 94 2902 2961
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 84 2641 2659 "extract.ml" 84 2641 2663
+)
+"extract.ml" 94 2902 2957 "extract.ml" 94 2902 2968
+type(
+  Ast.ident
+)
+"extract.ml" 94 2902 2927 "extract.ml" 94 2902 2969
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 94 2902 2917 "extract.ml" 94 2902 2969
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 95 2973 2978 "extract.ml" 95 2973 2979
+type(
+  Ast.ident
+)
+ident(
+  def x "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 95 2973 2977 "extract.ml" 95 2973 2980
+type(
+  Ast.ident list
+)
+"extract.ml" 96 2984 3003 "extract.ml" 96 2984 3010
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 96 2984 3011 "extract.ml" 96 2984 3016
+type(
+  Ast_helper.str
+)
+ident(
+  int_ref pname "extract.ml" 84 2641 2664 "extract.ml" 84 2641 2669
+)
+"extract.ml" 96 2984 3003 "extract.ml" 96 2984 3016
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 97 3020 3041 "extract.ml" 97 3020 3048
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 97 3020 3050 "extract.ml" 97 3020 3068
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> string Asttypes.loc
+)
+ident(
+  int_ref stringloc_of_ident "extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+)
+"extract.ml" 97 3020 3069 "extract.ml" 97 3020 3070
+type(
+  Ast.ident
+)
+ident(
+  int_ref x "extract.ml" 95 2973 2978 "extract.ml" 95 2973 2979
+)
+"extract.ml" 97 3020 3049 "extract.ml" 97 3020 3071
+call(
+  stack
+)
+type(
+  string Asttypes.loc
+)
+"extract.ml" 97 3020 3041 "extract.ml" 97 3020 3071
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 97 3020 3080 "extract.ml" 97 3020 3083
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 84 2641 2670 "extract.ml" 84 2641 2673
+)
+"extract.ml" 99 3100 3115 "extract.ml" 99 3100 3124
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 99 3100 3126 "extract.ml" 99 3100 3138
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 99 3100 3147 "extract.ml" 99 3100 3154
+type(
+  string
+)
+"extract.ml" 99 3100 3155 "extract.ml" 99 3100 3159
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 84 2641 2659 "extract.ml" 84 2641 2663
+)
+"extract.ml" 99 3100 3155 "extract.ml" 99 3100 3166
+type(
+  Ast.ident
+)
+"extract.ml" 99 3100 3125 "extract.ml" 99 3100 3167
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 99 3100 3115 "extract.ml" 99 3100 3167
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 100 3170 3174 "extract.ml" 100 3170 3175
+type(
+  Ast.ident list
+)
+"extract.ml" 101 3179 3198 "extract.ml" 101 3179 3205
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 101 3179 3206 "extract.ml" 101 3179 3211
+type(
+  Ast_helper.str
+)
+ident(
+  int_ref pname "extract.ml" 84 2641 2664 "extract.ml" 84 2641 2669
+)
+"extract.ml" 101 3179 3198 "extract.ml" 101 3179 3211
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 102 3215 3236 "extract.ml" 102 3215 3245
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Parsetree.pattern list -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.tuple
+)
+"extract.ml" 102 3215 3247 "extract.ml" 102 3215 3250
+type(
+  Ast.ident list -> Parsetree.pattern list
+)
+ident(
+  int_ref aux "extract.ml" 85 2676 2682 "extract.ml" 85 2676 2685
+)
+"extract.ml" 102 3215 3251 "extract.ml" 102 3215 3255
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 84 2641 2659 "extract.ml" 84 2641 2663
+)
+"extract.ml" 102 3215 3251 "extract.ml" 102 3215 3264
+type(
+  Ast.ident list
+)
+"extract.ml" 102 3215 3246 "extract.ml" 102 3215 3265
+call(
+  stack
+)
+type(
+  Parsetree.pattern list
+)
+"extract.ml" 102 3215 3236 "extract.ml" 102 3215 3265
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 102 3215 3275 "extract.ml" 102 3215 3278
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref acc "extract.ml" 84 2641 2670 "extract.ml" 84 2641 2673
+)
+"extract.ml" 104 3294 3309 "extract.ml" 104 3294 3318
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.lid -> Parsetree.expression
+)
+ident(
+  ext_ref Ast_helper.Exp.ident
+)
+"extract.ml" 104 3294 3320 "extract.ml" 104 3294 3332
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> Longident.t Asttypes.loc
+)
+ident(
+  int_ref lid_of_ident "extract.ml" 8 85 89 "extract.ml" 8 85 101
+)
+"extract.ml" 104 3294 3341 "extract.ml" 104 3294 3348
+type(
+  string
+)
+"extract.ml" 104 3294 3349 "extract.ml" 104 3294 3353
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 84 2641 2659 "extract.ml" 84 2641 2663
+)
+"extract.ml" 104 3294 3349 "extract.ml" 104 3294 3360
+type(
+  Ast.ident
+)
+"extract.ml" 104 3294 3319 "extract.ml" 104 3294 3361
+call(
+  stack
+)
+type(
+  Longident.t Asttypes.loc
+)
+"extract.ml" 104 3294 3309 "extract.ml" 104 3294 3361
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 89 2788 2790 "extract.ml" 104 3294 3363
+type(
+  Parsetree.expression
+)
+"extract.ml" 88 2755 2757 "extract.ml" 104 3294 3363
+type(
+  Parsetree.expression
+)
+"extract.ml" 85 2676 2678 "extract.ml" 104 3294 3363
+type(
+  Parsetree.expression
+)
+"extract.ml" 108 3367 3371 "extract.ml" 108 3367 3382
+type(
+  Compiling.imp_node -> Parsetree.expression
+)
+ident(
+  def tocaml_step "extract.ml" 115 3638 3638 "extract.ml" 1 0 -1
+)
+"extract.ml" 108 3367 3383 "extract.ml" 108 3367 3387
+type(
+  Compiling.imp_node
+)
+ident(
+  def node "extract.ml" 109 3390 3392 "extract.ml" 113 3604 3634
+)
+"extract.ml" 109 3390 3396 "extract.ml" 109 3390 3401
+type(
+  string Asttypes.loc
+)
+ident(
+  def pname "extract.ml" 110 3454 3456 "extract.ml" 113 3604 3634
+)
+"extract.ml" 109 3390 3404 "extract.ml" 109 3390 3422
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> string Asttypes.loc
+)
+ident(
+  int_ref stringloc_of_ident "extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+)
+"extract.ml" 109 3390 3431 "extract.ml" 109 3390 3438
+type(
+  string
+)
+"extract.ml" 109 3390 3439 "extract.ml" 109 3390 3443
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 108 3367 3383 "extract.ml" 108 3367 3387
+)
+"extract.ml" 109 3390 3439 "extract.ml" 109 3390 3450
+type(
+  Ast.ident
+)
+"extract.ml" 109 3390 3404 "extract.ml" 109 3390 3450
+call(
+  stack
+)
+type(
+  string Asttypes.loc
+)
+"extract.ml" 110 3454 3460 "extract.ml" 110 3454 3464
+type(
+  Parsetree.expression
+)
+ident(
+  def outs "extract.ml" 111 3490 3492 "extract.ml" 113 3604 3634
+)
+"extract.ml" 110 3454 3467 "extract.ml" 110 3454 3481
+type(
+  Compiling.imp_node -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_outputs "extract.ml" 59 1836 1840 "extract.ml" 59 1836 1854
+)
+"extract.ml" 110 3454 3482 "extract.ml" 110 3454 3486
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 108 3367 3383 "extract.ml" 108 3367 3387
+)
+"extract.ml" 110 3454 3467 "extract.ml" 110 3454 3486
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 111 3490 3496 "extract.ml" 111 3490 3499
+type(
+  Parsetree.expression
+)
+ident(
+  def ups "extract.ml" 112 3530 3532 "extract.ml" 113 3604 3634
+)
+"extract.ml" 111 3490 3502 "extract.ml" 111 3490 3516
+type(
+  Compiling.imp_node -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_updates "extract.ml" 51 1589 1593 "extract.ml" 51 1589 1607
+)
+"extract.ml" 111 3490 3517 "extract.ml" 111 3490 3521
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 108 3367 3383 "extract.ml" 108 3367 3387
+)
+"extract.ml" 111 3490 3522 "extract.ml" 111 3490 3526
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref outs "extract.ml" 110 3454 3460 "extract.ml" 110 3454 3464
+)
+"extract.ml" 111 3490 3502 "extract.ml" 111 3490 3526
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 112 3530 3536 "extract.ml" 112 3530 3539
+type(
+  Parsetree.expression
+)
+ident(
+  def eqs "extract.ml" 113 3604 3606 "extract.ml" 113 3604 3634
+)
+"extract.ml" 112 3530 3542 "extract.ml" 112 3530 3556
+type(
+  Compiling.imp_equation list -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_eq_list "extract.ml" 68 2095 2099 "extract.ml" 68 2095 2113
+)
+"extract.ml" 112 3530 3558 "extract.ml" 112 3530 3566
+type(
+  Compiling.imp_equation list -> Compiling.imp_equation list
+)
+ident(
+  ext_ref List.rev
+)
+"extract.ml" 112 3530 3567 "extract.ml" 112 3530 3571
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 108 3367 3383 "extract.ml" 108 3367 3387
+)
+"extract.ml" 112 3530 3567 "extract.ml" 112 3530 3582
+type(
+  Compiling.imp_step
+)
+"extract.ml" 112 3530 3567 "extract.ml" 112 3530 3594
+type(
+  Compiling.imp_equation list
+)
+"extract.ml" 112 3530 3557 "extract.ml" 112 3530 3595
+call(
+  stack
+)
+type(
+  Compiling.imp_equation list
+)
+"extract.ml" 112 3530 3596 "extract.ml" 112 3530 3599
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref ups "extract.ml" 111 3490 3496 "extract.ml" 111 3490 3499
+)
+"extract.ml" 112 3530 3542 "extract.ml" 112 3530 3599
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 113 3604 3606 "extract.ml" 113 3604 3619
+type(
+  Compiling.imp_node ->
+  Ast_helper.str -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_inputs "extract.ml" 84 2641 2645 "extract.ml" 84 2641 2658
+)
+"extract.ml" 113 3604 3620 "extract.ml" 113 3604 3624
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref node "extract.ml" 108 3367 3383 "extract.ml" 108 3367 3387
+)
+"extract.ml" 113 3604 3625 "extract.ml" 113 3604 3630
+type(
+  string Asttypes.loc
+)
+ident(
+  int_ref pname "extract.ml" 109 3390 3396 "extract.ml" 109 3390 3401
+)
+"extract.ml" 113 3604 3631 "extract.ml" 113 3604 3634
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref eqs "extract.ml" 112 3530 3536 "extract.ml" 112 3530 3539
+)
+"extract.ml" 113 3604 3606 "extract.ml" 113 3604 3634
+call(
+  tail
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 112 3530 3532 "extract.ml" 113 3604 3634
+type(
+  Parsetree.expression
+)
+"extract.ml" 111 3490 3492 "extract.ml" 113 3604 3634
+type(
+  Parsetree.expression
+)
+"extract.ml" 110 3454 3456 "extract.ml" 113 3604 3634
+type(
+  Parsetree.expression
+)
+"extract.ml" 109 3390 3392 "extract.ml" 113 3604 3634
+type(
+  Parsetree.expression
+)
+"extract.ml" 115 3638 3642 "extract.ml" 115 3638 3654
+type(
+  Compiling.imp_node -> Parsetree.structure_item
+)
+ident(
+  def extract_node "extract.ml" 122 3855 3858 "extract.ml" 1 0 -1
+)
+"extract.ml" 115 3638 3655 "extract.ml" 115 3638 3660
+type(
+  Compiling.imp_node
+)
+ident(
+  def inode "extract.ml" 116 3663 3665 "extract.ml" 122 3855 3858
+)
+"extract.ml" 116 3663 3669 "extract.ml" 116 3663 3673
+type(
+  string Asttypes.loc
+)
+ident(
+  def name "extract.ml" 117 3711 3713 "extract.ml" 122 3855 3858
+)
+"extract.ml" 116 3663 3676 "extract.ml" 116 3663 3694
+type(
+  ?prefix:string -> ?suffix:string -> Ast.ident -> string Asttypes.loc
+)
+ident(
+  int_ref stringloc_of_ident "extract.ml" 45 1474 1478 "extract.ml" 45 1474 1496
+)
+"extract.ml" 116 3663 3695 "extract.ml" 116 3663 3700
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref inode "extract.ml" 115 3638 3655 "extract.ml" 115 3638 3660
+)
+"extract.ml" 116 3663 3695 "extract.ml" 116 3663 3707
+type(
+  Ast.ident
+)
+"extract.ml" 116 3663 3676 "extract.ml" 116 3663 3707
+call(
+  stack
+)
+type(
+  string Asttypes.loc
+)
+"extract.ml" 117 3711 3717 "extract.ml" 117 3711 3722
+type(
+  Compiling.imp_inits
+)
+ident(
+  def inits "_none_" 1 0 -1 "_none_" 1 0 -1
+)
+"extract.ml" 117 3711 3725 "extract.ml" 117 3711 3730
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref inode "extract.ml" 115 3638 3655 "extract.ml" 115 3638 3660
+)
+"extract.ml" 117 3711 3725 "extract.ml" 117 3711 3738
+type(
+  Compiling.imp_inits
+)
+"extract.ml" 119 3743 3760 "extract.ml" 119 3743 3767
+type(
+  ?loc:Ast_helper.loc ->
+  ?attrs:Ast_helper.attrs -> Ast_helper.str -> Parsetree.pattern
+)
+ident(
+  ext_ref Ast_helper.Pat.var
+)
+"extract.ml" 119 3743 3768 "extract.ml" 119 3743 3772
+type(
+  string Asttypes.loc
+)
+ident(
+  int_ref name "extract.ml" 116 3663 3669 "extract.ml" 116 3663 3673
+)
+"extract.ml" 119 3743 3760 "extract.ml" 119 3743 3772
+call(
+  stack
+)
+type(
+  Parsetree.pattern
+)
+"extract.ml" 121 3797 3814 "extract.ml" 121 3797 3826
+type(
+  Compiling.imp_inits -> Parsetree.expression -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_inits "extract.ml" 77 2404 2408 "extract.ml" 77 2404 2420
+)
+"extract.ml" 121 3797 3827 "extract.ml" 121 3797 3832
+type(
+  Compiling.imp_inits
+)
+ident(
+  int_ref inits "extract.ml" 117 3711 3717 "extract.ml" 117 3711 3722
+)
+"extract.ml" 121 3797 3834 "extract.ml" 121 3797 3845
+type(
+  Compiling.imp_node -> Parsetree.expression
+)
+ident(
+  int_ref tocaml_step "extract.ml" 108 3367 3371 "extract.ml" 108 3367 3382
+)
+"extract.ml" 121 3797 3846 "extract.ml" 121 3797 3851
+type(
+  Compiling.imp_node
+)
+ident(
+  int_ref inode "extract.ml" 115 3638 3655 "extract.ml" 115 3638 3660
+)
+"extract.ml" 121 3797 3833 "extract.ml" 121 3797 3852
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 121 3797 3814 "extract.ml" 121 3797 3852
+call(
+  stack
+)
+type(
+  Parsetree.expression
+)
+"extract.ml" 117 3711 3713 "extract.ml" 122 3855 3858
+type(
+  Parsetree.structure_item
+)
+"extract.ml" 116 3663 3665 "extract.ml" 122 3855 3858
+type(
+  Parsetree.structure_item
+)

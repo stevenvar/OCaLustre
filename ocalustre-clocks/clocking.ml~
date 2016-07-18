@@ -1,0 +1,3 @@
+open Ast
+
+let clock node = 

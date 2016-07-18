@@ -1,0 +1,18 @@
+### Starting build.
+# Target: foo.ml.depends, tags: { package(compiler-libs.common), package(ppx_tools.metaquot), package(unix), annot, bin_annot, extension:ml, file:foo.ml, ocaml, ocamldep, quiet, traverse }
+/Users/steven/.opam/4.03.0/bin/ocamlfind ocamldep -package ppx_tools.metaquot -package compiler-libs.common -package unix -modules foo.ml > foo.ml.depends
+# Target: foo.cmo, tags: { package(compiler-libs.common), package(ppx_tools.metaquot), package(unix), annot, bin_annot, byte, compile, extension:cmo, extension:ml, file:foo.cmo, file:foo.ml, implem, ocaml, quiet, traverse }
+/Users/steven/.opam/4.03.0/bin/ocamlfind ocamlc -c -ppx ./ocalustre.native -dsource -annot -bin-annot -package ppx_tools.metaquot -package compiler-libs.common -package unix -o foo.cmo foo.ml
++ /Users/steven/.opam/4.03.0/bin/ocamlfind ocamlc -c -ppx ./ocalustre.native -dsource -annot -bin-annot -package ppx_tools.metaquot -package compiler-libs.common -package unix -o foo.cmo foo.ml
+findlib: [WARNING] Interface scheduling.cmi occurs in several directories: ., /Users/steven/.opam/4.03.0/lib/ocaml/compiler-libs
+findlib: [WARNING] Interface topdirs.cmi occurs in several directories: /Users/steven/.opam/4.03.0/lib/ocaml, /Users/steven/.opam/4.03.0/lib/ocaml/compiler-libs
+let naturels () =
+  let pre_d = ref 0  in
+  let naturels_step () = let d = !pre_d  in pre_d := ((!pre_d) + 1); d  in
+  naturels_step 
+let _ =
+  let nat_step = naturels ()  in
+  for i = 0 to 10 do print_int (nat_step ()) done 
+# Target: foo.byte, tags: { package(unix), annot, bin_annot, byte, dont_link_with, extension:byte, file:foo.byte, link, ocaml, program, quiet, traverse }
+/Users/steven/.opam/4.03.0/bin/ocamlfind ocamlc -linkpkg -linkpkg -package unix foo.cmo -o foo.byte
+# Compilation successful.
