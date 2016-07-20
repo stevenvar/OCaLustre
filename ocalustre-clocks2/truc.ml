@@ -1,2 +1,1 @@
-let f ~lol:() (x,y) =
-  4
+let f ((x:int),y) = x 

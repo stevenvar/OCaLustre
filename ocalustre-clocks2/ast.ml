@@ -135,6 +135,8 @@ let rec mk_expr e =
       | Pconst_integer (i,s) -> Value (Integer (int_of_string i))
       | _ -> assert false   (* only int ftm *)
     end
+  | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
+    failwith "constraint"
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
      pexp_loc ;
      pexp_attributes} ->
@@ -184,6 +186,11 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
       | Ppat_construct _ -> [], e
       | Ppat_var s -> [checkname_pattern p], e
       | Ppat_tuple l -> List.map (fun x -> checkname_pattern x) l, e
+      | Ppat_constraint (p,t) ->
+        begin match p.ppat_desc with
+          | Ppat_var s -> [checkname_pattern p], e
+          | _ -> failwith "unknown"
+        end
       | _ -> Error.syntax_error p.ppat_loc
     else
       Error.syntax_error body.pexp_loc
