@@ -17,6 +17,7 @@ and cpattern = pattern * clock
 and cident = ident * clock
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
+  | CApplication of ident * cexpression list 
   | CInfixOp of inf_operator * cexpression * cexpression
   | CPrefixOp of pre_operator * cexpression
   | CValue of constant 
@@ -34,6 +35,7 @@ let rec get_clock hst e =
       Hashtbl.find hst i.content
     with _ -> Base) 
   | Alternative (e1, e2, e3) -> get_clock hst e2
+  | Application (i,el) -> get_clock hst (List.hd el)
   | InfixOp (op, e1, e2) -> get_clock hst e1
   | PrefixOp (op, e) -> get_clock hst e
   | Value v -> Base
@@ -67,6 +69,9 @@ let rec clock_exp hst e =
   | Variable i ->
     let ck = try Hashtbl.find hst i.content with _ -> Base in 
     (CVariable (i, ck), ck)
+  | Application (i,el) ->
+     let cel = List.map (fun e -> clock_exp hst e) el in 
+     (CApplication (i, cel), Base) (* TODO *)
   | Alternative (e1,e2,e3) ->
     let (e1,c1) as ce1 = clock_exp hst e1 in
     let (e2,c2) as ce2 = clock_exp hst e2 in

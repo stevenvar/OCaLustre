@@ -1,15 +1,18 @@
 
-let%node lol ~inf:a ~outf:b =
-  b = a 
 
-let%node naturels ~inf:() ~outf:(d) =
-  d = 0 --> (pre d + 1)
+
+let%node naturels ~i:(i) ~o:(d) =
+  d = 0 --> (pre d + 1) * i 
+
+
+let%node main ~i:() ~o:(x,y) =
+  x = (naturels (2));
+  y = (naturels (1)) 
+
 
 let _ =
-  let nat_step = naturels () in
-  let lol_step = lol () in 
+  let main_step = main () in 
   for i = 0 to 10 do
-    print_int (nat_step ());
-    print_int (lol_step (i*2))
-  done; 
-  
+    let (x,y) = main_step () in 
+    Format.printf "%d %d \n" x y 
+  done 

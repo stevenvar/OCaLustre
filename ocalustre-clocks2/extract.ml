@@ -11,32 +11,43 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
     loc = i.loc 
   }
 
-let rec tocaml_expression e   =
+
+
+let rec tocaml_expression n e =
 
     match e with
     | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))  
-    | ITuple t -> Exp.tuple (List.map tocaml_expression t)
+    | ITuple t -> Exp.tuple (List.map (fun i -> tocaml_expression n i) t)
     | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
     | IRef i -> [%expr ![%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ]  ]
     | IInfixOp (IDiff,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
+      [%expr [%e tocaml_expression n e1 ] <> [%e tocaml_expression n e2 ]]
     | IInfixOp (IEquals,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
+      [%expr [%e tocaml_expression n e1 ] = [%e tocaml_expression n e2 ]]
     | IInfixOp (IPlus,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
+      [%expr [%e tocaml_expression n e1 ] + [%e tocaml_expression n e2 ]]
     | IInfixOp (IMinus,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] - [%e tocaml_expression e2 ]]
+       [%expr [%e tocaml_expression n e1 ] - [%e tocaml_expression n e2 ]]
     | IInfixOp (ITimes,e1,e2) ->
-       [%expr [%e tocaml_expression e1 ] * [%e tocaml_expression e2 ]]
+       [%expr [%e tocaml_expression n e1 ] * [%e tocaml_expression n e2 ]]
     | IInfixOp (IDiv,e1,e2) ->
-      [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
+       [%expr [%e tocaml_expression n e1 ] / [%e tocaml_expression n e2 ]]
+    | IApplication (id, el) ->
+       let listexp = match el with
+         | [] ->  [(Nolabel, [%expr () ] )]
+         | [x] ->  [(Nolabel, tocaml_expression n x)]
+         | _ -> [(Nolabel,Exp.tuple (List.map (fun x -> tocaml_expression n x) el))] in 
+       [%expr
+           [%e Exp.apply
+              (Exp.ident (lid_of_ident ~suffix:"_step" n)) listexp ] ]
+
     | IAlternative (e1,e2,e3) -> 
-      [%expr [%e Exp.ifthenelse
-                [%expr [%e (tocaml_expression e1) ]]
-                [%expr  [%e (tocaml_expression e2) ] ] 
-                (Some ( [%expr  [%e tocaml_expression e3 ] ] ))  
-                ] 
-      ]
+       [%expr [%e Exp.ifthenelse
+                  [%expr [%e (tocaml_expression n e1) ]]
+                  [%expr  [%e (tocaml_expression n e2) ] ] 
+                  (Some ( [%expr  [%e tocaml_expression n e3 ] ] ))  
+              ] 
+       ]
     | IUnit -> [%expr ()]
     | _ -> [%expr ()]
     
@@ -50,7 +61,7 @@ let stringloc_of_ident ?(prefix="") ?(suffix="") i =
 
 let tocaml_updates node outs =
   let aux (p,e) acc =
-    [%expr [%e Exp.ident (lid_of_ident ~prefix:"pre_" p) ] := ([%e tocaml_expression e]) ;
+    [%expr [%e Exp.ident (lid_of_ident ~prefix:"pre_" p) ] := ([%e tocaml_expression p e]) ;
            [%e acc ]]
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates 
@@ -69,15 +80,24 @@ let tocaml_eq_list el acc =
   let tocaml_eq e acc =
     let x = e.i_pattern in 
     let ppat = stringloc_of_ident x in
-    let pexpr = tocaml_expression e.i_expression in 
+    let pexpr = tocaml_expression x e.i_expression in 
     [%expr let [%p Ast_helper.Pat.var ppat ] = ( [%e pexpr ] ) in  [%e acc ]]
   in
   List.fold_left (fun l e -> tocaml_eq e l) acc el
   
 let tocaml_inits inits acc =
   let aux (p,e) acc =
+    match e with
+    | IValue _ -> 
      [%expr let [%p Pat.var (stringloc_of_ident ~prefix:"pre_" p)] =
-              ref ([%e tocaml_expression e]) in [%e acc] ]
+        ref ([%e tocaml_expression p e]) in [%e acc] ]
+    | IApplication (i,_) ->
+       let listexp = [(Nolabel, [%expr ()])] in 
+       [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" p)] =
+          [%e Exp.apply
+              (Exp.ident (lid_of_ident i)) listexp ] in [%e acc] ]
+
+    | _ -> assert false 
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
 

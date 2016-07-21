@@ -7,7 +7,8 @@ and init = pattern * imp_expr
 and imp_inits = init list 
 and imp_expr =
   | IValue of constant
-  | IVariable of stream 
+  | IVariable of stream
+  | IApplication of ident * imp_expr list 
   | ITuple of imp_expr list
   | IRef of ident
   | IInfixOp of imp_infop * imp_expr * imp_expr
@@ -69,6 +70,9 @@ let rec compile_expression (e,c) p =
   match e with
   | CValue v -> IValue v
   | CVariable (s,c) -> IVariable s
+  | CApplication (i, el) ->
+     let iel = List.map (fun e -> compile_expression e p) el in
+     IApplication (i, iel) 
   | CInfixOp (op,e1,e2) ->
     IInfixOp(compile_infop op,
              compile_expression e1 p,
@@ -89,6 +93,7 @@ let generate_inits cnode =
   let generate_init e l =
     match fst e.cexpression with
     | CFby (v, e') -> ( fst e.cpattern , IValue v)::l
+    | CApplication (i,el) -> (fst e.cpattern, IApplication (i,[]))::l
     | _ -> l 
   in 
   List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations

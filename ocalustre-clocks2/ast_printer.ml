@@ -37,7 +37,7 @@ let print_preop fmt op =
 
 let print_infop fmt op =
   match op with
-  | Equals -> Format.fprintf fmt "=" 
+  | Equals -> Format.fprintf fmt "="
   | Plus -> Format.fprintf fmt "+"
   | Times -> Format.fprintf fmt "*"
   | Div -> Format.fprintf fmt "/"
@@ -46,12 +46,17 @@ let print_infop fmt op =
   | Plusf -> Format.fprintf fmt "+."
   | Timesf -> Format.fprintf fmt "*."
   | Divf -> Format.fprintf fmt "/."
-  | Minusf -> Format.fprintf fmt "-." 
-    
+  | Minusf -> Format.fprintf fmt "-."
 
 
 let rec print_expression fmt e =
-  match e with 
+  let rec print_expression_list fmt el =
+    match el with
+    | [] -> ()
+    | [e] -> Format.fprintf fmt "%a" print_expression e
+    | he::te -> Format.fprintf fmt "%a,%a" print_expression he print_expression_list te
+  in
+  match e with
   | Variable i -> Format.fprintf fmt "%a"
                     print_ident i
   | Alternative (e1,e2,e3) ->
@@ -59,6 +64,10 @@ let rec print_expression fmt e =
       print_expression e1 
       print_expression e2 
       print_expression e3
+  | Application (i, el) ->
+     Format.fprintf fmt "(%a (%a))"
+                    print_ident i
+                    print_expression_list el
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1

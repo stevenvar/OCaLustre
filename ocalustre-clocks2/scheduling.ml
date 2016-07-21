@@ -24,7 +24,9 @@ let rec get_expr_id e s =
   | Alternative (e1,e2,e3) ->
     let s = get_expr_id e1 s in
     let s = get_expr_id e2 s in 
-    get_expr_id e3 s 
+    get_expr_id e3 s
+  | Application (i,el) ->
+     List.fold_left (fun accu e -> get_expr_id e accu) s el
   | InfixOp (op, e1, e2) ->
     let s = get_expr_id e1 s in 
     get_expr_id e2 s

@@ -26,6 +26,7 @@ and ident = {
 }
 and exp_desc =   
   | Alternative of expression * expression * expression
+  | Application of ident * expression list
   | InfixOp of inf_operator * expression * expression
   | PrefixOp of pre_operator * expression
   | Value of constant 
@@ -96,7 +97,9 @@ let checkname_ident id =
 (* Returns the idents inside each construct in a list *)
 let rec get_idents l e =
   match e with 
-  | Variable i -> i::l 
+  | Variable i -> i::l
+  | Application (i,el) ->
+     List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
   | Alternative (e1,e2,e3) ->
     let l = get_idents l e3 in
     let l = get_idents l e2 in
@@ -151,11 +154,17 @@ let rec mk_expr e =
       | _ -> failwith "syntax error"
     end
   | [%expr [%e? e1] on [%e? e2] ] -> let i = List.hd (get_idents [] (mk_expr e2)) in
-    When ((mk_expr e1), i)
+                                     When ((mk_expr e1), i)
   | [%expr current [%e? e] ] -> Current (mk_expr e)
   | [%expr pre [%e? e]] ->
-    let v = List.hd (get_idents [] (mk_expr e)) in
-    Pre v 
+     let v = List.hd (get_idents [] (mk_expr e)) in
+     Pre v
+  | [%expr [%e? e1] [%e? e2] ] ->
+     Application(checkname_ident e1, 
+                 begin match e2.pexp_desc with
+                 | Pexp_tuple l -> List.map mk_expr l
+                 | _ -> [mk_expr e2]
+                 end )
   | _ ->
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc 
@@ -208,8 +217,8 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
 (* creates a node "lustre node" in the AST *)
 let mk_node name body =
   let name = checkname_pattern name in
-  let inputs, body = checkio (Labelled "inf") body in
-  let outputs, body = checkio (Labelled "outf") body in
+  let inputs, body = checkio (Labelled "i") body in
+  let outputs, body = checkio (Labelled "o") body in
   let equations = mk_equations body in
   {
     name;
@@ -217,4 +226,3 @@ let mk_node name body =
     outputs;
     equations
   }
-

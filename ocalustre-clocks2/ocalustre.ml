@@ -38,7 +38,7 @@ let lustre_mapper argv =
             let _node = schedule _node in
             let cnode = cl_node _node in
 (*            let inode = compile_node _node in *)
-            (*print_node Format.std_formatter _node;
+            print_node Format.std_formatter _node; (*
             print_cnode Format.std_formatter cnode;
             *)
             let inode = compile_cnode cnode in
