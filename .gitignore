@@ -23,3 +23,5 @@ ppx_lustre/examples/coffee/*.asm
 ppx_lustre/examples/coffee/*.lst
 ppx_lustre/examples/coffee/*.cod
 ppx_lustre/examples/coffee/*.hex
+
+ocalustre-clocks2/setup.ml
