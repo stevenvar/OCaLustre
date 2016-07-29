@@ -65,6 +65,9 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
+  | IApplication (i,el) -> Format.fprintf fmt "%s (%a)"
+                             i.content
+                             printml_expressions el 
 
 let printml_updates fmt il =
   let aux fmt (s,e) =

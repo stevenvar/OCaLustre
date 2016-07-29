@@ -31,6 +31,14 @@ let print_preop fmt op =
 
 
 let rec print_cexpression fmt (e,c) =
+  let rec print_cexpression_list fmt el =
+    match el with
+    | [] -> () 
+    | [h] -> Format.fprintf fmt "%a" print_cexpression h
+    | h::t -> Format.fprintf fmt "%a,%a"
+                print_cexpression h
+                print_cexpression_list t
+  in 
   match e with 
   | CVariable (i,c) -> Format.fprintf fmt "%a%a"
                     print_ident i
@@ -67,6 +75,11 @@ let rec print_cexpression fmt (e,c) =
   | CPre (v,ck) -> Format.fprintf fmt "(pre %s)%a"
                      v.content
                      print_clock c
+  | CApplication (i,el) -> Format.fprintf fmt "(%s (%a))%a"
+                             i.content
+                             print_cexpression_list el
+                             print_clock c
+
 
 
 
