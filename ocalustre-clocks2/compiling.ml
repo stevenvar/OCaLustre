@@ -102,7 +102,8 @@ let generate_updates cnode =
   let aux e l =
     match fst e.cexpression with
     | CFby (v,e') -> (fst e.cpattern , compile_expression e' (fst e.cpattern))::l
-    | _ -> l 
+    | _ -> l
+      
   in
   List.fold_left (fun acc e -> aux e acc) [] cnode.cequations 
 

@@ -11,6 +11,7 @@ open Clocked_ast_printer
 open Compiling
 open Ast_imperative_printer
 open Extract
+open Expand
 
 
 (*open Transform
@@ -35,14 +36,17 @@ let lustre_mapper argv =
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
+             let _node = expand_node _node in
+            print_node Format.std_formatter _node; 
             let _node = schedule _node in
+           
             let cnode = cl_node _node in
 (*            let inode = compile_node _node in *)
             print_node Format.std_formatter _node; (*
             print_cnode Format.std_formatter cnode;
             *)
             let inode = compile_cnode cnode in
-            (*printml_node Format.std_formatter inode;*)
+            printml_node Format.std_formatter inode;
             extract_node inode
             (* printml_node Format.std_formatter inode; *)
             
