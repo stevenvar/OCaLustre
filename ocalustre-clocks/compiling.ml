@@ -3,16 +3,19 @@ open Parsetree
 open Ast
 
 type app_inits = (pattern * imp_expr) list
-and init = pattern * imp_expr 
-and imp_inits = init list 
+and init = pattern * imp_expr
+and imp_inits = init list
 and imp_expr =
   | IValue of constant
-  | IVariable of stream 
+  | IConstr of string
+  | IVariable of stream
+  | IApplication of ident * imp_expr list
   | ITuple of imp_expr list
   | IRef of ident
   | IInfixOp of imp_infop * imp_expr * imp_expr
   | IPrefixOp of imp_preop * imp_expr
   | IAlternative of imp_expr * imp_expr * imp_expr
+  | IFlow of stream
   | IUnit
 and
   imp_infop =
@@ -33,7 +36,7 @@ and
 type imp_equation =  {
   i_pattern : pattern;
   i_expression : imp_expr;
-} 
+}
 
 type imp_step = {
   i_equations : imp_equation list;
@@ -64,11 +67,14 @@ let rec compile_expression (e,c) p =
     | Plusf -> IPlusf
     | Minusf -> IMinusf
     | Timesf -> ITimesf
-    | Divf -> IDivf 
+    | Divf -> IDivf
   in
   match e with
   | CValue v -> IValue v
   | CVariable (s,c) -> IVariable s
+  | CApplication (i, el) ->
+     let iel = List.map (fun e -> compile_expression e p) el in
+     IApplication (i, iel)
   | CInfixOp (op,e1,e2) ->
     IInfixOp(compile_infop op,
              compile_expression e1 p,
@@ -80,40 +86,56 @@ let rec compile_expression (e,c) p =
                   compile_expression e2 p,
                   compile_expression e3 p)
   | CUnit -> IUnit
-  | CFby (v,e') -> IRef p 
+  | CFby (v,e') -> IRef p
+  | CArrow (v,e') ->
+    let init = mk_ident "_init" in
+    IAlternative (IRef init , IValue v, compile_expression e' p)
   | CWhen (e',i) -> compile_expression e' p
   | CCurrent e' -> compile_expression e' p
-  | CPre (v,c) -> IRef v 
-                 
+  | CPre (v,c) -> IFlow v
+
 let generate_inits cnode =
   let generate_init e l =
     match fst e.cexpression with
     | CFby (v, e') -> ( fst e.cpattern , IValue v)::l
-    | _ -> l 
-  in 
-  List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations
-  
-let generate_updates cnode =
-  let aux e l =
-    match fst e.cexpression with
-    | CFby (v,e') -> (fst e.cpattern , compile_expression e' (fst e.cpattern))::l
-    | _ -> l 
+    | CApplication (i,el) -> (fst e.cpattern, IApplication (i,[]))::l
+    | _ -> l
   in
-  List.fold_left (fun acc e -> aux e acc) [] cnode.cequations 
+  List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations
 
-  
-let compile_equation e = 
+let init_pre cnode =
+  let rec gen_pre name (exp,c) l =
+    match exp with
+    | CFby (v, e') -> gen_pre name e' l
+    | CPre v -> (name, IConstr "None")::l
+    | _ -> l
+  in
+  List.fold_left (fun acc e -> gen_pre (fst e.cpattern) (e.cexpression) acc) [] cnode.cequations
+
+
+
+
+let generate_updates cnode =
+  let aux eq l =
+    match fst eq.cexpression with
+    | CFby (v,e') -> (fst eq.cpattern , compile_expression e' (fst eq.cpattern))::l
+    | _ -> l
+  in
+  List.fold_left (fun acc e -> aux e acc) [] cnode.cequations
+
+
+let compile_equation e =
   let pat = fst e.cpattern in
   {
-  i_pattern =pat; 
-  i_expression = compile_expression e.cexpression pat; 
+  i_pattern =pat;
+  i_expression = compile_expression e.cexpression pat;
 }
 
 let compile_io l =
-  List.map (fun (io,c) -> io) l 
+  List.map (fun (io,c) -> io) l
 
 let compile_cnode cnode =
- 
+
   {
     i_name = cnode.cname;
     i_inputs = compile_io cnode.cinputs;
@@ -121,5 +143,6 @@ let compile_cnode cnode =
     i_inits = generate_inits cnode;
     i_step_fun = {
       i_equations = List.map (compile_equation) cnode.cequations;
-      i_updates = generate_updates cnode }
+      i_updates = generate_updates cnode
+    }
   }

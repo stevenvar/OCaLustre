@@ -1,5 +1,5 @@
-type 'a flow = None | Value of 'a
+type 'a flow = Nil | Val of 'a
 
-let get f = match f with
-  | None -> failwith "No value"
-  | Value v -> v 
+let get = function
+  | Nil -> failwith "not initialized"
+  | Val x -> x 

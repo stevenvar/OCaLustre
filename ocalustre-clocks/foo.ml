@@ -1,11 +1,10 @@
 
+let%node naturels ~i:() ~o:(d) =
+  d = 1 --> pre (1 --> (pre d + d ))
 
-let%node naturels ~inf:() ~outf:(d) =
-  d = 0 --> (pre d + 1)
 
 let _ =
-    let nat_step = naturels () in  
+  let nat = naturels () in
   for i = 0 to 10 do
-    print_int (nat_step ())
-  done; 
-  
+    Printf.printf "%d\n" (nat ())
+  done

@@ -8,7 +8,7 @@ let rec print_clock fmt c =
   | On (ck,x)-> Format.fprintf fmt "\x1b[35m<%a \x1b[35mon %a>\x1b[0m"
                   print_clock ck
                   print_ident x
-                  
+
 let print_io fmt l =
   let print_one fmt (x,c) =
     Format.fprintf fmt "%s%a"
@@ -24,21 +24,29 @@ let print_cpattern fmt (p,c) =
     p.content
     print_clock c
 
-let print_preop fmt op = 
+let print_preop fmt op =
   match op with
   | Not -> Format.fprintf fmt "not "
 
 
 
 let rec print_cexpression fmt (e,c) =
-  match e with 
+  let rec print_cexpression_list fmt el =
+    match el with
+    | [] -> ()
+    | [h] -> Format.fprintf fmt "%a" print_cexpression h
+    | h::t -> Format.fprintf fmt "%a,%a"
+                print_cexpression h
+                print_cexpression_list t
+  in
+  match e with
   | CVariable (i,c) -> Format.fprintf fmt "%a%a"
                     print_ident i
-                    print_clock c 
+                    print_clock c
   | CAlternative (e1,e2,e3) ->
-    Format.fprintf fmt  "(if (%a) then (%a) else (%a))%a" 
-      print_cexpression e1 
-      print_cexpression e2 
+    Format.fprintf fmt  "(if (%a) then (%a) else (%a))%a"
+      print_cexpression e1
+      print_cexpression e2
       print_cexpression e3
       print_clock c
   | CInfixOp (op, e1, e2) ->
@@ -53,9 +61,13 @@ let rec print_cexpression fmt (e,c) =
                            print_clock c
   | CValue v -> print_value fmt v
   | CFby (v, e) -> Format.fprintf fmt "(%a fby %a)%a"
-                    print_value v
-                    print_cexpression e
-                    print_clock c
+                     print_value v
+                     print_cexpression e
+                     print_clock c
+  | CArrow (v,e) -> Format.fprintf fmt "(%a --> %a)%a"
+                      print_value v
+                      print_cexpression e
+                      print_clock c
   | CUnit -> Format.fprintf fmt "()"
   | CWhen (e,(i,ck)) -> Format.fprintf fmt "( %a on %a )%a"
                     print_cexpression e
@@ -67,6 +79,11 @@ let rec print_cexpression fmt (e,c) =
   | CPre (v,ck) -> Format.fprintf fmt "(pre %s)%a"
                      v.content
                      print_clock c
+  | CApplication (i,el) -> Format.fprintf fmt "(%s (%a))%a"
+                             i.content
+                             print_cexpression_list el
+                             print_clock c
+
 
 
 
@@ -79,14 +96,14 @@ let rec print_cequations fmt le =
   match le with
   | [] -> ()
   | e::[] -> Format.fprintf fmt "%a"
-               print_cequation e 
+               print_cequation e
   | e::tl -> Format.fprintf fmt "%a \n%a"
                print_cequation e
-               print_cequations tl 
+               print_cequations tl
 
 let print_cnode fmt n =
-  Format.fprintf fmt  "let_node %s ~inf:%a ~outf:%a = \n%a \n \n"
+  Format.fprintf fmt  "let_node %s ~i:%a ~o:%a = \n%a \n \n"
     n.cname.content
-    print_io n.cinputs 
-    print_io n.coutputs 
+    print_io n.cinputs
+    print_io n.coutputs
     print_cequations n.cequations
