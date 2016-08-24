@@ -7,6 +7,7 @@ and init = pattern * imp_expr
 and imp_inits = init list
 and imp_expr =
   | IValue of constant
+  | IConstr of string 
   | IVariable of stream
   | IApplication of ident * imp_expr list
   | ITuple of imp_expr list
@@ -14,6 +15,7 @@ and imp_expr =
   | IInfixOp of imp_infop * imp_expr * imp_expr
   | IPrefixOp of imp_preop * imp_expr
   | IAlternative of imp_expr * imp_expr * imp_expr
+  | IFlow of stream 
   | IUnit
 and
   imp_infop =
@@ -85,10 +87,12 @@ let rec compile_expression (e,c) p =
                   compile_expression e3 p)
   | CUnit -> IUnit
   | CFby (v,e') -> IRef p
-  | CArrow (v,e') -> IRef p
+  | CArrow (v,e') ->
+    let init = mk_ident "_init" in 
+    IAlternative (IRef init , IValue v, compile_expression e' p)
   | CWhen (e',i) -> compile_expression e' p
   | CCurrent e' -> compile_expression e' p
-  | CPre (v,c) -> IRef v
+  | CPre (v,c) -> IFlow v 
 
 let generate_inits cnode =
   let generate_init e l =
@@ -98,6 +102,17 @@ let generate_inits cnode =
     | _ -> l
   in
   List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations
+
+let init_pre cnode =
+  let rec gen_pre name (exp,c) l =
+    match exp with
+    | CFby (v, e') -> gen_pre name e' l 
+    | CPre v -> (name, IConstr "None")::l
+    | _ -> l
+  in
+  List.fold_left (fun acc e -> gen_pre (fst e.cpattern) (e.cexpression) acc) [] cnode.cequations
+
+
 
 
 let generate_updates cnode =

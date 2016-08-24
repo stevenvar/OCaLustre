@@ -35,7 +35,7 @@ and exp_desc =
   | When of expression * ident
   | Current of expression
   | Arrow of constant * expression 
-  | Pre of stream
+  | Pre of exp_desc 
   | Unit
   (* merge ? *)
 and inf_operator =
@@ -117,7 +117,7 @@ let rec get_idents l e =
   | Arrow (i, e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
   | Current e' -> get_idents l e'
-  | Pre v -> v::l
+  | Pre e ->  get_idents l e
                 
 
 (* transform expressions to node of the ocalustre AST *)
@@ -168,8 +168,7 @@ let rec mk_expr e =
                                      When ((mk_expr e1), i)
   | [%expr current [%e? e] ] -> Current (mk_expr e)
   | [%expr pre [%e? e]] ->
-     let v = List.hd (get_idents [] (mk_expr e)) in
-     Pre v
+     Pre (mk_expr e)
   | [%expr [%e? e1] [%e? e2] ] ->
      Application(checkname_ident e1, 
                  begin match e2.pexp_desc with

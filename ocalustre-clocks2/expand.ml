@@ -37,7 +37,7 @@ let rec expand_exp l exp =
     (l',var)
   | Arrow (c, e) ->
     let (l',e') = expand_exp l e in
-    let (eq,var) = new_eq_var (Fby (c,e')) in
+    let (eq,var) = new_eq_var (Arrow (c,e')) in
     let l' = eq::l' in
     (l',var)
   | When (e,i) -> (l,exp) (*TODO*)

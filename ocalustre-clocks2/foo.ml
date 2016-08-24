@@ -1,8 +1,6 @@
 
-
-
 let%node naturels ~i:() ~o:(d) =
-  d = 1 fby (1 --> (pre d + d ))
+  d = 1 --> pre (1 --> (pre d + d ))
 
 
 let _ =
