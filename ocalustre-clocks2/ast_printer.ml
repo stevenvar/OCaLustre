@@ -81,6 +81,9 @@ let rec print_expression fmt e =
   | Fby (v, e) -> Format.fprintf fmt "(%a fby %a)"
                     print_value v
                     print_expression e
+  | Arrow (v,e) -> Format.fprintf fmt "(%a --> %a)"
+                     print_value v
+                     print_expression e 
   | Unit -> Format.fprintf fmt "()"
   | When (e,i) -> Format.fprintf fmt "( %a when %a )"
                     print_expression e

@@ -33,7 +33,8 @@ let rec get_expr_id e s =
   | PrefixOp (op, e) ->
     get_expr_id e s 
   | Value v -> s
-  | Fby (v,e) -> s (* not dependent on e since it appears at the next instant *) 
+  | Fby (v,e) -> s (* not dependent on e since it appears at the next instant *)
+  | Arrow (v,e) -> s
   | When (e,i) -> get_expr_id e s 
   | Unit -> s
   | Current e -> get_expr_id e s

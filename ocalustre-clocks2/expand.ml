@@ -35,6 +35,11 @@ let rec expand_exp l exp =
     let (eq,var) = new_eq_var (Fby (c,e')) in
     let l' = eq::l' in
     (l',var)
+  | Arrow (c, e) ->
+    let (l',e') = expand_exp l e in
+    let (eq,var) = new_eq_var (Fby (c,e')) in
+    let l' = eq::l' in
+    (l',var)
   | When (e,i) -> (l,exp) (*TODO*)
   | Current e -> (l,exp) (*TODO*)
   | Pre v -> (l,exp)

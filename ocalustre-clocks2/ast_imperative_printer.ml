@@ -5,7 +5,6 @@ open Clocked_ast
 (*
 let printml_string fmt p =
   Format.fprintf fmt "%s" p
-
 *)
 
 let rec printml_tuple fmt l =
@@ -15,7 +14,6 @@ let rec printml_tuple fmt l =
   | h::t -> Format.fprintf fmt "%s," h.content; printml_tuple fmt t
 
 (*
-
 let printml_pattern fmt p =
   -> printml_string fmt x.content
   

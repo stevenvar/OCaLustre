@@ -23,6 +23,7 @@ and cexp_desc =
   | CValue of constant 
   | CVariable of cstream
   | CFby of constant * cexpression
+  | CArrow of constant * cexpression 
   | CWhen of cexpression * cident 
   | CUnit
   | CPre of cstream
@@ -40,6 +41,7 @@ let rec get_clock hst e =
   | PrefixOp (op, e) -> get_clock hst e
   | Value v -> Base
   | Fby (v,e) -> get_clock hst e
+  | Arrow (v,e) -> get_clock hst e 
   | When (e, i) -> On ((get_clock hst e), i) (* the clock is in the expression *)
   | Unit -> Base
   | Current e ->
@@ -94,6 +96,9 @@ let rec clock_exp hst e =
   | Fby (v,e') ->
     let (e,c) as ce = clock_exp hst e' in
     CFby (v, ce), c
+  | Arrow (v,e') ->
+    let (e,c) as ce = clock_exp hst e' in
+    CArrow (v, ce), c
   | When (e', i) ->
     let (e,c) as ce = clock_exp hst e' in
     let ck = On (c,i) in

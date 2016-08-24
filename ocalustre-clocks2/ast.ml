@@ -34,6 +34,7 @@ and exp_desc =
   | Fby of constant * expression
   | When of expression * ident
   | Current of expression
+  | Arrow of constant * expression 
   | Pre of stream
   | Unit
   (* merge ? *)
@@ -112,7 +113,8 @@ let rec get_idents l e =
   | PrefixOp (op, e1) -> get_idents l e1
   | Value v -> l
   | Unit -> l
-  | Fby (i,e') -> get_idents l e'
+  | Fby (i , e') -> get_idents l e'
+  | Arrow (i, e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
   | Current e' -> get_idents l e'
   | Pre v -> v::l
@@ -144,11 +146,20 @@ let rec mk_expr e =
      pexp_loc ;
      pexp_attributes} ->
     mk_variable loc v
-  | [%expr [%e? e1] --> [%e? e2] ]  ->
+  | [%expr [%e? e1] fby [%e? e2] ]  ->
     begin match e1 with
       | {pexp_desc = Pexp_constant c; pexp_loc ; pexp_attributes } ->
         begin match c with
           | Pconst_integer (i,suffix) -> Fby (Integer (int_of_string i), mk_expr e2)
+          | _ -> failwith "todo"
+        end
+      | _ -> failwith "syntax error"
+    end
+    | [%expr [%e? e1] --> [%e? e2] ]  ->
+    begin match e1 with
+      | {pexp_desc = Pexp_constant c; pexp_loc ; pexp_attributes } ->
+        begin match c with
+          | Pconst_integer (i,suffix) -> Arrow (Integer (int_of_string i), mk_expr e2)
           | _ -> failwith "todo"
         end
       | _ -> failwith "syntax error"

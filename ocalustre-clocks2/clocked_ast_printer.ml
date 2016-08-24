@@ -61,9 +61,13 @@ let rec print_cexpression fmt (e,c) =
                            print_clock c
   | CValue v -> print_value fmt v
   | CFby (v, e) -> Format.fprintf fmt "(%a fby %a)%a"
-                    print_value v
-                    print_cexpression e
-                    print_clock c
+                     print_value v
+                     print_cexpression e
+                     print_clock c
+  | CArrow (v,e) -> Format.fprintf fmt "(%a --> %a)%a"
+                      print_value v
+                      print_cexpression e
+                      print_clock c
   | CUnit -> Format.fprintf fmt "()"
   | CWhen (e,(i,ck)) -> Format.fprintf fmt "( %a on %a )%a"
                     print_cexpression e
@@ -98,7 +102,7 @@ let rec print_cequations fmt le =
                print_cequations tl 
 
 let print_cnode fmt n =
-  Format.fprintf fmt  "let_node %s ~inf:%a ~outf:%a = \n%a \n \n"
+  Format.fprintf fmt  "let_node %s ~i:%a ~o:%a = \n%a \n \n"
     n.cname.content
     print_io n.cinputs 
     print_io n.coutputs 
