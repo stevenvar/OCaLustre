@@ -109,7 +109,7 @@ let rec clock_exp hst e =
     | On (c,i) -> c in
     CCurrent ce, ck
   | Pre e ->
-    let v = Ast.get_idents [] e |> List.hd in 
+    let v = Ast.get_idents [] e |> List.hd in
     let ck = try Hashtbl.find hst v.content with _ -> Base in
     CPre (v,ck), ck
 

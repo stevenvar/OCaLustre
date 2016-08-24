@@ -8,7 +8,7 @@ open Ast_helper
 let lid_of_ident ?(prefix="") ?(suffix="") i =
   {
     txt = Lident (prefix^i.content^suffix);
-    loc = i.loc 
+    loc = i.loc
   }
 
 
@@ -101,20 +101,20 @@ let tocaml_inits inits acc =
      [%expr let [%p Pat.var (stringloc_of_ident ~prefix:"pre_" p)] =
         ref ([%e tocaml_expression p e]) in [%e acc] ]
     | IApplication (i,_) ->
-       let listexp = [(Nolabel, [%expr ()])] in 
+       let listexp = [(Nolabel, [%expr ()])] in
        [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" p)] =
           [%e Exp.apply
               (Exp.ident (lid_of_ident i)) listexp ] in [%e acc] ]
 
-    | _ -> assert false 
+    | _ -> assert false
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
 
 let tocaml_inputs node pname acc =
   let aux il =
     List.map (fun i -> Pat.var (stringloc_of_ident i)) il
-  in 
-  let inputs = node.i_inputs in 
+  in
+  let inputs = node.i_inputs in
   match inputs with
   | [] ->
     [%expr let [%p Pat.var pname ] =
@@ -138,9 +138,9 @@ let tocaml_step node =
   let pname = stringloc_of_ident ~suffix:"_step" node.i_name in
   let outs = tocaml_outputs node in
   let ups = tocaml_updates node outs in
-  let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in 
+  let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in
   tocaml_inputs node pname eqs
-  
+
 let extract_node inode =
   let name = stringloc_of_ident inode.i_name in
   let inits = inode.i_inits in

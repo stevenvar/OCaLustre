@@ -1,5 +1,5 @@
 open Compiling
-open Ast 
+open Ast
 open Clocked_ast
 
 (*
@@ -16,7 +16,7 @@ let rec printml_tuple fmt l =
 (*
 let printml_pattern fmt p =
   -> printml_string fmt x.content
-  
+
 *)
 
 let rec printml_expression fmt exp =
@@ -27,7 +27,7 @@ let rec printml_expression fmt exp =
   let printml_infop fmt op =
     match op with
     | IDiff -> Format.fprintf fmt "<>"
-    | IEquals -> Format.fprintf fmt "="  
+    | IEquals -> Format.fprintf fmt "="
     | IPlus -> Format.fprintf fmt "+"
     | ITimes -> Format.fprintf fmt "*"
     | IDiv -> Format.fprintf fmt "/"
@@ -45,7 +45,7 @@ let rec printml_expression fmt exp =
     | e::tl -> Format.fprintf fmt "%a,%a"
                  printml_expression e
                  printml_expressions tl
-  in 
+  in
   match exp with
   | IValue c -> Ast_printer.print_value fmt c
   | ITuple t -> printml_expressions fmt t
@@ -78,7 +78,7 @@ let printml_updates fmt il =
   in
   List.iter (fun i -> aux fmt i) il
 
-let printml_equations fmt el = 
+let printml_equations fmt el =
   let printml_equation fmt e =
     Format.fprintf fmt "let %s = %a in \n"
       e.i_pattern.content
@@ -86,7 +86,7 @@ let printml_equations fmt el =
   in
   List.iter (fun x -> printml_equation fmt x) el
 
-(* 
+(*
 let rec printml_io fmt il =
   match il with
   |  [] -> ()
@@ -109,9 +109,9 @@ let printml_inits fmt il =
   let printml_init fmt (s,e) =
     begin match e with
       | x -> Format.fprintf fmt "let pre_%s = ref %a in\n"
-                    s.content 
+                    s.content
                     printml_expression x
-    end 
+    end
   in
   List.iter (fun i -> printml_init fmt i) il
 
@@ -119,7 +119,7 @@ let printml_node fmt node =
   Format.fprintf fmt "let %s () =\n%a \n%a \n\n"
     node.i_name.content
     printml_inits node.i_inits
-    
+
     printml_step node
     (*
     printml_step node
