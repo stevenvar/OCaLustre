@@ -4,10 +4,11 @@ open Parsing_ocl
 
 let new_name =
   let count = ref 0 in
-  fun ck -> (incr count;
-             let name = ("_id"^(string_of_int !count)) in
-             name
-            )
+  fun () ->
+    (incr count;
+     let name = ("_id"^(string_of_int !count)) in
+     name
+    )
 
 
 let new_eq_var e =
@@ -20,6 +21,42 @@ let get_ident e =
   match e.e_desc with
   | Variable v -> v
   | _ -> failwith "not an ident"
+
+let rec transform_exp exp =
+  match exp.e_desc with
+  | Pre e ->
+    let e' = transform_exp e in
+    let magic_exp = { e_desc = Value (Integer 0) ; e_loc = e.e_loc }  in
+    { exp with e_desc = Fby (magic_exp, e') }
+  | Arrow (e1,e2) ->
+    let e1' = transform_exp e1 in
+    let e2' = transform_exp e2 in
+    let var_true = { e_desc = Value (Bool true) ; e_loc = e1.e_loc }  in
+    let var_false = { e_desc = Value (Bool false) ; e_loc = e1.e_loc }  in
+    let tfe = { exp with e_desc = Fby (var_true, var_false) } in
+    { exp with e_desc = Alternative (tfe, e1', e2') }
+  | Alternative (e1,e2,e3) ->
+    let e1' = transform_exp e1 in
+    let e2' = transform_exp e2 in
+    let e3' = transform_exp e3 in
+    { exp with e_desc = Alternative (e1', e2', e3') }
+  | Application (i,el) ->
+    let el' = List.map transform_exp el in
+    { exp with e_desc = Application (i,el') }
+  | InfixOp (op,e1,e2) ->
+    let e1' = transform_exp e1 in
+    let e2' = transform_exp e2 in
+    { exp with e_desc = InfixOp (op,e1',e2') }
+  | PrefixOp (op,e) ->
+    let e' = transform_exp e in
+    { exp with e_desc = PrefixOp (op,e') }
+  | Fby (v,e) ->
+    let e' = transform_exp e in
+    { exp with e_desc = Fby(v,e') }
+  | When (e,i) ->
+    let e' = transform_exp e in
+    { exp with e_desc = When (e',i) }
+  | _ -> exp
 
 let rec normalize_exp l exp =
   match exp.e_desc with
@@ -43,40 +80,25 @@ let rec normalize_exp l exp =
   | Variable v -> l, exp
   | Fby (c, e) ->
     begin match e.e_desc with
-    | Value v -> l, exp
-    | _ ->
-      let (l',e') = normalize_exp l e in
-      let (eq,var) = new_eq_var e' in
-      let exp' = { exp with e_desc = Fby (c,var) } in
-      let l' = eq::l' in
-      l' , exp'
+      | _ ->
+        let (l',e') = normalize_exp l e in
+        let (eq_x,x) = new_eq_var e' in
+        let exp' = { exp with e_desc = Fby (c,x) } in
+        let (eq_y,y) = new_eq_var exp' in
+        let l' = eq_y::eq_x::l' in
+        l' , y
     end
-  | Arrow (e1, e2) ->
-    let (l1',e1') = normalize_exp l e1 in
-    let (l2',e2') = normalize_exp l1' e2 in
-    let var_true = { e_desc = Value (Bool true) ; e_loc = e1.e_loc }  in
-    let var_false = { e_desc = Value (Bool false) ; e_loc = e1.e_loc }  in
-    let tf = Fby (var_true, var_false) in
-    let tfe = { e_desc = tf ; e_loc = exp.e_loc } in
-      let (eq,var) = new_eq_var tfe in
-    let exp' = { exp with e_desc = Alternative (var, e1', e2') } in
-    eq::l2', exp'
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = When (e',i) }
   (*TODO*)
-  | Pre e ->
-    let (l',e') = normalize_exp l e in
-    let (eq,var) = new_eq_var e' in
-    let magic_exp = { e_desc = Value (Integer 0) ; e_loc = e.e_loc }  in
-    let exp' = { exp with e_desc = Fby (magic_exp, var)} in
-    let l' = eq::l' in
-    l' , exp'
   | Unit -> l , exp
+  | _ -> assert false
 
 let normalize_eqs eqs =
   let normalize_eq eq =
-    let (new_eqs,new_exp) = normalize_exp [] eq.expression in
+    let exp = transform_exp eq.expression in
+    let (new_eqs,new_exp) = normalize_exp [] exp in
     { pattern = eq.pattern ; expression = new_exp} ,  new_eqs
   in
   let normalizeed_eqs = List.map normalize_eq eqs in

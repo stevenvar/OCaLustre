@@ -63,7 +63,6 @@ let init_pre cnode =
   let rec gen_pre name exp l =
     match exp.ce_desc with
     | CFby (v, e') -> gen_pre name e' l
-    | CPre v -> (name, IConstr "None")::l
     | _ -> l
   in
   List.fold_left

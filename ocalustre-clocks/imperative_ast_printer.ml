@@ -21,10 +21,10 @@ let printml_pattern fmt p =
 
 
 
-  let print_pattern fmt p =
-    match p.cp_desc with
-    | Ident i -> Format.fprintf fmt "(%s)" i
-    | Tuple t -> Format.fprintf fmt "(%a)" print_tuple t
+let print_pattern fmt p =
+  match p.cp_desc with
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "%a" print_tuple t
 
 
 let rec printml_expression fmt exp =
@@ -45,7 +45,7 @@ let rec printml_expression fmt exp =
     | IDivf -> Format.fprintf fmt "/."
     | IPlusf -> Format.fprintf fmt "+."
     | ITimesf -> Format.fprintf fmt "*."
-    in
+  in
   let rec printml_expressions fmt el =
     match el with
     | [] -> ()
@@ -106,20 +106,21 @@ let rec printml_io fmt il =
    *)
 
 let printml_step fmt node =
-    Format.fprintf fmt "let %s_step (%a) = \n%a%a(%a)"
+  Format.fprintf fmt "let %s_step (%a) = \n%a%a(%a) \n in %s_step "
     node.i_name
     printml_tuple node.i_inputs
     printml_equations node.i_step_fun.i_equations
     printml_updates node.i_step_fun.i_updates
     printml_tuple node.i_outputs
+    node.i_name 
 
 
 let printml_inits fmt il =
   let printml_init fmt (s,e) =
     begin match e with
       | x -> Format.fprintf fmt "let pre_%a = ref %a in\n"
-                    print_pattern s
-                    printml_expression x
+               print_pattern s
+               printml_expression x
     end
   in
   List.iter (fun i -> printml_init fmt i) il
@@ -128,7 +129,6 @@ let printml_node fmt node =
   Format.fprintf fmt "let %s () =\n%a \n%a \n\n"
     node.i_name
     printml_inits node.i_inits
-
     printml_step node
     (*
     printml_step node
