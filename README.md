@@ -80,12 +80,8 @@ And use it with ocamlfind as any other package, for example :
 # Example
 ```ocaml
 
-let%node bool_to_string (bool) (string) =
-  string := if bool then "TRUE" else "FALSE"
-
-let%node xor_writer (a,b) (x,s) =
-   s:= bool_to_string (x);
-   x:= if a then (not b) else b
+let%node fibonacci ~i:() ~o:(f) =
+  f = 1 ->> ( 1 --> pre f + f)
 ```
 
-Returns the boolean value a xor b as well as a string representation of it
+Returns the fibonacci sequence : 1, 1, 2, 3, 5, 8, 13, ...  
