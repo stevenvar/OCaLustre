@@ -25,9 +25,11 @@ with
 ```ocaml
 <expr> ::= ()
        | if <expr> then <expr> else <expr>
-       | <ident> <param> (* the application of the function named IDENT *)
+       | <ident> <param> (* function application *)
        | <expr> <binop> <expr>
-       | <unop> EXPR
+       | <expr> --> <expr>
+       | <value> ->> <expr>
+       | <unop> <expr>
        | <value>
        | (<expr>,*)
        | pre <expr>
@@ -37,7 +39,7 @@ with
 <inputs> ::= <param>
 <outputs> ::= <param>
 <out> ::= <ident> | (<ident>,*)
-<binop> ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
+<binop> ::= + | - | / | * | +. | -. | /. | *. | < | > | <= | >= | = | <>
 <unop> ::= not | - | -.
 ```
 NB: The sequence of assignations can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
