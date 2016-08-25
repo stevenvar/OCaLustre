@@ -72,20 +72,30 @@ b = a - 2
 
 ## Synchronous Operators
 
-- The --> operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants<br />
+- The --> operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants.
 
-- The pre operator is the memory operator : it returns the value of the flow at the previous instant<br />
 
 For example :
 ```ocaml
-   n := 0 --> ( pre n + 1 )
+   n = 0 --> 1
 ```
-means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : 0, (0+1), (0+1+1) , ...<br />
+
+produces `0, 1, 1, 1, ...`
+
+- The pre operator is the memory operator : it returns the value of the flow at the previous instant.
+
+For example :
+```ocaml
+   n = 0 --> ( pre n + 1 )
+```
+means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
+
+
 
 - The ->> operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
 
 ```ocaml
-   n := 0 ->> (n + 1)
+   n = 0 ->> (n + 1)
 ```
 
 ## Requirements
