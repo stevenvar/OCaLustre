@@ -9,7 +9,14 @@ which run at every instant. An instant is the atomic unit of time at which a nod
 
 Inputs and outputs are considered as data flows, i.e. flows of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...  
 
-## Syntax
+Here is an OcaLustre node that takes two flows a and b, and produces a flow c that is the sum of a and b :
+
+```ocaml
+let%node example ~i:(a,b) ~o:(c) =
+  c = a + b
+```
+
+## Complete syntax
 
 ```ocaml
 let%node <ident> ~i:<inputs> ~o:<outputs> =
