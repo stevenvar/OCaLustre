@@ -1,4 +1,4 @@
-open Clocked_ast
+open Clocking_ast
 open Parsing_ast
 open Parsing_ocl
 

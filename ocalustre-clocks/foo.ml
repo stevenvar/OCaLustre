@@ -7,7 +7,7 @@
 
 
 let%node naturels ~i:(x) ~o:(d,e) =
-  e = 3 @when x ; 
+  e = 3 @> x ;
   d = 1 ->> 2
 
 let _ =

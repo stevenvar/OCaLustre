@@ -1,5 +1,7 @@
-open Ast
-open Ast_printer
+open Parsing_ast
+open Parsing_ast_printer
+open Parsing_ocl
+
 
 type vertice = string * equation
 
@@ -16,11 +18,14 @@ module G = Set.Make(
 (* get the ids of each construct in order to
  * determine what are the dependences of the
  * caller *)
-let rec get_patt_id p = [p.content]
+let rec get_patt_id { p_desc ; p_loc } =
+  match p_desc with
+  | Ident i -> [i]
+  | Tuple t -> t
 
 let rec get_expr_id e s =
-  match e with
-  | Variable i -> S.add i.content s
+  match e.e_desc with
+  | Variable i -> S.add i s
   | Alternative (e1,e2,e3) ->
     let s = get_expr_id e1 s in
     let s = get_expr_id e2 s in
@@ -37,7 +42,6 @@ let rec get_expr_id e s =
   | Arrow (v,e) -> s
   | When (e,i) -> get_expr_id e s
   | Unit -> s
-  | Current e -> get_expr_id e s
   | Pre e -> get_expr_id e s
 
 (* make the graph *)
@@ -70,7 +74,7 @@ let remove_init_dependency g =
 
 let remove_inputs_dependency g inputs =
   let inputs' =
-    List.fold_left (fun l x -> S.add x.content l) (S.empty) inputs
+    List.fold_left (fun l x -> S.add (List.hd (get_patt_id x)) l) (S.empty) inputs
   in
   G.fold (fun ((y,e),s) g -> G.add ((y,e),S.diff s inputs') g)
     g G.empty
@@ -82,8 +86,8 @@ let rec toposort topo g name =
     let g1 , g2 = G.partition (fun ((_,_),s) -> S.is_empty s) g in
     if G.is_empty g1 then
       let vars = G.fold (fun ((s,e),_) l -> s^" "^l) g "" in
-      Error.print_error name.loc
-        ("Causality loop in node "^name.content^" with these variables : "^vars )
+      Error.print_error loc_default
+        ("Causality loop in node "^name^" including these variables : "^vars )
     else
     let sv =
       G.fold (fun ((x,_),_) s -> S.add x s) g1 S.empty
@@ -113,7 +117,8 @@ let schedule node =
   in
   let g = remove_inputs_dependency g inputs
   in
-  let eqs = toposort [] g node.name in
+  let name = List.hd (get_patt_id node.name) in
+  let eqs = toposort [] g name in
   {
     name = node.name;
     inputs = node.inputs;

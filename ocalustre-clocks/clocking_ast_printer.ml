@@ -1,5 +1,5 @@
 open Parsing_ast_printer
-open Clocked_ast
+open Clocking_ast
 open Clocking_ocl
 open Parsing_ast
 
@@ -61,7 +61,7 @@ let rec print_cexpression fmt { ce_desc ; ce_loc; ce_clock }=
                       print_cexpression e2
                       print_clock ce_clock
   | CUnit -> Format.fprintf fmt "()"
-  | CWhen (e,i) -> Format.fprintf fmt "( %a on %a )%a"
+  | CWhen (e,i) -> Format.fprintf fmt "( %a when %a )%a"
                     print_cexpression e
                     print_ident i
                     print_clock ce_clock

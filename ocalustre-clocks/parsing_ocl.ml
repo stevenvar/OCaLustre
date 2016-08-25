@@ -72,7 +72,7 @@ let rec get_idents l e =
 (* transform expressions to node of the ocalustre AST *)
 let rec mk_expr e =
   match e with
-  | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc } 
+  | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] = [%e? e2] ] -> { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] <> [%e? e2] ] -> { e_desc = InfixOp(Diff, mk_expr e1, mk_expr e2) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] + [%e? e2] ] -> { e_desc = mk_expr e1 +/ mk_expr e2 ; e_loc = e.pexp_loc }
@@ -80,8 +80,8 @@ let rec mk_expr e =
   | [%expr [%e? e1] - [%e? e2] ] -> { e_desc = mk_expr e1 -/ mk_expr e2 ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] / [%e? e2] ] -> { e_desc = mk_expr e1 // mk_expr e2 ; e_loc = e.pexp_loc }
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
-    { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ; e_loc = e.pexp_loc } 
-  | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ; e_loc = e.pexp_loc } 
+    { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ; e_loc = e.pexp_loc }
+  | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ; e_loc = e.pexp_loc }
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
       pexp_attributes } ->
@@ -99,8 +99,8 @@ let rec mk_expr e =
   | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] ->> [%e? e2] ]  -> { e_desc = Fby (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc  }
   | [%expr [%e? e1] --> [%e? e2] ]  ->  { e_desc = Arrow (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] on [%e? e2] ] -> { e_desc =  When (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc } 
-  | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc } 
+  | [%expr [%e? e1] @> [%e? e2] ] -> { e_desc =  When (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc }
+  | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
      let app = Application(checkname_ident e1,
                  begin match e2.pexp_desc with

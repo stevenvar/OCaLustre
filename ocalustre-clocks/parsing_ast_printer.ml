@@ -86,9 +86,9 @@ let rec print_expression fmt e =
                     print_expression e1
                     print_expression e2
   | Unit -> Format.fprintf fmt "()"
-  | When (e,i) -> Format.fprintf fmt "( %a when %a )"
-                    print_expression e
-                    print_expression e 
+  | When (e1,e2) -> Format.fprintf fmt "( %a when %a )"
+                    print_expression e1
+                    print_expression e2
   | Pre e -> Format.fprintf fmt "(pre %a)"
                print_expression e
 
