@@ -48,7 +48,7 @@ let%node foo ~i:() ~o:(a,c,b) =
   a = 7
 ```
 
-Is - at compile time - automatically transformed into :
+is - at compile time - automatically transformed into :
 
 ```ocaml
 let%node foo ~i:() ~o:(a,c,b) =
@@ -70,9 +70,9 @@ b = a - 2
 
 **Synchronous Operators**
 
-The --> operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants<br />
+- The --> operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants<br />
 
-The pre operator is the memory operator : it returns the value of the flow at the previous instant<br />
+- The pre operator is the memory operator : it returns the value of the flow at the previous instant<br />
 
 For example :
 ```ocaml
@@ -80,7 +80,7 @@ For example :
 ```
 means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : 0, (0+1), (0+1+1) , ...<br />
 
-The ->> operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
+- The ->> operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
 
 ```ocaml
    n := 0 ->> (n + 1)
