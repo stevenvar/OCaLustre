@@ -85,6 +85,13 @@ means that n is equal to 0 at the first instant and then to its previous value +
 ```ocaml
    n := 0 ->> (n + 1)
 ```
+
+--Requirements
+
+- OCaml (>= 4.03)
+- ppx_tools
+- oasis
+
 **Quick install**
 
 OCaLustre is still a prototype! But if you really want to try it out, just do :
