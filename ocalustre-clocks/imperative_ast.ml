@@ -3,7 +3,7 @@ open Parsetree
 open Parsing_ast
 open Clocking_ast
 
-type app_inits = (pattern * imp_expr) list
+type app_inits = (cpattern * imp_expr) list
 and init = cpattern * imp_expr
 and imp_inits = init list
 and imp_expr =

@@ -1,79 +1,98 @@
 open Parsetree
 open Asttypes
 open Longident
-open Ast
+open Parsing_ast
+open Imperative_ast
+open Clocking_ast
 open Compiling
 open Ast_helper
 
 let lid_of_ident ?(prefix="") ?(suffix="") i =
   {
-    txt = Lident (prefix^i.content^suffix);
-    loc = i.loc
+    txt = Lident (prefix^i^suffix);
+    loc = Location.none
   }
 
+let lid_of_pattern ?(prefix="") ?(suffix="") p =
+  match p.cp_desc with
+  | Ident i ->
+  {
+    txt = Lident (prefix^i^suffix);
+    loc = Location.none
+  }
+  |  _ -> failwith "tuple"
 
 
-let rec tocaml_expression n e =
-
+let rec tocaml_expression e =
   match e with
   | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
   | IValue (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
   | IValue (Bool true) -> Exp.construct {txt= Lident "true" ; loc = Location.none } None
   | IValue (Bool false) -> Exp.construct {txt= Lident "false" ; loc = Location.none } None
-  | ITuple t -> Exp.tuple (List.map (fun i -> tocaml_expression n i) t)
+  | ITuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
   | IRef i -> [%expr ![%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ]  ]
   | IInfixOp (IDiff,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] <> [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
   | IInfixOp (IEquals,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] = [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
   | IInfixOp (IPlus,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] + [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
   | IInfixOp (IMinus,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] - [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] - [%e tocaml_expression e2 ]]
   | IInfixOp (ITimes,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] * [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] * [%e tocaml_expression e2 ]]
   | IInfixOp (IDiv,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] / [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
   | IInfixOp (IPlusf,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] +. [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] +. [%e tocaml_expression e2 ]]
   | IInfixOp (IMinusf,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] -. [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] -. [%e tocaml_expression e2 ]]
   | IInfixOp (ITimesf,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] *. [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] *. [%e tocaml_expression e2 ]]
   | IInfixOp (IDivf,e1,e2) ->
-    [%expr [%e tocaml_expression n e1 ] /. [%e tocaml_expression n e2 ]]
+    [%expr [%e tocaml_expression e1 ] /. [%e tocaml_expression e2 ]]
   | IApplication (id, el) ->
     let listexp = match el with
       | [] ->  [(Nolabel, [%expr () ] )]
-      | [x] ->  [(Nolabel, tocaml_expression n x)]
-      | _ -> [(Nolabel,Exp.tuple (List.map (fun x -> tocaml_expression n x) el))] in
+      | [x] ->  [(Nolabel, tocaml_expression x)]
+      | _ -> [(Nolabel,Exp.tuple (List.map (fun x -> tocaml_expression x) el))] in
     [%expr
       [%e Exp.apply
-          (Exp.ident (lid_of_ident ~suffix:"_step" n)) listexp ] ]
+          (Exp.ident (lid_of_ident ~suffix:"_step" id)) listexp ] ]
 
   | IAlternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
-        [%expr [%e (tocaml_expression n e1) ]]
-        [%expr  [%e (tocaml_expression n e2) ] ]
-        (Some ( [%expr  [%e tocaml_expression n e3 ] ] ))
+        [%expr [%e (tocaml_expression e1) ]]
+        [%expr  [%e (tocaml_expression e2) ] ]
+        (Some ( [%expr  [%e tocaml_expression e3 ] ] ))
     ]
     ]
   | IUnit -> [%expr ()]
-  | IFlow s -> [%expr Flow.get ![%e Exp.ident (lid_of_ident s) ] ]
   | _ -> [%expr ()]
 
 
 
 let stringloc_of_ident ?(prefix="") ?(suffix="") i =
   {
-    txt = prefix^i.content^suffix;
-    loc = i.loc;
+    txt = prefix^i^suffix;
+    loc = Location.none;
   }
+
+
+let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
+  match p.cp_desc with
+  | Ident i ->
+  {
+    txt = prefix^i^suffix;
+    loc = Location.none;
+  }
+  | _ -> failwith "tuple"
+
 
 let tocaml_updates node outs =
   let aux (p,e) acc =
-    [%expr [%e Exp.ident (lid_of_ident ~prefix:"pre_" p) ] := ([%e tocaml_expression p e]) ;
+    [%expr [%e Exp.ident (lid_of_pattern ~prefix:"pre_" p) ] := ([%e tocaml_expression e]) ;
       [%e acc ]]
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates
@@ -91,8 +110,8 @@ let tocaml_outputs node =
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =
     let x = e.i_pattern in
-    let ppat = stringloc_of_ident x in
-    let pexpr = tocaml_expression x e.i_expression in
+    let ppat = stringloc_of_pattern x in
+    let pexpr = tocaml_expression e.i_expression in
     [%expr let [%p Ast_helper.Pat.var ppat ] = ( [%e pexpr ] ) in  [%e acc ]]
   in
   List.fold_left (fun l e -> tocaml_eq e l) acc el
@@ -101,11 +120,11 @@ let tocaml_inits inits acc =
   let aux (p,e) acc =
     match e with
     | IValue _ ->
-      [%expr let [%p Pat.var (stringloc_of_ident ~prefix:"pre_" p)] =
-               ref ([%e tocaml_expression p e]) in [%e acc] ]
+      [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
+               ref ([%e tocaml_expression e]) in [%e acc] ]
     | IApplication (i,_) ->
       let listexp = [(Nolabel, [%expr ()])] in
-      [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" p)] =
+      [%expr let [%p Pat.var (stringloc_of_pattern ~suffix:"_step" p)] =
                [%e Exp.apply
                    (Exp.ident (lid_of_ident i)) listexp ] in [%e acc] ]
 
@@ -144,7 +163,7 @@ let tocaml_step node =
   let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in
   tocaml_inputs node pname eqs
 
-let extract_node inode =
+let tocaml_node inode =
   let name = stringloc_of_ident inode.i_name in
   let inits = inode.i_inits in
 

@@ -12,6 +12,6 @@ let%node naturels ~i:() ~o:(n) =
 let _ =
   let nat = naturels () in
   for i = 0 to 10 do
-    let d,e = nat () in
-    Printf.printf "%d %d\n" d e;
+    let d = nat () in
+    Printf.printf "%d\n" d ; 
   done

@@ -14,8 +14,7 @@ open Normalizing
 open Imperative_ast
 open Imperative_ast_printer
 open Compiling
-
-(* open Extract *)
+open Extracting
 
 
 
@@ -47,11 +46,11 @@ let lustre_mapper argv =
             print_node Format.std_formatter _node;
             let _node = schedule _node in
             print_node Format.std_formatter _node;
-            let cnode = cl_node _node in
-            print_cnode Format.std_formatter cnode;
-            let inode = compile_cnode cnode in
-            printml_node Format.std_formatter inode;
-            assert false
+            let _cnode = cl_node _node in
+            print_cnode Format.std_formatter _cnode;
+            let _inode = compile_cnode _cnode in
+            printml_node Format.std_formatter _inode;
+            tocaml_node _inode
            (*  let _node = expand_node _node in
             print_node Format.std_formatter _node;
             let _node = schedule _node in
