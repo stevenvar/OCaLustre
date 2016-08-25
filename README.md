@@ -126,4 +126,4 @@ let%node fibonacci ~i:() ~o:(f) =
   f = 1 ->> ( 1 --> (pre f + f))
 ```
 
-Returns the fibonacci sequence : 1, 1, 2, 3, 5, 8, 13, ...  
+Returns the fibonacci sequence : `1, 1, 2, 3, 5, 8, 13, ...`  
