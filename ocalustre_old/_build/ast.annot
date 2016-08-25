@@ -1,0 +1,2526 @@
+"ast.ml" 75 1111 1117 "ast.ml" 75 1111 1128
+type(
+  Location.t -> string -> 'a
+)
+ident(
+  def print_error "ast.ml" 78 1206 1208 "ast.ml" 80 1266 1269
+)
+"ast.ml" 75 1111 1129 "ast.ml" 75 1111 1132
+type(
+  Location.t
+)
+ident(
+  def loc "ast.ml" 75 1111 1133 "ast.ml" 76 1142 1204
+)
+"ast.ml" 75 1111 1133 "ast.ml" 75 1111 1139
+type(
+  string
+)
+ident(
+  def string "ast.ml" 76 1142 1146 "ast.ml" 76 1142 1204
+)
+"ast.ml" 76 1142 1146 "ast.ml" 76 1142 1151
+type(
+  exn -> 'a
+)
+ident(
+  ext_ref Pervasives.raise
+)
+"ast.ml" 76 1142 1169 "ast.ml" 76 1142 1174
+type(
+  ?loc:Location.t ->
+  ?sub:Location.error list ->
+  ?if_highlight:string -> string -> Location.error
+)
+ident(
+  ext_ref Location.error
+)
+"ast.ml" 76 1142 1180 "ast.ml" 76 1142 1183
+type(
+  Location.t
+)
+ident(
+  int_ref loc "ast.ml" 75 1111 1129 "ast.ml" 75 1111 1132
+)
+"ast.ml" 76 1142 1185 "ast.ml" 76 1142 1193
+type(
+  string
+)
+"ast.ml" 76 1142 1193 "ast.ml" 76 1142 1194
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.( ^ )
+)
+"ast.ml" 76 1142 1194 "ast.ml" 76 1142 1200
+type(
+  string
+)
+ident(
+  int_ref string "ast.ml" 75 1111 1133 "ast.ml" 75 1111 1139
+)
+"ast.ml" 76 1142 1184 "ast.ml" 76 1142 1201
+type(
+  string
+)
+"ast.ml" 76 1142 1168 "ast.ml" 76 1142 1202
+type(
+  Location.error
+)
+"ast.ml" 76 1142 1163 "ast.ml" 76 1142 1202
+type(
+  exn
+)
+"ast.ml" 76 1142 1146 "ast.ml" 76 1142 1204
+type(
+  'a
+)
+"ast.ml" 78 1206 1212 "ast.ml" 78 1206 1224
+type(
+  Location.t -> 'b
+)
+ident(
+  def syntax_error "ast.ml" 79 1231 1265 "ast.ml" 80 1266 1269
+)
+"ast.ml" 78 1206 1225 "ast.ml" 78 1206 1228
+type(
+  Location.t
+)
+ident(
+  def loc "ast.ml" 79 1231 1235 "ast.ml" 79 1231 1265
+)
+"ast.ml" 79 1231 1235 "ast.ml" 79 1231 1246
+type(
+  Location.t -> string -> 'b
+)
+ident(
+  int_ref print_error "ast.ml" 75 1111 1117 "ast.ml" 75 1111 1128
+)
+"ast.ml" 79 1231 1247 "ast.ml" 79 1231 1250
+type(
+  Location.t
+)
+ident(
+  int_ref loc "ast.ml" 78 1206 1225 "ast.ml" 78 1206 1228
+)
+"ast.ml" 79 1231 1251 "ast.ml" 79 1231 1265
+type(
+  string
+)
+"ast.ml" 79 1231 1235 "ast.ml" 79 1231 1265
+type(
+  'b
+)
+"ast.ml" 86 1293 1297 "ast.ml" 86 1293 1308
+type(
+  Location.t
+)
+ident(
+  def loc_default "ast.ml" 88 1326 1326 "ast.ml" 1 0 -1
+)
+"ast.ml" 86 1293 1311 "ast.ml" 86 1293 1324
+type(
+  Location.t
+)
+ident(
+  ext_ref Location.none
+)
+"ast.ml" 88 1326 1330 "ast.ml" 88 1326 1340
+type(
+  ?loc:Location.t -> string -> pattern
+)
+ident(
+  def mk_pattern "ast.ml" 89 1390 1390 "ast.ml" 1 0 -1
+)
+"ast.ml" 88 1326 1343 "ast.ml" 88 1326 1346
+type(
+  Location.t
+)
+"ast.ml" 88 1326 1347 "ast.ml" 88 1326 1358
+type(
+  Location.t
+)
+ident(
+  int_ref loc_default "ast.ml" 86 1293 1297 "ast.ml" 86 1293 1308
+)
+type(
+  Location.t
+)
+ident(
+  int_ref *sth* "ast.ml" 88 1326 1347 "ast.ml" 88 1326 1358
+)
+type(
+  Location.t option
+)
+type(
+  Location.t option
+)
+type(
+  Location.t
+)
+"ast.ml" 88 1326 1360 "ast.ml" 88 1326 1361
+type(
+  string
+)
+ident(
+  def v "ast.ml" 88 1326 1364 "ast.ml" 88 1326 1389
+)
+"ast.ml" 88 1326 1372 "ast.ml" 88 1326 1375
+type(
+  Location.t
+)
+ident(
+  int_ref loc "ast.ml" 88 1326 1343 "ast.ml" 88 1326 1346
+)
+"ast.ml" 88 1326 1387 "ast.ml" 88 1326 1388
+type(
+  string
+)
+ident(
+  int_ref v "ast.ml" 88 1326 1360 "ast.ml" 88 1326 1361
+)
+"ast.ml" 88 1326 1371 "ast.ml" 88 1326 1389
+type(
+  ident
+)
+"ast.ml" 88 1326 1364 "ast.ml" 88 1326 1389
+type(
+  pattern
+)
+"ast.ml" 89 1390 1394 "ast.ml" 89 1390 1402
+type(
+  ?loc:Location.t -> string -> ident
+)
+ident(
+  def mk_ident "ast.ml" 91 1450 1450 "ast.ml" 1 0 -1
+)
+"ast.ml" 89 1390 1405 "ast.ml" 89 1390 1408
+type(
+  Location.t
+)
+"ast.ml" 89 1390 1409 "ast.ml" 89 1390 1420
+type(
+  Location.t
+)
+ident(
+  int_ref loc_default "ast.ml" 86 1293 1297 "ast.ml" 86 1293 1308
+)
+type(
+  Location.t
+)
+ident(
+  int_ref *sth* "ast.ml" 89 1390 1409 "ast.ml" 89 1390 1420
+)
+type(
+  Location.t option
+)
+type(
+  Location.t option
+)
+type(
+  Location.t
+)
+"ast.ml" 89 1390 1422 "ast.ml" 89 1390 1423
+type(
+  string
+)
+ident(
+  def v "ast.ml" 89 1390 1426 "ast.ml" 89 1390 1447
+)
+"ast.ml" 89 1390 1428 "ast.ml" 89 1390 1431
+type(
+  Location.t
+)
+ident(
+  int_ref loc "ast.ml" 89 1390 1405 "ast.ml" 89 1390 1408
+)
+"ast.ml" 89 1390 1444 "ast.ml" 89 1390 1445
+type(
+  string
+)
+ident(
+  int_ref v "ast.ml" 89 1390 1422 "ast.ml" 89 1390 1423
+)
+"ast.ml" 89 1390 1426 "ast.ml" 89 1390 1447
+type(
+  ident
+)
+"ast.ml" 91 1450 1454 "ast.ml" 91 1450 1465
+type(
+  exp_desc -> exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def alternative "ast.ml" 93 1503 1503 "ast.ml" 1 0 -1
+)
+"ast.ml" 91 1450 1466 "ast.ml" 91 1450 1468
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 91 1450 1469 "ast.ml" 91 1450 1501
+)
+"ast.ml" 91 1450 1469 "ast.ml" 91 1450 1471
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 91 1450 1472 "ast.ml" 91 1450 1501
+)
+"ast.ml" 91 1450 1472 "ast.ml" 91 1450 1474
+type(
+  exp_desc
+)
+ident(
+  def e3 "ast.ml" 91 1450 1477 "ast.ml" 91 1450 1501
+)
+"ast.ml" 91 1450 1490 "ast.ml" 91 1450 1492
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 91 1450 1466 "ast.ml" 91 1450 1468
+)
+"ast.ml" 91 1450 1494 "ast.ml" 91 1450 1496
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 91 1450 1469 "ast.ml" 91 1450 1471
+)
+"ast.ml" 91 1450 1498 "ast.ml" 91 1450 1500
+type(
+  exp_desc
+)
+ident(
+  int_ref e3 "ast.ml" 91 1450 1472 "ast.ml" 91 1450 1474
+)
+"ast.ml" 91 1450 1477 "ast.ml" 91 1450 1501
+type(
+  exp_desc
+)
+"ast.ml" 93 1503 1507 "ast.ml" 93 1503 1513
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def +/ "ast.ml" 95 1551 1551 "ast.ml" 1 0 -1
+)
+"ast.ml" 93 1503 1514 "ast.ml" 93 1503 1516
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 93 1503 1517 "ast.ml" 93 1503 1548
+)
+"ast.ml" 93 1503 1517 "ast.ml" 93 1503 1519
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 93 1503 1522 "ast.ml" 93 1503 1548
+)
+"ast.ml" 93 1503 1532 "ast.ml" 93 1503 1536
+type(
+  inf_operator
+)
+"ast.ml" 93 1503 1539 "ast.ml" 93 1503 1541
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 93 1503 1514 "ast.ml" 93 1503 1516
+)
+"ast.ml" 93 1503 1544 "ast.ml" 93 1503 1546
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 93 1503 1517 "ast.ml" 93 1503 1519
+)
+"ast.ml" 93 1503 1522 "ast.ml" 93 1503 1548
+type(
+  exp_desc
+)
+"ast.ml" 95 1551 1555 "ast.ml" 95 1551 1561
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def */ "ast.ml" 97 1598 1598 "ast.ml" 1 0 -1
+)
+"ast.ml" 95 1551 1562 "ast.ml" 95 1551 1564
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 95 1551 1565 "ast.ml" 95 1551 1596
+)
+"ast.ml" 95 1551 1565 "ast.ml" 95 1551 1567
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 95 1551 1570 "ast.ml" 95 1551 1596
+)
+"ast.ml" 95 1551 1580 "ast.ml" 95 1551 1585
+type(
+  inf_operator
+)
+"ast.ml" 95 1551 1588 "ast.ml" 95 1551 1590
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 95 1551 1562 "ast.ml" 95 1551 1564
+)
+"ast.ml" 95 1551 1593 "ast.ml" 95 1551 1595
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 95 1551 1565 "ast.ml" 95 1551 1567
+)
+"ast.ml" 95 1551 1570 "ast.ml" 95 1551 1596
+type(
+  exp_desc
+)
+"ast.ml" 97 1598 1602 "ast.ml" 97 1598 1608
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def -/ "ast.ml" 99 1643 1643 "ast.ml" 1 0 -1
+)
+"ast.ml" 97 1598 1609 "ast.ml" 97 1598 1611
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 97 1598 1612 "ast.ml" 97 1598 1641
+)
+"ast.ml" 97 1598 1612 "ast.ml" 97 1598 1614
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 97 1598 1617 "ast.ml" 97 1598 1641
+)
+"ast.ml" 97 1598 1627 "ast.ml" 97 1598 1632
+type(
+  inf_operator
+)
+"ast.ml" 97 1598 1634 "ast.ml" 97 1598 1636
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 97 1598 1609 "ast.ml" 97 1598 1611
+)
+"ast.ml" 97 1598 1638 "ast.ml" 97 1598 1640
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 97 1598 1612 "ast.ml" 97 1598 1614
+)
+"ast.ml" 97 1598 1617 "ast.ml" 97 1598 1641
+type(
+  exp_desc
+)
+"ast.ml" 99 1643 1647 "ast.ml" 99 1643 1653
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def // "ast.ml" 101 1686 1686 "ast.ml" 1 0 -1
+)
+"ast.ml" 99 1643 1654 "ast.ml" 99 1643 1656
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 99 1643 1657 "ast.ml" 99 1643 1683
+)
+"ast.ml" 99 1643 1657 "ast.ml" 99 1643 1659
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 99 1643 1662 "ast.ml" 99 1643 1683
+)
+"ast.ml" 99 1643 1671 "ast.ml" 99 1643 1674
+type(
+  inf_operator
+)
+"ast.ml" 99 1643 1676 "ast.ml" 99 1643 1678
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 99 1643 1654 "ast.ml" 99 1643 1656
+)
+"ast.ml" 99 1643 1680 "ast.ml" 99 1643 1682
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 99 1643 1657 "ast.ml" 99 1643 1659
+)
+"ast.ml" 99 1643 1662 "ast.ml" 99 1643 1683
+type(
+  exp_desc
+)
+"ast.ml" 101 1686 1690 "ast.ml" 101 1686 1697
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def +./ "ast.ml" 103 1736 1736 "ast.ml" 1 0 -1
+)
+"ast.ml" 101 1686 1698 "ast.ml" 101 1686 1700
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 101 1686 1701 "ast.ml" 101 1686 1733
+)
+"ast.ml" 101 1686 1701 "ast.ml" 101 1686 1703
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 101 1686 1706 "ast.ml" 101 1686 1733
+)
+"ast.ml" 101 1686 1716 "ast.ml" 101 1686 1721
+type(
+  inf_operator
+)
+"ast.ml" 101 1686 1724 "ast.ml" 101 1686 1726
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 101 1686 1698 "ast.ml" 101 1686 1700
+)
+"ast.ml" 101 1686 1729 "ast.ml" 101 1686 1731
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 101 1686 1701 "ast.ml" 101 1686 1703
+)
+"ast.ml" 101 1686 1706 "ast.ml" 101 1686 1733
+type(
+  exp_desc
+)
+"ast.ml" 103 1736 1740 "ast.ml" 103 1736 1747
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def *./ "ast.ml" 105 1785 1785 "ast.ml" 1 0 -1
+)
+"ast.ml" 103 1736 1748 "ast.ml" 103 1736 1750
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 103 1736 1751 "ast.ml" 103 1736 1783
+)
+"ast.ml" 103 1736 1751 "ast.ml" 103 1736 1753
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 103 1736 1756 "ast.ml" 103 1736 1783
+)
+"ast.ml" 103 1736 1766 "ast.ml" 103 1736 1772
+type(
+  inf_operator
+)
+"ast.ml" 103 1736 1775 "ast.ml" 103 1736 1777
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 103 1736 1748 "ast.ml" 103 1736 1750
+)
+"ast.ml" 103 1736 1780 "ast.ml" 103 1736 1782
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 103 1736 1751 "ast.ml" 103 1736 1753
+)
+"ast.ml" 103 1736 1756 "ast.ml" 103 1736 1783
+type(
+  exp_desc
+)
+"ast.ml" 105 1785 1789 "ast.ml" 105 1785 1796
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def -./ "ast.ml" 107 1832 1832 "ast.ml" 1 0 -1
+)
+"ast.ml" 105 1785 1797 "ast.ml" 105 1785 1799
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 105 1785 1800 "ast.ml" 105 1785 1830
+)
+"ast.ml" 105 1785 1800 "ast.ml" 105 1785 1802
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 105 1785 1805 "ast.ml" 105 1785 1830
+)
+"ast.ml" 105 1785 1815 "ast.ml" 105 1785 1821
+type(
+  inf_operator
+)
+"ast.ml" 105 1785 1823 "ast.ml" 105 1785 1825
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 105 1785 1797 "ast.ml" 105 1785 1799
+)
+"ast.ml" 105 1785 1827 "ast.ml" 105 1785 1829
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 105 1785 1800 "ast.ml" 105 1785 1802
+)
+"ast.ml" 105 1785 1805 "ast.ml" 105 1785 1830
+type(
+  exp_desc
+)
+"ast.ml" 107 1832 1836 "ast.ml" 107 1832 1843
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def /./ "ast.ml" 109 1877 1877 "ast.ml" 1 0 -1
+)
+"ast.ml" 107 1832 1844 "ast.ml" 107 1832 1846
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 107 1832 1847 "ast.ml" 107 1832 1874
+)
+"ast.ml" 107 1832 1847 "ast.ml" 107 1832 1849
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 107 1832 1852 "ast.ml" 107 1832 1874
+)
+"ast.ml" 107 1832 1861 "ast.ml" 107 1832 1865
+type(
+  inf_operator
+)
+"ast.ml" 107 1832 1867 "ast.ml" 107 1832 1869
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 107 1832 1844 "ast.ml" 107 1832 1846
+)
+"ast.ml" 107 1832 1871 "ast.ml" 107 1832 1873
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 107 1832 1847 "ast.ml" 107 1832 1849
+)
+"ast.ml" 107 1832 1852 "ast.ml" 107 1832 1874
+type(
+  exp_desc
+)
+"ast.ml" 109 1877 1881 "ast.ml" 109 1877 1886
+type(
+  exp_desc -> exp_desc -> exp_desc
+)
+ident(
+  def --> "ast.ml" 111 1922 1922 "ast.ml" 1 0 -1
+)
+"ast.ml" 109 1877 1887 "ast.ml" 109 1877 1889
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 109 1877 1890 "ast.ml" 109 1877 1919
+)
+"ast.ml" 109 1877 1890 "ast.ml" 109 1877 1892
+type(
+  exp_desc
+)
+ident(
+  def e2 "ast.ml" 109 1877 1895 "ast.ml" 109 1877 1919
+)
+"ast.ml" 109 1877 1905 "ast.ml" 109 1877 1910
+type(
+  inf_operator
+)
+"ast.ml" 109 1877 1912 "ast.ml" 109 1877 1914
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 109 1877 1887 "ast.ml" 109 1877 1889
+)
+"ast.ml" 109 1877 1916 "ast.ml" 109 1877 1918
+type(
+  exp_desc
+)
+ident(
+  int_ref e2 "ast.ml" 109 1877 1890 "ast.ml" 109 1877 1892
+)
+"ast.ml" 109 1877 1895 "ast.ml" 109 1877 1919
+type(
+  exp_desc
+)
+"ast.ml" 111 1922 1926 "ast.ml" 111 1922 1932
+type(
+  exp_desc -> exp_desc
+)
+ident(
+  def mk_pre "ast.ml" 113 1961 1961 "ast.ml" 1 0 -1
+)
+"ast.ml" 111 1922 1933 "ast.ml" 111 1922 1935
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 111 1922 1938 "ast.ml" 111 1922 1958
+)
+"ast.ml" 111 1922 1949 "ast.ml" 111 1922 1952
+type(
+  pre_operator
+)
+"ast.ml" 111 1922 1955 "ast.ml" 111 1922 1957
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 111 1922 1933 "ast.ml" 111 1922 1935
+)
+"ast.ml" 111 1922 1938 "ast.ml" 111 1922 1958
+type(
+  exp_desc
+)
+"ast.ml" 113 1961 1965 "ast.ml" 113 1961 1971
+type(
+  exp_desc -> exp_desc
+)
+ident(
+  def mk_not "ast.ml" 115 2002 2002 "ast.ml" 1 0 -1
+)
+"ast.ml" 113 1961 1972 "ast.ml" 113 1961 1974
+type(
+  exp_desc
+)
+ident(
+  def e1 "ast.ml" 113 1961 1977 "ast.ml" 113 1961 1997
+)
+"ast.ml" 113 1961 1988 "ast.ml" 113 1961 1991
+type(
+  pre_operator
+)
+"ast.ml" 113 1961 1994 "ast.ml" 113 1961 1996
+type(
+  exp_desc
+)
+ident(
+  int_ref e1 "ast.ml" 113 1961 1972 "ast.ml" 113 1961 1974
+)
+"ast.ml" 113 1961 1977 "ast.ml" 113 1961 1997
+type(
+  exp_desc
+)
+"ast.ml" 115 2002 2006 "ast.ml" 115 2002 2017
+type(
+  string -> exp_desc
+)
+ident(
+  def mk_variable "ast.ml" 117 2046 2046 "ast.ml" 1 0 -1
+)
+"ast.ml" 115 2002 2018 "ast.ml" 115 2002 2019
+type(
+  string
+)
+ident(
+  def v "ast.ml" 115 2002 2023 "ast.ml" 115 2002 2044
+)
+"ast.ml" 115 2002 2033 "ast.ml" 115 2002 2041
+type(
+  ?loc:Location.t -> string -> ident
+)
+ident(
+  int_ref mk_ident "ast.ml" 89 1390 1394 "ast.ml" 89 1390 1402
+)
+"ast.ml" 115 2002 2042 "ast.ml" 115 2002 2043
+type(
+  string
+)
+ident(
+  int_ref v "ast.ml" 115 2002 2018 "ast.ml" 115 2002 2019
+)
+"ast.ml" 115 2002 2032 "ast.ml" 115 2002 2044
+type(
+  ident
+)
+"ast.ml" 115 2002 2023 "ast.ml" 115 2002 2044
+type(
+  exp_desc
+)
+"ast.ml" 117 2046 2050 "ast.ml" 117 2046 2056
+type(
+  string -> exp_desc
+)
+ident(
+  def mk_ref "ast.ml" 120 2121 2121 "ast.ml" 1 0 -1
+)
+"ast.ml" 117 2046 2057 "ast.ml" 117 2046 2058
+type(
+  string
+)
+ident(
+  def v "ast.ml" 117 2046 2061 "ast.ml" 117 2046 2077
+)
+"ast.ml" 117 2046 2066 "ast.ml" 117 2046 2074
+type(
+  ?loc:Location.t -> string -> ident
+)
+ident(
+  int_ref mk_ident "ast.ml" 89 1390 1394 "ast.ml" 89 1390 1402
+)
+"ast.ml" 117 2046 2075 "ast.ml" 117 2046 2076
+type(
+  string
+)
+ident(
+  int_ref v "ast.ml" 117 2046 2057 "ast.ml" 117 2046 2058
+)
+"ast.ml" 117 2046 2065 "ast.ml" 117 2046 2077
+type(
+  ident
+)
+"ast.ml" 117 2046 2061 "ast.ml" 117 2046 2077
+type(
+  exp_desc
+)
+"ast.ml" 120 2121 2125 "ast.ml" 120 2121 2142
+type(
+  Parsetree.pattern -> ident
+)
+ident(
+  def checkname_pattern "ast.ml" 126 2322 2322 "ast.ml" 1 0 -1
+)
+"ast.ml" 120 2121 2143 "ast.ml" 120 2121 2144
+type(
+  Parsetree.pattern
+)
+ident(
+  def n "ast.ml" 121 2147 2149 "ast.ml" 123 2222 2283
+)
+"ast.ml" 121 2147 2155 "ast.ml" 121 2147 2156
+type(
+  Parsetree.pattern
+)
+ident(
+  int_ref n "ast.ml" 120 2121 2143 "ast.ml" 120 2121 2144
+)
+"ast.ml" 121 2147 2155 "ast.ml" 121 2147 2166
+type(
+  Parsetree.pattern_desc
+)
+"ast.ml" 122 2172 2185 "ast.ml" 122 2172 2187
+type(
+  string Asttypes.loc
+)
+ident(
+  def sl "ast.ml" 122 2172 2191 "ast.ml" 122 2172 2221
+)
+"ast.ml" 122 2172 2176 "ast.ml" 122 2172 2187
+type(
+  Parsetree.pattern_desc
+)
+"ast.ml" 122 2172 2196 "ast.ml" 122 2172 2198
+type(
+  string Asttypes.loc
+)
+ident(
+  int_ref sl "ast.ml" 122 2172 2185 "ast.ml" 122 2172 2187
+)
+"ast.ml" 122 2172 2196 "ast.ml" 122 2172 2202
+type(
+  Location.t
+)
+"ast.ml" 122 2172 2213 "ast.ml" 122 2172 2215
+type(
+  string Asttypes.loc
+)
+ident(
+  int_ref sl "ast.ml" 122 2172 2185 "ast.ml" 122 2172 2187
+)
+"ast.ml" 122 2172 2213 "ast.ml" 122 2172 2219
+type(
+  string
+)
+"ast.ml" 122 2172 2191 "ast.ml" 122 2172 2221
+type(
+  ident
+)
+"ast.ml" 123 2222 2226 "ast.ml" 123 2222 2227
+type(
+  Parsetree.pattern_desc
+)
+"ast.ml" 123 2222 2231 "ast.ml" 123 2222 2248
+type(
+  Location.t -> string -> ident
+)
+ident(
+  int_ref Error.print_error "ast.ml" 75 1111 1117 "ast.ml" 75 1111 1128
+)
+"ast.ml" 123 2222 2249 "ast.ml" 123 2222 2250
+type(
+  Parsetree.pattern
+)
+ident(
+  int_ref n "ast.ml" 120 2121 2143 "ast.ml" 120 2121 2144
+)
+"ast.ml" 123 2222 2249 "ast.ml" 123 2222 2259
+type(
+  Location.t
+)
+"ast.ml" 123 2222 2260 "ast.ml" 123 2222 2283
+type(
+  string
+)
+"ast.ml" 123 2222 2231 "ast.ml" 123 2222 2283
+type(
+  ident
+)
+"ast.ml" 121 2147 2149 "ast.ml" 123 2222 2283
+type(
+  ident
+)
+"ast.ml" 126 2322 2326 "ast.ml" 126 2322 2341
+type(
+  Parsetree.expression -> ident
+)
+ident(
+  def checkname_ident "ast.ml" 134 2556 2556 "ast.ml" 1 0 -1
+)
+"ast.ml" 126 2322 2342 "ast.ml" 126 2322 2344
+type(
+  Parsetree.expression
+)
+ident(
+  def id "ast.ml" 127 2347 2349 "ast.ml" 129 2428 2494
+)
+"ast.ml" 127 2347 2355 "ast.ml" 127 2347 2357
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref id "ast.ml" 126 2322 2342 "ast.ml" 126 2322 2344
+)
+"ast.ml" 127 2347 2355 "ast.ml" 127 2347 2367
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 128 2373 2389 "ast.ml" 128 2373 2392
+type(
+  Location.t
+)
+ident(
+  def loc "ast.ml" 128 2373 2412 "ast.ml" 128 2373 2427
+)
+"ast.ml" 128 2373 2405 "ast.ml" 128 2373 2406
+type(
+  string
+)
+ident(
+  def s "ast.ml" 128 2373 2412 "ast.ml" 128 2373 2427
+)
+"ast.ml" 128 2373 2398 "ast.ml" 128 2373 2406
+type(
+  Longident.t
+)
+"ast.ml" 128 2373 2388 "ast.ml" 128 2373 2408
+type(
+  Longident.t Asttypes.loc
+)
+"ast.ml" 128 2373 2377 "ast.ml" 128 2373 2408
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 128 2373 2412 "ast.ml" 128 2373 2420
+type(
+  ?loc:Location.t -> string -> ident
+)
+ident(
+  int_ref mk_ident "ast.ml" 89 1390 1394 "ast.ml" 89 1390 1402
+)
+"ast.ml" 128 2373 2422 "ast.ml" 128 2373 2425
+type(
+  Location.t
+)
+ident(
+  int_ref loc "ast.ml" 128 2373 2389 "ast.ml" 128 2373 2392
+)
+"ast.ml" 128 2373 2426 "ast.ml" 128 2373 2427
+type(
+  string
+)
+ident(
+  int_ref s "ast.ml" 128 2373 2405 "ast.ml" 128 2373 2406
+)
+"ast.ml" 128 2373 2412 "ast.ml" 128 2373 2427
+type(
+  ident
+)
+"ast.ml" 129 2428 2432 "ast.ml" 129 2428 2433
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 129 2428 2437 "ast.ml" 129 2428 2454
+type(
+  Location.t -> string -> ident
+)
+ident(
+  int_ref Error.print_error "ast.ml" 75 1111 1117 "ast.ml" 75 1111 1128
+)
+"ast.ml" 129 2428 2455 "ast.ml" 129 2428 2457
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref id "ast.ml" 126 2322 2342 "ast.ml" 126 2322 2344
+)
+"ast.ml" 129 2428 2455 "ast.ml" 129 2428 2466
+type(
+  Location.t
+)
+"ast.ml" 129 2428 2467 "ast.ml" 129 2428 2494
+type(
+  string
+)
+"ast.ml" 129 2428 2437 "ast.ml" 129 2428 2494
+type(
+  ident
+)
+"ast.ml" 127 2347 2349 "ast.ml" 129 2428 2494
+type(
+  ident
+)
+"ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  def mk_expr "ast.ml" 134 2556 2556 "ast.ml" 1 0 -1
+)
+"ast.ml" 134 2556 2572 "ast.ml" 134 2556 2573
+type(
+  Parsetree.expression
+)
+ident(
+  def e "ast.ml" 135 2576 2578 "ast.ml" 183 4866 4899
+)
+"ast.ml" 135 2576 2584 "ast.ml" 135 2576 2585
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e "ast.ml" 134 2556 2572 "ast.ml" 134 2556 2573
+)
+"ast.ml" 136 2591 2610 "ast.ml" 136 2591 2614
+type(
+  expression
+)
+"ast.ml" 137 2615 2635 "ast.ml" 137 2615 2637
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 137 2615 2644 "ast.ml" 137 2615 2663
+)
+"ast.ml" 137 2615 2644 "ast.ml" 137 2615 2650
+type(
+  expression -> expression
+)
+ident(
+  int_ref mk_pre "ast.ml" 111 1922 1926 "ast.ml" 111 1922 1932
+)
+"ast.ml" 137 2615 2652 "ast.ml" 137 2615 2659
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 137 2615 2660 "ast.ml" 137 2615 2662
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 137 2615 2635 "ast.ml" 137 2615 2637
+)
+"ast.ml" 137 2615 2651 "ast.ml" 137 2615 2663
+type(
+  expression
+)
+"ast.ml" 137 2615 2644 "ast.ml" 137 2615 2663
+type(
+  expression
+)
+"ast.ml" 138 2664 2680 "ast.ml" 138 2664 2682
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 138 2664 2702 "ast.ml" 138 2664 2731
+)
+"ast.ml" 138 2664 2693 "ast.ml" 138 2664 2695
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 138 2664 2702 "ast.ml" 138 2664 2731
+)
+"ast.ml" 138 2664 2703 "ast.ml" 138 2664 2710
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 138 2664 2711 "ast.ml" 138 2664 2713
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 138 2664 2680 "ast.ml" 138 2664 2682
+)
+"ast.ml" 138 2664 2702 "ast.ml" 138 2664 2714
+type(
+  expression
+)
+"ast.ml" 138 2664 2715 "ast.ml" 138 2664 2718
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref --> "ast.ml" 109 1877 1881 "ast.ml" 109 1877 1886
+)
+"ast.ml" 138 2664 2720 "ast.ml" 138 2664 2727
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 138 2664 2728 "ast.ml" 138 2664 2730
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 138 2664 2693 "ast.ml" 138 2664 2695
+)
+"ast.ml" 138 2664 2719 "ast.ml" 138 2664 2731
+type(
+  expression
+)
+"ast.ml" 138 2664 2702 "ast.ml" 138 2664 2731
+type(
+  expression
+)
+"ast.ml" 139 2732 2750 "ast.ml" 139 2732 2752
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 139 2732 2772 "ast.ml" 139 2732 2810
+)
+"ast.ml" 139 2732 2761 "ast.ml" 139 2732 2763
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 139 2732 2772 "ast.ml" 139 2732 2810
+)
+"ast.ml" 139 2732 2780 "ast.ml" 139 2732 2787
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 139 2732 2788 "ast.ml" 139 2732 2790
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 139 2732 2761 "ast.ml" 139 2732 2763
+)
+"ast.ml" 139 2732 2779 "ast.ml" 139 2732 2791
+type(
+  expression
+)
+"ast.ml" 139 2732 2794 "ast.ml" 139 2732 2801
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 139 2732 2802 "ast.ml" 139 2732 2804
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 139 2732 2750 "ast.ml" 139 2732 2752
+)
+"ast.ml" 139 2732 2793 "ast.ml" 139 2732 2805
+type(
+  expression
+)
+"ast.ml" 139 2732 2807 "ast.ml" 139 2732 2809
+type(
+  expression list
+)
+"ast.ml" 139 2732 2793 "ast.ml" 139 2732 2809
+type(
+  expression list
+)
+"ast.ml" 139 2732 2778 "ast.ml" 139 2732 2810
+type(
+  expression list
+)
+"ast.ml" 139 2732 2772 "ast.ml" 139 2732 2810
+type(
+  expression
+)
+"ast.ml" 140 2811 2827 "ast.ml" 140 2811 2829
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 140 2811 2847 "ast.ml" 140 2811 2886
+)
+"ast.ml" 140 2811 2838 "ast.ml" 140 2811 2840
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 140 2811 2847 "ast.ml" 140 2811 2886
+)
+"ast.ml" 140 2811 2855 "ast.ml" 140 2811 2861
+type(
+  inf_operator
+)
+"ast.ml" 140 2811 2863 "ast.ml" 140 2811 2870
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 140 2811 2871 "ast.ml" 140 2811 2873
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 140 2811 2827 "ast.ml" 140 2811 2829
+)
+"ast.ml" 140 2811 2863 "ast.ml" 140 2811 2873
+type(
+  expression
+)
+"ast.ml" 140 2811 2875 "ast.ml" 140 2811 2882
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 140 2811 2883 "ast.ml" 140 2811 2885
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 140 2811 2838 "ast.ml" 140 2811 2840
+)
+"ast.ml" 140 2811 2875 "ast.ml" 140 2811 2885
+type(
+  expression
+)
+"ast.ml" 140 2811 2847 "ast.ml" 140 2811 2886
+type(
+  expression
+)
+"ast.ml" 141 2887 2903 "ast.ml" 141 2887 2905
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 141 2887 2924 "ast.ml" 141 2887 2961
+)
+"ast.ml" 141 2887 2915 "ast.ml" 141 2887 2917
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 141 2887 2924 "ast.ml" 141 2887 2961
+)
+"ast.ml" 141 2887 2932 "ast.ml" 141 2887 2936
+type(
+  inf_operator
+)
+"ast.ml" 141 2887 2938 "ast.ml" 141 2887 2945
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 141 2887 2946 "ast.ml" 141 2887 2948
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 141 2887 2903 "ast.ml" 141 2887 2905
+)
+"ast.ml" 141 2887 2938 "ast.ml" 141 2887 2948
+type(
+  expression
+)
+"ast.ml" 141 2887 2950 "ast.ml" 141 2887 2957
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 141 2887 2958 "ast.ml" 141 2887 2960
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 141 2887 2915 "ast.ml" 141 2887 2917
+)
+"ast.ml" 141 2887 2950 "ast.ml" 141 2887 2960
+type(
+  expression
+)
+"ast.ml" 141 2887 2924 "ast.ml" 141 2887 2961
+type(
+  expression
+)
+"ast.ml" 142 2962 2978 "ast.ml" 142 2962 2980
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 142 2962 2998 "ast.ml" 142 2962 3036
+)
+"ast.ml" 142 2962 2989 "ast.ml" 142 2962 2991
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 142 2962 2998 "ast.ml" 142 2962 3036
+)
+"ast.ml" 142 2962 3006 "ast.ml" 142 2962 3011
+type(
+  inf_operator
+)
+"ast.ml" 142 2962 3013 "ast.ml" 142 2962 3020
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 142 2962 3021 "ast.ml" 142 2962 3023
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 142 2962 2978 "ast.ml" 142 2962 2980
+)
+"ast.ml" 142 2962 3013 "ast.ml" 142 2962 3023
+type(
+  expression
+)
+"ast.ml" 142 2962 3025 "ast.ml" 142 2962 3032
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 142 2962 3033 "ast.ml" 142 2962 3035
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 142 2962 2989 "ast.ml" 142 2962 2991
+)
+"ast.ml" 142 2962 3025 "ast.ml" 142 2962 3035
+type(
+  expression
+)
+"ast.ml" 142 2962 2998 "ast.ml" 142 2962 3036
+type(
+  expression
+)
+"ast.ml" 143 3037 3053 "ast.ml" 143 3037 3055
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 143 3037 3073 "ast.ml" 143 3037 3110
+)
+"ast.ml" 143 3037 3064 "ast.ml" 143 3037 3066
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 143 3037 3073 "ast.ml" 143 3037 3110
+)
+"ast.ml" 143 3037 3081 "ast.ml" 143 3037 3085
+type(
+  inf_operator
+)
+"ast.ml" 143 3037 3087 "ast.ml" 143 3037 3094
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 143 3037 3095 "ast.ml" 143 3037 3097
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 143 3037 3053 "ast.ml" 143 3037 3055
+)
+"ast.ml" 143 3037 3087 "ast.ml" 143 3037 3097
+type(
+  expression
+)
+"ast.ml" 143 3037 3099 "ast.ml" 143 3037 3106
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 143 3037 3107 "ast.ml" 143 3037 3109
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 143 3037 3064 "ast.ml" 143 3037 3066
+)
+"ast.ml" 143 3037 3099 "ast.ml" 143 3037 3109
+type(
+  expression
+)
+"ast.ml" 143 3037 3073 "ast.ml" 143 3037 3110
+type(
+  expression
+)
+"ast.ml" 144 3111 3127 "ast.ml" 144 3111 3129
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 144 3111 3148 "ast.ml" 144 3111 3187
+)
+"ast.ml" 144 3111 3139 "ast.ml" 144 3111 3141
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 144 3111 3148 "ast.ml" 144 3111 3187
+)
+"ast.ml" 144 3111 3156 "ast.ml" 144 3111 3162
+type(
+  inf_operator
+)
+"ast.ml" 144 3111 3164 "ast.ml" 144 3111 3171
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 144 3111 3172 "ast.ml" 144 3111 3174
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 144 3111 3127 "ast.ml" 144 3111 3129
+)
+"ast.ml" 144 3111 3164 "ast.ml" 144 3111 3174
+type(
+  expression
+)
+"ast.ml" 144 3111 3176 "ast.ml" 144 3111 3183
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 144 3111 3184 "ast.ml" 144 3111 3186
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 144 3111 3139 "ast.ml" 144 3111 3141
+)
+"ast.ml" 144 3111 3176 "ast.ml" 144 3111 3186
+type(
+  expression
+)
+"ast.ml" 144 3111 3148 "ast.ml" 144 3111 3187
+type(
+  expression
+)
+"ast.ml" 145 3188 3204 "ast.ml" 145 3188 3206
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 145 3188 3225 "ast.ml" 145 3188 3263
+)
+"ast.ml" 145 3188 3216 "ast.ml" 145 3188 3218
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 145 3188 3225 "ast.ml" 145 3188 3263
+)
+"ast.ml" 145 3188 3233 "ast.ml" 145 3188 3238
+type(
+  inf_operator
+)
+"ast.ml" 145 3188 3240 "ast.ml" 145 3188 3247
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 145 3188 3248 "ast.ml" 145 3188 3250
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 145 3188 3204 "ast.ml" 145 3188 3206
+)
+"ast.ml" 145 3188 3240 "ast.ml" 145 3188 3250
+type(
+  expression
+)
+"ast.ml" 145 3188 3252 "ast.ml" 145 3188 3259
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 145 3188 3260 "ast.ml" 145 3188 3262
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 145 3188 3216 "ast.ml" 145 3188 3218
+)
+"ast.ml" 145 3188 3252 "ast.ml" 145 3188 3262
+type(
+  expression
+)
+"ast.ml" 145 3188 3225 "ast.ml" 145 3188 3263
+type(
+  expression
+)
+"ast.ml" 146 3264 3280 "ast.ml" 146 3264 3282
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 146 3264 3301 "ast.ml" 146 3264 3337
+)
+"ast.ml" 146 3264 3292 "ast.ml" 146 3264 3294
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 146 3264 3301 "ast.ml" 146 3264 3337
+)
+"ast.ml" 146 3264 3309 "ast.ml" 146 3264 3312
+type(
+  inf_operator
+)
+"ast.ml" 146 3264 3314 "ast.ml" 146 3264 3321
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 146 3264 3322 "ast.ml" 146 3264 3324
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 146 3264 3280 "ast.ml" 146 3264 3282
+)
+"ast.ml" 146 3264 3314 "ast.ml" 146 3264 3324
+type(
+  expression
+)
+"ast.ml" 146 3264 3326 "ast.ml" 146 3264 3333
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 146 3264 3334 "ast.ml" 146 3264 3336
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 146 3264 3292 "ast.ml" 146 3264 3294
+)
+"ast.ml" 146 3264 3326 "ast.ml" 146 3264 3336
+type(
+  expression
+)
+"ast.ml" 146 3264 3301 "ast.ml" 146 3264 3337
+type(
+  expression
+)
+"ast.ml" 147 3338 3354 "ast.ml" 147 3338 3356
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 147 3338 3375 "ast.ml" 147 3338 3410
+)
+"ast.ml" 147 3338 3366 "ast.ml" 147 3338 3368
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 147 3338 3375 "ast.ml" 147 3338 3410
+)
+"ast.ml" 147 3338 3383 "ast.ml" 147 3338 3385
+type(
+  inf_operator
+)
+"ast.ml" 147 3338 3387 "ast.ml" 147 3338 3394
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 147 3338 3395 "ast.ml" 147 3338 3397
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 147 3338 3354 "ast.ml" 147 3338 3356
+)
+"ast.ml" 147 3338 3387 "ast.ml" 147 3338 3397
+type(
+  expression
+)
+"ast.ml" 147 3338 3399 "ast.ml" 147 3338 3406
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 147 3338 3407 "ast.ml" 147 3338 3409
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 147 3338 3366 "ast.ml" 147 3338 3368
+)
+"ast.ml" 147 3338 3399 "ast.ml" 147 3338 3409
+type(
+  expression
+)
+"ast.ml" 147 3338 3375 "ast.ml" 147 3338 3410
+type(
+  expression
+)
+"ast.ml" 148 3411 3427 "ast.ml" 148 3411 3429
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 148 3411 3447 "ast.ml" 148 3411 3471
+)
+"ast.ml" 148 3411 3438 "ast.ml" 148 3411 3440
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 148 3411 3447 "ast.ml" 148 3411 3471
+)
+"ast.ml" 148 3411 3447 "ast.ml" 148 3411 3454
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 148 3411 3455 "ast.ml" 148 3411 3457
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 148 3411 3427 "ast.ml" 148 3411 3429
+)
+"ast.ml" 148 3411 3447 "ast.ml" 148 3411 3457
+type(
+  expression
+)
+"ast.ml" 148 3411 3458 "ast.ml" 148 3411 3460
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref +/ "ast.ml" 93 1503 1507 "ast.ml" 93 1503 1513
+)
+"ast.ml" 148 3411 3461 "ast.ml" 148 3411 3468
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 148 3411 3469 "ast.ml" 148 3411 3471
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 148 3411 3438 "ast.ml" 148 3411 3440
+)
+"ast.ml" 148 3411 3461 "ast.ml" 148 3411 3471
+type(
+  expression
+)
+"ast.ml" 148 3411 3447 "ast.ml" 148 3411 3471
+type(
+  expression
+)
+"ast.ml" 149 3472 3488 "ast.ml" 149 3472 3490
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 149 3472 3508 "ast.ml" 149 3472 3532
+)
+"ast.ml" 149 3472 3499 "ast.ml" 149 3472 3501
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 149 3472 3508 "ast.ml" 149 3472 3532
+)
+"ast.ml" 149 3472 3508 "ast.ml" 149 3472 3515
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 149 3472 3516 "ast.ml" 149 3472 3518
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 149 3472 3488 "ast.ml" 149 3472 3490
+)
+"ast.ml" 149 3472 3508 "ast.ml" 149 3472 3518
+type(
+  expression
+)
+"ast.ml" 149 3472 3519 "ast.ml" 149 3472 3521
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref */ "ast.ml" 95 1551 1555 "ast.ml" 95 1551 1561
+)
+"ast.ml" 149 3472 3522 "ast.ml" 149 3472 3529
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 149 3472 3530 "ast.ml" 149 3472 3532
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 149 3472 3499 "ast.ml" 149 3472 3501
+)
+"ast.ml" 149 3472 3522 "ast.ml" 149 3472 3532
+type(
+  expression
+)
+"ast.ml" 149 3472 3508 "ast.ml" 149 3472 3532
+type(
+  expression
+)
+"ast.ml" 150 3533 3549 "ast.ml" 150 3533 3551
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 150 3533 3569 "ast.ml" 150 3533 3593
+)
+"ast.ml" 150 3533 3560 "ast.ml" 150 3533 3562
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 150 3533 3569 "ast.ml" 150 3533 3593
+)
+"ast.ml" 150 3533 3569 "ast.ml" 150 3533 3576
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 150 3533 3577 "ast.ml" 150 3533 3579
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 150 3533 3549 "ast.ml" 150 3533 3551
+)
+"ast.ml" 150 3533 3569 "ast.ml" 150 3533 3579
+type(
+  expression
+)
+"ast.ml" 150 3533 3580 "ast.ml" 150 3533 3582
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref -/ "ast.ml" 97 1598 1602 "ast.ml" 97 1598 1608
+)
+"ast.ml" 150 3533 3583 "ast.ml" 150 3533 3590
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 150 3533 3591 "ast.ml" 150 3533 3593
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 150 3533 3560 "ast.ml" 150 3533 3562
+)
+"ast.ml" 150 3533 3583 "ast.ml" 150 3533 3593
+type(
+  expression
+)
+"ast.ml" 150 3533 3569 "ast.ml" 150 3533 3593
+type(
+  expression
+)
+"ast.ml" 151 3594 3610 "ast.ml" 151 3594 3612
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 151 3594 3630 "ast.ml" 151 3594 3654
+)
+"ast.ml" 151 3594 3621 "ast.ml" 151 3594 3623
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 151 3594 3630 "ast.ml" 151 3594 3654
+)
+"ast.ml" 151 3594 3630 "ast.ml" 151 3594 3637
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 151 3594 3638 "ast.ml" 151 3594 3640
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 151 3594 3610 "ast.ml" 151 3594 3612
+)
+"ast.ml" 151 3594 3630 "ast.ml" 151 3594 3640
+type(
+  expression
+)
+"ast.ml" 151 3594 3641 "ast.ml" 151 3594 3643
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref // "ast.ml" 99 1643 1647 "ast.ml" 99 1643 1653
+)
+"ast.ml" 151 3594 3644 "ast.ml" 151 3594 3651
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 151 3594 3652 "ast.ml" 151 3594 3654
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 151 3594 3621 "ast.ml" 151 3594 3623
+)
+"ast.ml" 151 3594 3644 "ast.ml" 151 3594 3654
+type(
+  expression
+)
+"ast.ml" 151 3594 3630 "ast.ml" 151 3594 3654
+type(
+  expression
+)
+"ast.ml" 152 3655 3671 "ast.ml" 152 3655 3673
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 152 3655 3692 "ast.ml" 152 3655 3717
+)
+"ast.ml" 152 3655 3683 "ast.ml" 152 3655 3685
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 152 3655 3692 "ast.ml" 152 3655 3717
+)
+"ast.ml" 152 3655 3692 "ast.ml" 152 3655 3699
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 152 3655 3700 "ast.ml" 152 3655 3702
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 152 3655 3671 "ast.ml" 152 3655 3673
+)
+"ast.ml" 152 3655 3692 "ast.ml" 152 3655 3702
+type(
+  expression
+)
+"ast.ml" 152 3655 3703 "ast.ml" 152 3655 3706
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref +./ "ast.ml" 101 1686 1690 "ast.ml" 101 1686 1697
+)
+"ast.ml" 152 3655 3707 "ast.ml" 152 3655 3714
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 152 3655 3715 "ast.ml" 152 3655 3717
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 152 3655 3683 "ast.ml" 152 3655 3685
+)
+"ast.ml" 152 3655 3707 "ast.ml" 152 3655 3717
+type(
+  expression
+)
+"ast.ml" 152 3655 3692 "ast.ml" 152 3655 3717
+type(
+  expression
+)
+"ast.ml" 153 3718 3734 "ast.ml" 153 3718 3736
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 153 3718 3755 "ast.ml" 153 3718 3780
+)
+"ast.ml" 153 3718 3746 "ast.ml" 153 3718 3748
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 153 3718 3755 "ast.ml" 153 3718 3780
+)
+"ast.ml" 153 3718 3755 "ast.ml" 153 3718 3762
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 153 3718 3763 "ast.ml" 153 3718 3765
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 153 3718 3734 "ast.ml" 153 3718 3736
+)
+"ast.ml" 153 3718 3755 "ast.ml" 153 3718 3765
+type(
+  expression
+)
+"ast.ml" 153 3718 3766 "ast.ml" 153 3718 3769
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref *./ "ast.ml" 103 1736 1740 "ast.ml" 103 1736 1747
+)
+"ast.ml" 153 3718 3770 "ast.ml" 153 3718 3777
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 153 3718 3778 "ast.ml" 153 3718 3780
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 153 3718 3746 "ast.ml" 153 3718 3748
+)
+"ast.ml" 153 3718 3770 "ast.ml" 153 3718 3780
+type(
+  expression
+)
+"ast.ml" 153 3718 3755 "ast.ml" 153 3718 3780
+type(
+  expression
+)
+"ast.ml" 154 3781 3797 "ast.ml" 154 3781 3799
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 154 3781 3818 "ast.ml" 154 3781 3843
+)
+"ast.ml" 154 3781 3809 "ast.ml" 154 3781 3811
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 154 3781 3818 "ast.ml" 154 3781 3843
+)
+"ast.ml" 154 3781 3818 "ast.ml" 154 3781 3825
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 154 3781 3826 "ast.ml" 154 3781 3828
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 154 3781 3797 "ast.ml" 154 3781 3799
+)
+"ast.ml" 154 3781 3818 "ast.ml" 154 3781 3828
+type(
+  expression
+)
+"ast.ml" 154 3781 3829 "ast.ml" 154 3781 3832
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref -./ "ast.ml" 105 1785 1789 "ast.ml" 105 1785 1796
+)
+"ast.ml" 154 3781 3833 "ast.ml" 154 3781 3840
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 154 3781 3841 "ast.ml" 154 3781 3843
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 154 3781 3809 "ast.ml" 154 3781 3811
+)
+"ast.ml" 154 3781 3833 "ast.ml" 154 3781 3843
+type(
+  expression
+)
+"ast.ml" 154 3781 3818 "ast.ml" 154 3781 3843
+type(
+  expression
+)
+"ast.ml" 155 3844 3860 "ast.ml" 155 3844 3862
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 155 3844 3881 "ast.ml" 155 3844 3906
+)
+"ast.ml" 155 3844 3872 "ast.ml" 155 3844 3874
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 155 3844 3881 "ast.ml" 155 3844 3906
+)
+"ast.ml" 155 3844 3881 "ast.ml" 155 3844 3888
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 155 3844 3889 "ast.ml" 155 3844 3891
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 155 3844 3860 "ast.ml" 155 3844 3862
+)
+"ast.ml" 155 3844 3881 "ast.ml" 155 3844 3891
+type(
+  expression
+)
+"ast.ml" 155 3844 3892 "ast.ml" 155 3844 3895
+type(
+  expression -> expression -> expression
+)
+ident(
+  int_ref /./ "ast.ml" 107 1832 1836 "ast.ml" 107 1832 1843
+)
+"ast.ml" 155 3844 3896 "ast.ml" 155 3844 3903
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 155 3844 3904 "ast.ml" 155 3844 3906
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 155 3844 3872 "ast.ml" 155 3844 3874
+)
+"ast.ml" 155 3844 3896 "ast.ml" 155 3844 3906
+type(
+  expression
+)
+"ast.ml" 155 3844 3881 "ast.ml" 155 3844 3906
+type(
+  expression
+)
+"ast.ml" 156 3907 3927 "ast.ml" 156 3907 3929
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 157 3969 3973 "ast.ml" 157 3969 4023
+)
+"ast.ml" 156 3907 3943 "ast.ml" 156 3907 3945
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 157 3969 3973 "ast.ml" 157 3969 4023
+)
+"ast.ml" 156 3907 3959 "ast.ml" 156 3907 3961
+type(
+  Parsetree.expression
+)
+ident(
+  def e3 "ast.ml" 157 3969 3973 "ast.ml" 157 3969 4023
+)
+"ast.ml" 157 3969 3973 "ast.ml" 157 3969 3984
+type(
+  expression -> expression -> expression -> expression
+)
+ident(
+  int_ref alternative "ast.ml" 91 1450 1454 "ast.ml" 91 1450 1465
+)
+"ast.ml" 157 3969 3986 "ast.ml" 157 3969 3993
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 157 3969 3994 "ast.ml" 157 3969 3996
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 156 3907 3927 "ast.ml" 156 3907 3929
+)
+"ast.ml" 157 3969 3985 "ast.ml" 157 3969 3997
+type(
+  expression
+)
+"ast.ml" 157 3969 3999 "ast.ml" 157 3969 4006
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 157 3969 4007 "ast.ml" 157 3969 4009
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 156 3907 3943 "ast.ml" 156 3907 3945
+)
+"ast.ml" 157 3969 3998 "ast.ml" 157 3969 4010
+type(
+  expression
+)
+"ast.ml" 157 3969 4012 "ast.ml" 157 3969 4019
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 157 3969 4020 "ast.ml" 157 3969 4022
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e3 "ast.ml" 156 3907 3959 "ast.ml" 156 3907 3961
+)
+"ast.ml" 157 3969 4011 "ast.ml" 157 3969 4023
+type(
+  expression
+)
+"ast.ml" 157 3969 3973 "ast.ml" 157 3969 4023
+type(
+  expression
+)
+"ast.ml" 158 4024 4057 "ast.ml" 158 4024 4061
+type(
+  bool
+)
+"ast.ml" 158 4024 4051 "ast.ml" 158 4024 4062
+type(
+  constant
+)
+"ast.ml" 158 4024 4045 "ast.ml" 158 4024 4062
+type(
+  expression
+)
+"ast.ml" 159 4063 4097 "ast.ml" 159 4063 4102
+type(
+  bool
+)
+"ast.ml" 159 4063 4091 "ast.ml" 159 4063 4103
+type(
+  constant
+)
+"ast.ml" 159 4063 4085 "ast.ml" 159 4063 4103
+type(
+  expression
+)
+"ast.ml" 160 4104 4124 "ast.ml" 160 4104 4126
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 160 4104 4133 "ast.ml" 160 4104 4152
+)
+"ast.ml" 160 4104 4133 "ast.ml" 160 4104 4139
+type(
+  expression -> expression
+)
+ident(
+  int_ref mk_not "ast.ml" 113 1961 1965 "ast.ml" 113 1961 1971
+)
+"ast.ml" 160 4104 4141 "ast.ml" 160 4104 4148
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 160 4104 4149 "ast.ml" 160 4104 4151
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 160 4104 4124 "ast.ml" 160 4104 4126
+)
+"ast.ml" 160 4104 4140 "ast.ml" 160 4104 4152
+type(
+  expression
+)
+"ast.ml" 160 4104 4133 "ast.ml" 160 4104 4152
+type(
+  expression
+)
+"ast.ml" 161 4153 4174 "ast.ml" 161 4153 4176
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 161 4153 4183 "ast.ml" 161 4153 4192
+)
+"ast.ml" 161 4153 4188 "ast.ml" 161 4153 4192
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 161 4153 4174 "ast.ml" 161 4153 4176
+)
+"ast.ml" 161 4153 4183 "ast.ml" 161 4153 4192
+type(
+  expression
+)
+"ast.ml" 163 4219 4235 "ast.ml" 163 4219 4237
+type(
+  Parsetree.expression
+)
+ident(
+  def e1 "ast.ml" 164 4253 4257 "ast.ml" 168 4429 4450
+)
+"ast.ml" 163 4219 4244 "ast.ml" 163 4219 4246
+type(
+  Parsetree.expression
+)
+ident(
+  def e2 "ast.ml" 164 4253 4257 "ast.ml" 168 4429 4450
+)
+"ast.ml" 164 4253 4269 "ast.ml" 164 4253 4284
+type(
+  Parsetree.expression -> ident
+)
+ident(
+  int_ref checkname_ident "ast.ml" 126 2322 2326 "ast.ml" 126 2322 2341
+)
+"ast.ml" 164 4253 4285 "ast.ml" 164 4253 4287
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e1 "ast.ml" 163 4219 4235 "ast.ml" 163 4219 4237
+)
+"ast.ml" 164 4253 4269 "ast.ml" 164 4253 4287
+type(
+  ident
+)
+"ast.ml" 165 4290 4318 "ast.ml" 165 4290 4320
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 163 4219 4244 "ast.ml" 163 4219 4246
+)
+"ast.ml" 165 4290 4318 "ast.ml" 165 4290 4330
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 166 4336 4367 "ast.ml" 166 4336 4368
+type(
+  Parsetree.expression list
+)
+ident(
+  def l "ast.ml" 166 4336 4372 "ast.ml" 166 4336 4390
+)
+"ast.ml" 166 4336 4356 "ast.ml" 166 4336 4368
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 166 4336 4372 "ast.ml" 166 4336 4380
+type(
+  (Parsetree.expression -> expression) ->
+  Parsetree.expression list -> expression list
+)
+ident(
+  ext_ref List.map
+)
+"ast.ml" 166 4336 4381 "ast.ml" 166 4336 4388
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 166 4336 4389 "ast.ml" 166 4336 4390
+type(
+  Parsetree.expression list
+)
+ident(
+  int_ref l "ast.ml" 166 4336 4367 "ast.ml" 166 4336 4368
+)
+"ast.ml" 166 4336 4372 "ast.ml" 166 4336 4390
+type(
+  expression list
+)
+"ast.ml" 167 4391 4411 "ast.ml" 167 4391 4412
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 167 4391 4417 "ast.ml" 167 4391 4424
+type(
+  Parsetree.expression -> expression
+)
+ident(
+  int_ref mk_expr "ast.ml" 134 2556 2564 "ast.ml" 134 2556 2571
+)
+"ast.ml" 167 4391 4425 "ast.ml" 167 4391 4427
+type(
+  Parsetree.expression
+)
+ident(
+  int_ref e2 "ast.ml" 163 4219 4244 "ast.ml" 163 4219 4246
+)
+"ast.ml" 167 4391 4417 "ast.ml" 167 4391 4427
+type(
+  expression
+)
+"ast.ml" 167 4391 4416 "ast.ml" 167 4391 4428
+type(
+  expression list
+)
+"ast.ml" 165 4290 4306 "ast.ml" 168 4429 4448
+type(
+  expression list
+)
+"ast.ml" 164 4253 4257 "ast.ml" 168 4429 4450
+type(
+  expression
+)
+"ast.ml" 169 4451 4483 "ast.ml" 169 4451 4484
+type(
+  Parsetree.constant
+)
+ident(
+  def c "ast.ml" 172 4530 4536 "ast.ml" 176 4685 4694
+)
+"ast.ml" 169 4451 4469 "ast.ml" 169 4451 4484
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 170 4486 4492 "ast.ml" 170 4486 4500
+type(
+  Location.t
+)
+ident(
+  def pexp_loc "ast.ml" 172 4530 4536 "ast.ml" 176 4685 4694
+)
+"ast.ml" 171 4503 4509 "ast.ml" 171 4503 4524
+type(
+  Parsetree.attributes
+)
+ident(
+  def pexp_attributes "ast.ml" 172 4530 4536 "ast.ml" 176 4685 4694
+)
+"ast.ml" 169 4451 4455 "ast.ml" 171 4503 4526
+type(
+  Parsetree.expression
+)
+"ast.ml" 172 4530 4548 "ast.ml" 172 4530 4549
+type(
+  Parsetree.constant
+)
+ident(
+  int_ref c "ast.ml" 169 4451 4483 "ast.ml" 169 4451 4484
+)
+"ast.ml" 177 4695 4738 "ast.ml" 177 4695 4739
+type(
+  string
+)
+ident(
+  def v "ast.ml" 180 4790 4794 "ast.ml" 180 4790 4807
+)
+"ast.ml" 177 4695 4730 "ast.ml" 177 4695 4740
+type(
+  Longident.t
+)
+"ast.ml" 177 4695 4742 "ast.ml" 177 4695 4745
+type(
+  Location.t
+)
+ident(
+  def loc "ast.ml" 180 4790 4794 "ast.ml" 180 4790 4807
+)
+"ast.ml" 177 4695 4723 "ast.ml" 177 4695 4746
+type(
+  Longident.t Asttypes.loc
+)
+"ast.ml" 177 4695 4712 "ast.ml" 177 4695 4746
+type(
+  Parsetree.expression_desc
+)
+"ast.ml" 178 4749 4754 "ast.ml" 178 4749 4762
+type(
+  Location.t
+)
+ident(
+  def pexp_loc "ast.ml" 180 4790 4794 "ast.ml" 180 4790 4807
+)
+"ast.ml" 179 4765 4770 "ast.ml" 179 4765 4785
+type(
+  Parsetree.attributes
+)
+ident(
+  def pexp_attributes "ast.ml" 180 4790 4794 "ast.ml" 180 4790 4807
+)
+"ast.ml" 177 4695 4699 "ast.ml" 179 4765 4786
+type(
+  Parsetree.expression
+)
+"ast.ml" 181 4808 4812 "ast.ml" 181 4808 4813
+type(
+  Parsetree.expression
+)
