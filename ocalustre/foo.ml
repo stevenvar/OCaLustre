@@ -5,6 +5,8 @@ module Option = struct
     | Some x -> x
 end 
 
+let%node truc () (x) = 
+  x := true --> false 
 
 let%node entiers (a,b,c) (n) =
   n := (a+b) --> ( (pre n) + 1 )  

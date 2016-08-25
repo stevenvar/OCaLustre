@@ -6,7 +6,8 @@ Authors:     steven varoumas
 License:     LGPL
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
-OCamlVersion: >= 4.02
+OCamlVersion: >= 4.03
+FilesAB : lib/META.ab
 
 PreInstallCommand:   $ocamlfind install ocalustre lib/META
 PreUninstallCommand: $ocamlfind remove ocalustre
@@ -21,5 +22,5 @@ Executable ocalustre
 
 Test test_ppx_proto
   Run$: flag(tests)
-  Command:        ocamlbuild -use-ocamlfind -package unix -cflags '-ppx ./ocalustre.native -dsource' foo.byte 
+  Command:        ocamlbuild -use-ocamlfind -package unix -cflags '-ppx $ocalustre' foo.byte 
   TestTools:      ocalustre

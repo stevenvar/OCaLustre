@@ -18,7 +18,7 @@ and equation = {
   expression : expression;
 }
 and pattern = stream
-and constant = Integer of int
+and constant = Integer of int | Float of float | Bool of bool
 and expression = exp_desc
 and ident = {
   loc : Location.t;
@@ -117,7 +117,7 @@ let rec get_idents l e =
   | Arrow (i, e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
   | Current e' -> get_idents l e'
-  | Pre e ->  get_idents l e
+  | Pre (e) ->  get_idents l e
 
 
 (* transform expressions to node of the ocalustre AST *)
@@ -146,7 +146,11 @@ let rec mk_expr e =
      pexp_loc ;
      pexp_attributes} ->
     mk_variable loc v
-  | [%expr [%e? e1] fby [%e? e2] ]  ->
+  | [%expr true] -> Value (Bool true)
+  | [%expr false] -> Value (Bool false)
+  | [%expr true ->> false] -> Fby (Bool true, Value (Bool false))
+  | [%expr false ->> true] -> Fby (Bool false, Value (Bool true))
+  | [%expr [%e? e1] ->> [%e? e2] ]  ->
     begin match e1 with
       | {pexp_desc = Pexp_constant c; pexp_loc ; pexp_attributes } ->
         begin match c with
@@ -167,8 +171,8 @@ let rec mk_expr e =
   | [%expr [%e? e1] on [%e? e2] ] -> let i = List.hd (get_idents [] (mk_expr e2)) in
                                      When ((mk_expr e1), i)
   | [%expr current [%e? e] ] -> Current (mk_expr e)
-  | [%expr pre [%e? e]] ->
-     Pre (mk_expr e)
+  | [%expr pre [%e? e1]] ->
+    Pre (mk_expr e1)
   | [%expr [%e? e1] [%e? e2] ] ->
      Application(checkname_ident e1,
                  begin match e2.pexp_desc with

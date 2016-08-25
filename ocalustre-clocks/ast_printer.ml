@@ -3,6 +3,8 @@ open Ast
 let print_value fmt v =
   match v with
   | Integer i -> Format.fprintf fmt "%d" i
+  | Bool b -> Format.fprintf fmt "%b" b
+  | Float f -> Format.fprintf fmt "%f" f
 
 let rec print_list f fmt l =
   match l with
@@ -78,12 +80,12 @@ let rec print_expression fmt e =
                            print_expression e1
 
   | Value v -> print_value fmt v
-  | Fby (v, e) -> Format.fprintf fmt "(%a fby %a)"
-                    print_value v
-                    print_expression e
-  | Arrow (v,e) -> Format.fprintf fmt "(%a --> %a)"
-                     print_value v
-                     print_expression e
+  | Fby (e1, e2) -> Format.fprintf fmt "(%a fby %a)"
+                    print_value e1
+                    print_expression e2
+  | Arrow (e1, e2) -> Format.fprintf fmt "(%a --> %a)"
+                    print_value e1
+                    print_expression e2
   | Unit -> Format.fprintf fmt "()"
   | When (e,i) -> Format.fprintf fmt "( %a when %a )"
                     print_expression e

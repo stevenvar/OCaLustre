@@ -64,6 +64,11 @@ let rec clock_eq c1 c2 =
   | On (c1,i), On(c2,j) -> (clock_eq c1 c2) && (i.content = j.content)
   | _ -> false
 
+let const_of_exp e =
+  match e with
+  | Value v -> v
+  | _ -> failwith "not a constant"
+
 let rec clock_exp hst e =
   match e with
   | Variable i ->
@@ -93,10 +98,10 @@ let rec clock_exp hst e =
   | Value v -> CValue v, Base
   | Fby (v,e') ->
     let (e,c) as ce = clock_exp hst e' in
-    CFby (v, ce), c
+    CFby ( v, ce), c
   | Arrow (v,e') ->
     let (e,c) as ce = clock_exp hst e' in
-    CArrow (v, ce), c
+    CArrow ( v, ce), c
   | When (e', i) ->
     let (e,c) as ce = clock_exp hst e' in
     let ck = On (c,i) in
