@@ -1,6 +1,6 @@
 # OCaLustre
 
-# Description
+** Description **
 
 Synchronous extension to OCaml with the style of the Lustre synchronous programming language.
 
@@ -11,7 +11,7 @@ An instant is the atomic unit of time at which a node computes outputs from inpu
 
 Inputs and outputs are considered as data flows, that is a flow of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...  
 
-# Syntax
+** Syntax **
 ```ocaml
 let%node <ident> ~i:<inputs> ~o:<outputs> =
   <out> = <expr>;
@@ -64,10 +64,10 @@ a = 7 + b;
 b = a - 2
 ```
 ```
-  Error:Causality loop in node loop including these variables : b a 
+  Error:Causality loop in node loop including these variables : b a
 ```
 
-# Synchronous Operators
+** Synchronous Operators **
 
 The --> operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants<br />
 
@@ -84,7 +84,7 @@ The ->> operator (known as fby - followed by - in Lustre) mixes the two and is s
 ```ocaml
    n := 0 ->> (n + 1)
 ```
-# Installing
+** Quick install **
 
 OCaLustre is still a prototype! But if you really want to try it out, just do :
 
@@ -98,7 +98,7 @@ And use it with ocamlfind as any other package, for example :
 ```
 
 
-# Example
+** Example **
 ```ocaml
 
 let%node fibonacci ~i:() ~o:(f) =
