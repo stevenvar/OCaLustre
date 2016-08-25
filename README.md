@@ -40,7 +40,7 @@ with
 <binop> ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
 <unop> ::= not | - | -.
 ```
-NB: The sequence of assignations ( OUT := EXPR; ... ) can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
+NB: The sequence of assignations can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
 let%node foo ~i:() ~o:(a,c,b) =
   c = b + a;
