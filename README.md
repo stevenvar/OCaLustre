@@ -29,7 +29,7 @@ PARAMETERS ::= (IDENT,*) | IDENT | UNIT
 INTPUTS ::= PARAMETERS
 OUTPUTS ::= PARAMETERS
 OUT ::= IDENT | (IDENT,IDENT)
-INFIXOP ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <> 
+INFIXOP ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
 PREFIXOP ::= not | -
 EXPR ::= UNIT
        | if EXPR then EXPR else EXPR
@@ -62,6 +62,19 @@ The ->> operator (known as fby - followed by - in Lustre) mixes the two and is s
 
 ```ocaml
    n := 0 ->> (n + 1)
+```
+# Installing
+
+OCaLustre is still a prototype ! But if you really want to try it, just do :
+
+```
+  oasis setup;
+  make install;
+```
+
+And use it with ocamlfind as any other package, for example :
+```
+  ocamlfind ocamlc -package ocalustre foo.ml
 ```
 
 
