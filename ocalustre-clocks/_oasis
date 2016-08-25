@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        ocalustre
-Version:     0.01
+Version:     0.5
 Synopsis:    ppx extension for lustre nodes 
 Authors:     steven varoumas
 License:     LGPL
@@ -20,7 +20,6 @@ Executable ocalustre
   MainIs:         ocalustre.ml
   CompiledObject: best
 
-Test test_ppx_proto
-  Run$: flag(tests)
-  Command:        ocamlbuild -use-ocamlfind -package unix -cflags '-ppx $ocalustre' foo.byte 
+Test test_foo
+  Command:        ocamlbuild -cflags '-ppx $ocalustre' foo.byte 
   TestTools:      ocalustre
