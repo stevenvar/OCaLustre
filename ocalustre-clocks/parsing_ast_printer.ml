@@ -5,6 +5,7 @@ let print_value fmt v =
   | Integer i -> Format.fprintf fmt "%d" i
   | Bool b -> Format.fprintf fmt "%b" b
   | Float f -> Format.fprintf fmt "%f" f
+  | Magic -> Format.fprintf fmt "Obj.magic"
 
 let rec print_list f fmt l =
   match l with

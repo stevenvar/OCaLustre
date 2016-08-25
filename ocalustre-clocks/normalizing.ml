@@ -26,7 +26,7 @@ let rec transform_exp exp =
   match exp.e_desc with
   | Pre e ->
     let e' = transform_exp e in
-    let magic_exp = { e_desc = Value (Integer 0) ; e_loc = e.e_loc }  in
+    let magic_exp = { e_desc = Value (Magic) ; e_loc = e.e_loc }  in
     { exp with e_desc = Fby (magic_exp, e') }
   | Arrow (e1,e2) ->
     let e1' = transform_exp e1 in

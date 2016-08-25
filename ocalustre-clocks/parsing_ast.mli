@@ -11,7 +11,7 @@ and equation = {
   pattern : pattern ;
   expression : expression;
 }
-and constant = Integer of int | Float of float | Bool of bool
+and constant = Integer of int | Float of float | Bool of bool | Magic 
 and expression = {
   e_desc : exp_desc;
   e_loc : Location.t

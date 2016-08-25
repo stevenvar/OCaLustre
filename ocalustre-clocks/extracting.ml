@@ -25,6 +25,7 @@ let lid_of_pattern ?(prefix="") ?(suffix="") p =
 
 let rec tocaml_expression e =
   match e with
+  | IValue (Magic) -> [%expr Obj.magic () ]
   | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
   | IValue (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
   | IValue (Bool true) -> Exp.construct {txt= Lident "true" ; loc = Location.none } None
