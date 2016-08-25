@@ -23,14 +23,6 @@ let%node <ident> ~i:<inputs> ~o:<outputs> =
 with
 <br />
 ```ocaml
-<value> ::= int | bool | float
-<ident> ::= [a-zA-z][a-zA-Z0-9]*
-<param> ::= (<ident>,*) | <ident>
-<inputs> ::= <param>
-<outputs> ::= <param>
-<out> ::= <ident> | (<ident>,*)
-<binop> ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
-<unop> ::= not | - | -.
 <expr> ::= ()
        | if <expr> then <expr> else <expr>
        | <ident> <param> (* the application of the function named IDENT *)
@@ -39,6 +31,14 @@ with
        | <value>
        | (<expr>,*)
        | pre <expr>
+<ident> ::= [a-zA-z][a-zA-Z0-9]*
+<value> ::= int | bool | float
+<param> ::= (<ident>,*) | <ident>
+<inputs> ::= <param>
+<outputs> ::= <param>
+<out> ::= <ident> | (<ident>,*)
+<binop> ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
+<unop> ::= not | - | -.
 ```
 NB: The sequence of assignations ( OUT := EXPR; ... ) can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
