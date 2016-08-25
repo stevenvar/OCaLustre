@@ -65,7 +65,7 @@ The ->> operator (known as fby - followed by - in Lustre) mixes the two and is s
 ```
 # Installing
 
-OCaLustre is still a prototype ! But if you really want to try it, just do :
+OCaLustre is still a prototype! But if you really want to try it out, just do :
 
 ```
   oasis setup && make install
