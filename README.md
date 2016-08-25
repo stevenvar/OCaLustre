@@ -13,37 +13,58 @@ Inputs and outputs are considered as data flows, that is a flow of values that c
 
 # Syntax
 ```ocaml
-let%node IDENT ~i:INPUTS ~o:OUTPUTS =
-  OUT = EXPR;
+let%node <ident> ~i:<inputs> ~o:<outputs> =
+  <out> = <expr>;
   ...
-  OUT = EXPR
+  <out> = <expr>
 
 ```
 with
 <br />
 ```ocaml
-VALUE ::= int | bool | float
-IDENT ::= id
-UNIT ::= ()
-PARAMETERS ::= (IDENT,*) | IDENT | UNIT
-INTPUTS ::= PARAMETERS
-OUTPUTS ::= PARAMETERS
-OUT ::= IDENT | (IDENT,IDENT)
-INFIXOP ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
-PREFIXOP ::= not | -
-EXPR ::= UNIT
-       | if EXPR then EXPR else EXPR
-       | IDENT PARAMETERS (* the application of the function named IDENT *)
-       | EXPR INFIXOP EXPR
-       | PREFIXOP EXPR
-       | VALUE
-       | (EXPR,EXPR)
-       | pre EXPR
+<value> ::= int | bool | float
+<ident> ::= [a-zA-z][a-zA-Z0-9]*
+<param> ::= (<ident>,*) | <ident>
+<inputs> ::= <param>
+<outputs> ::= <param>
+<out> ::= <ident> | (<ident>,*)
+<binop> ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <>
+<unop> ::= not | - | -.
+<expr> ::= ()
+       | if <expr> then <expr> else <expr>
+       | <ident> <param> (* the application of the function named IDENT *)
+       | <expr> <binop> <expr>
+       | <unop> EXPR
+       | <value>
+       | (<expr>,*)
+       | pre <expr>
 ```
 NB: The sequence of assignations ( OUT := EXPR; ... ) can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
-  a := b * 5;
-  b := 9
+let%node foo ~i:() ~o:(a,c,b) =
+  c = b + a;
+  b = a * 3;
+  a = 7
+```
+
+Is - at compile time - automatically transformed into :
+
+```ocaml
+let%node foo ~i:() ~o:(a,c,b) =
+a = 7;
+b = a * 3;
+c = b + a
+```
+
+Note that scenarios where flows mutually depend on each others (ie. causality loops) are rejected during compilation :
+
+```ocaml
+let%node loop ~i:() ~o:(a,b) =
+a = 7 + b;
+b = a - 2
+```
+```
+  Error:Causality loop in node loop including these variables : b a 
 ```
 
 # Synchronous Operators
