@@ -14,6 +14,7 @@ let rec compile_expression e p =
     match op with
     | Not -> INot
     | Neg -> INeg
+    | Negf -> INegf
   in
   let compile_infop op =
     match op with

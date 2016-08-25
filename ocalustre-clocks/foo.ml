@@ -1,17 +1,13 @@
 
-(*let%node naturels ~i:() ~o:(d) =
-  pre_d = 0 ->> d;
-  tf = true ->> false;
-  x = if tf then 1 else pre_d + d ;
-  d = 1 ->> x*)
 
-
-let%node naturels ~i:() ~o:(n) =
-  n = 1 ->> (1 --> ( (pre n) + n))
+let%node naturels ~i:() ~o:(n,v) =
+  x = 4. ;
+  v = -. x;
+  n = 1 --> (pre (1 --> ( (pre n) + n)))
 
 let _ =
   let nat = naturels () in
   for i = 0 to 10 do
-    let d = nat () in
-    Printf.printf "%d\n" d ; 
+    let d,v = nat () in
+    Printf.printf "---> %d %f\n" d v ;
   done

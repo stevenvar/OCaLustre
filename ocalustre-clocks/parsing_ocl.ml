@@ -82,6 +82,8 @@ let rec mk_expr e =
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ; e_loc = e.pexp_loc }
   | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ; e_loc = e.pexp_loc }
+  | [%expr ~- [%e? e] ] -> { e_desc = PrefixOp (Neg,(mk_expr e)) ; e_loc = e.pexp_loc }
+  | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ; e_loc = e.pexp_loc }
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
       pexp_attributes } ->

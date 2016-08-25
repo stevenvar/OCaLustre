@@ -11,33 +11,34 @@ An instant is the atomic unit of time at which a node computes outputs from inpu
 
 Inputs and outputs are considered as data flows, that is a flow of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...  
 
-# Syntax 
+# Syntax
 ```ocaml
-let%node IDENT INPUTS OUTPUTS = 
-  OUT := EXPR; 
-  ... 
-  OUT := EXPR
-  
+let%node IDENT ~i:INPUTS ~o:OUTPUTS =
+  OUT = EXPR;
+  ...
+  OUT = EXPR
+
 ```
 with
 <br />
 ```ocaml
-VALUE ::= string | int | bool | ... 
+VALUE ::= int | bool | float
 IDENT ::= id
-UNIT ::= () 
-PARAMETERS ::= (IDENT,IDENT,...) | IDENT | UNIT
-INTPUTS ::= PARAMETERS 
-OUTPUTS ::= PARAMETERS 
-OUT ::= IDENT | (IDENT,IDENT) 
-INFIXOP ::= + | - | / | * | --> | < | > | <= | >= | = | <> 
-PREFIXOP ::= pre | not 
-EXPR ::= UNIT 
+UNIT ::= ()
+PARAMETERS ::= (IDENT,*) | IDENT | UNIT
+INTPUTS ::= PARAMETERS
+OUTPUTS ::= PARAMETERS
+OUT ::= IDENT | (IDENT,IDENT)
+INFIXOP ::= + | - | / | * | +. | -. | /. | *. | --> | ->> | < | > | <= | >= | = | <> 
+PREFIXOP ::= not | -
+EXPR ::= UNIT
        | if EXPR then EXPR else EXPR
        | IDENT PARAMETERS (* the application of the function named IDENT *)
        | EXPR INFIXOP EXPR
        | PREFIXOP EXPR
        | VALUE
        | (EXPR,EXPR)
+       | pre EXPR
 ```
 NB: The sequence of assignations ( OUT := EXPR; ... ) can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
@@ -53,9 +54,16 @@ The pre operator is the memory operator : it returns the value of the flow at th
 
 For example :
 ```ocaml
-   n := 0 --> (pre n) + 1
+   n := 0 --> ( pre n + 1 )
 ```
 means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : 0, (0+1), (0+1+1) , ...<br />
+
+The ->> operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
+
+```ocaml
+   n := 0 ->> (n + 1)
+```
+
 
 # Example
 ```ocaml

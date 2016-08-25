@@ -33,6 +33,7 @@ and
   imp_preop =
   | INot
   | INeg
+  | INegf
 
 type imp_equation =  {
   i_pattern : cpattern;

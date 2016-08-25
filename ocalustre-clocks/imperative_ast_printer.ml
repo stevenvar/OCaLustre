@@ -32,6 +32,7 @@ let rec printml_expression fmt exp =
     match op with
     | INot -> Format.fprintf fmt "not "
     | INeg -> Format.fprintf fmt "-"
+    | INegf -> Format.fprintf fmt "-."
   in
   let printml_infop fmt op =
     match op with
@@ -112,7 +113,7 @@ let printml_step fmt node =
     printml_equations node.i_step_fun.i_equations
     printml_updates node.i_step_fun.i_updates
     printml_tuple node.i_outputs
-    node.i_name 
+    node.i_name
 
 
 let printml_inits fmt il =

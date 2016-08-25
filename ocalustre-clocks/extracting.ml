@@ -33,6 +33,9 @@ let rec tocaml_expression e =
   | ITuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
   | IRef i -> [%expr ![%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ]  ]
+  | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e ] ]
+  | IPrefixOp (INeg, e) -> [%expr ~- [%e tocaml_expression e ] ]
+  | IPrefixOp (INegf, e) -> [%expr ~-. [%e tocaml_expression e ] ]
   | IInfixOp (IDiff,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
   | IInfixOp (IEquals,e1,e2) ->
@@ -70,7 +73,7 @@ let rec tocaml_expression e =
     ]
     ]
   | IUnit -> [%expr ()]
-  | _ -> [%expr ()]
+  | _ -> assert false
 
 
 

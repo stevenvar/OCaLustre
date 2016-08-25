@@ -35,6 +35,7 @@ let print_preop fmt op =
   match op with
   | Not -> Format.fprintf fmt "not "
   | Neg -> Format.fprintf fmt "-"
+  | Negf -> Format.fprintf fmt "-."
 
 
 let print_infop fmt op =
