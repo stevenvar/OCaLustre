@@ -68,8 +68,7 @@ The ->> operator (known as fby - followed by - in Lustre) mixes the two and is s
 OCaLustre is still a prototype ! But if you really want to try it, just do :
 
 ```
-  oasis setup;
-  make install;
+  oasis setup && make install
 ```
 
 And use it with ocamlfind as any other package, for example :
