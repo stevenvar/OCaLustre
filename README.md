@@ -22,7 +22,7 @@ let%node <ident> ~i:<inputs> ~o:<outputs> =
 ```
 with
 <br />
-```c
+```haskell
 <expr> ::= ()
        | if <expr> then <expr> else <expr>
        | <ident> <param> (* function application *)
