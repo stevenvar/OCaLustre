@@ -80,13 +80,13 @@ let remove_inputs_dependency g inputs =
     g G.empty
 
 (* reverse topological sort of the graph = order of the dependencies *)
-let rec toposort topo g name =
+let rec toposort topo g name loc =
   if G.is_empty g then List.rev topo
   else
     let g1 , g2 = G.partition (fun ((_,_),s) -> S.is_empty s) g in
     if G.is_empty g1 then
       let vars = G.fold (fun ((s,e),_) l -> s^" "^l) g "" in
-      Error.print_error loc_default
+      Error.print_error loc
         ("Causality loop in node "^name^" including these variables : "^vars )
     else
     let sv =
@@ -102,7 +102,7 @@ let rec toposort topo g name =
         (fun ((_,e),s) l -> if List.mem e l then l else e::l)
         g1 topo
     in
-    toposort topo g name
+    toposort topo g name loc
 
 let schedule node =
   let inputs = node.inputs in
@@ -118,7 +118,7 @@ let schedule node =
   let g = remove_inputs_dependency g inputs
   in
   let name = List.hd (get_patt_id node.name) in
-  let eqs = toposort [] g name in
+  let eqs = toposort [] g name node.name.p_loc in
   {
     name = node.name;
     inputs = node.inputs;

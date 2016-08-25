@@ -1,60 +1,19 @@
-open Clocked_ast
+
 open Parsetree
-open Ast
+open Imperative_ast
+open Parsing_ast
+open Clocking_ast
 
-type app_inits = (pattern * imp_expr) list
-and init = pattern * imp_expr
-and imp_inits = init list
-and imp_expr =
-  | IValue of constant
-  | IConstr of string
-  | IVariable of stream
-  | IApplication of ident * imp_expr list
-  | ITuple of imp_expr list
-  | IRef of ident
-  | IInfixOp of imp_infop * imp_expr * imp_expr
-  | IPrefixOp of imp_preop * imp_expr
-  | IAlternative of imp_expr * imp_expr * imp_expr
-  | IFlow of stream
-  | IUnit
-and
-  imp_infop =
-  | IEquals
-  | IDiff
-  | IPlus
-  | IMinus
-  | ITimes
-  | IDiv
-  | IPlusf
-  | IMinusf
-  | IDivf
-  | ITimesf
-and
-  imp_preop =
-  | INot
+let get_ident p =
+  match p.cp_desc with
+  | Ident i -> i
+  | _ -> failwith "tuple"
 
-type imp_equation =  {
-  i_pattern : pattern;
-  i_expression : imp_expr;
-}
-
-type imp_step = {
-  i_equations : imp_equation list;
-  i_updates : (pattern * imp_expr) list;
-}
-
-type imp_node = {
-  i_name : ident;
-  i_inputs : ident list;
-  i_outputs : ident list;
-  i_inits : imp_inits;
-  i_step_fun : imp_step;
-}
-
-let rec compile_expression (e,c) p =
+let rec compile_expression e p =
   let compile_preop op =
     match op with
     | Not -> INot
+    | Neg -> INeg
   in
   let compile_infop op =
     match op with
@@ -69,12 +28,12 @@ let rec compile_expression (e,c) p =
     | Timesf -> ITimesf
     | Divf -> IDivf
   in
-  match e with
+  match e.ce_desc with
   | CValue v -> IValue v
-  | CVariable (s,c) -> IVariable s
+  | CVariable s -> IVariable s
   | CApplication (i, el) ->
-     let iel = List.map (fun e -> compile_expression e p) el in
-     IApplication (i, iel)
+    let iel = List.map (fun e -> compile_expression e p) el in
+    IApplication (i, iel)
   | CInfixOp (op,e1,e2) ->
     IInfixOp(compile_infop op,
              compile_expression e1 p,
@@ -86,58 +45,56 @@ let rec compile_expression (e,c) p =
                   compile_expression e2 p,
                   compile_expression e3 p)
   | CUnit -> IUnit
-  | CFby (v,e') -> IRef p
-  | CArrow (v,e') ->
-    let init = mk_ident "_init" in
-    IAlternative (IRef init , IValue v, compile_expression e' p)
+  | CFby (v,e') -> IRef (get_ident p)
   | CWhen (e',i) -> compile_expression e' p
-  | CCurrent e' -> compile_expression e' p
-  | CPre (v,c) -> IFlow v
+  | _ -> assert false
+
 
 let generate_inits cnode =
   let generate_init e l =
-    match fst e.cexpression with
-    | CFby (v, e') -> ( fst e.cpattern , IValue v)::l
-    | CApplication (i,el) -> (fst e.cpattern, IApplication (i,[]))::l
+    match e.cexpression.ce_desc with
+    | CFby (v, e') -> ( e.cpattern , IValue v)::l
+    | CApplication (i,el) -> (e.cpattern, IApplication (i,[]))::l
     | _ -> l
   in
   List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations
 
 let init_pre cnode =
-  let rec gen_pre name (exp,c) l =
-    match exp with
+  let rec gen_pre name exp l =
+    match exp.ce_desc with
     | CFby (v, e') -> gen_pre name e' l
     | CPre v -> (name, IConstr "None")::l
     | _ -> l
   in
-  List.fold_left (fun acc e -> gen_pre (fst e.cpattern) (e.cexpression) acc) [] cnode.cequations
-
-
+  List.fold_left
+    (fun acc e -> gen_pre e.cpattern e.cexpression acc)
+    []
+    cnode.cequations
 
 
 let generate_updates cnode =
   let aux eq l =
-    match fst eq.cexpression with
-    | CFby (v,e') -> (fst eq.cpattern , compile_expression e' (fst eq.cpattern))::l
+    match eq.cexpression.ce_desc with
+    | CFby (v,e') -> (eq.cpattern , compile_expression e' eq.cpattern)::l
     | _ -> l
   in
   List.fold_left (fun acc e -> aux e acc) [] cnode.cequations
 
 
 let compile_equation e =
-  let pat = fst e.cpattern in
+  let pat = e.cpattern in
   {
-  i_pattern =pat;
-  i_expression = compile_expression e.cexpression pat;
-}
+    i_pattern = pat;
+    i_expression = compile_expression e.cexpression pat;
+  }
 
 let compile_io l =
-  List.map (fun (io,c) -> io) l
+  List.map (fun io -> get_ident io) l
 
 let compile_cnode cnode =
 
   {
-    i_name = cnode.cname;
+    i_name = get_ident (cnode.cname) ;
     i_inputs = compile_io cnode.cinputs;
     i_outputs = compile_io cnode.coutputs;
     i_inits = generate_inits cnode;

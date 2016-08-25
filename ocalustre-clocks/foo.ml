@@ -6,9 +6,8 @@
   d = 1 ->> x*)
 
 
-let%node naturels ~i:(x) ~o:(d,e) =
-  e = 3 @> x ;
-  d = 1 ->> 2
+let%node naturels ~i:() ~o:(n) =
+  n = 1 ->> (1 --> ( (pre n) + n))
 
 let _ =
   let nat = naturels () in

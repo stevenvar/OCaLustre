@@ -99,7 +99,7 @@ let rec mk_expr e =
   | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] ->> [%e? e2] ]  -> { e_desc = Fby (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc  }
   | [%expr [%e? e1] --> [%e? e2] ]  ->  { e_desc = Arrow (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] @> [%e? e2] ] -> { e_desc =  When (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc }
+  | [%expr [%e? e1] @ [%e? e2] ] -> { e_desc =  When (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc }
   | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
      let app = Application(checkname_ident e1,
