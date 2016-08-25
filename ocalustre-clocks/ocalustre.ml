@@ -6,13 +6,16 @@ open Longident
 open Parsing_ocl
 open Parsing_ast
 open Parsing_ast_printer
-open Scheduling
+open Clocking_ast
+open Clocking_ocl
+open Clocking_ast_printer
+(*open Scheduling
 open Clocked_ast
 open Clocked_ast_printer
 open Compiling
 open Ast_imperative_printer
 open Extract
-open Expand
+open Expand *)
 
 
 (*open Transform
@@ -26,8 +29,9 @@ open Ast_clock_printer
    let%node NAME ~fin:(IN1,IN2,...) ~fout:(OUT1, OUT2, ...) =
     OUT1 = IN1;
     ...
-
 *)
+
+
 
 let lustre_mapper argv =
   { default_mapper with
@@ -38,14 +42,16 @@ let lustre_mapper argv =
           | Pstr_value (_,[v]) ->
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             print_node Format.std_formatter _node;
-            assert false 
+            let cnode = cl_node _node in
+            print_cnode Format.std_formatter cnode; 
+            assert false
            (*  let _node = expand_node _node in
             print_node Format.std_formatter _node;
             let _node = schedule _node in
 
                let cnode = cl_node _node in *)
 (*            let inode = compile_node _node in *)
-            (* )print_node Format.std_formatter _node; 
+            (* )print_node Format.std_formatter _node;
             print_cnode Format.std_formatter cnode;
             *)
             (*let inode = compile_cnode cnode in

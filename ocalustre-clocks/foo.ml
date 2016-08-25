@@ -6,10 +6,9 @@
   d = 1 ->> x*)
 
 
-let%node naturels ~i:() ~o:(d,e) =
-  e = 2 ->> 1;
-  d = 1 ->> 2 
-
+let%node naturels ~i:(x) ~o:(d,e) =
+  e = 3 @when x ; 
+  d = 1 ->> 2
 
 let _ =
   let nat = naturels () in
@@ -17,4 +16,3 @@ let _ =
     let d,e = nat () in
     Printf.printf "%d %d\n" d e;
   done
-  
