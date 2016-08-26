@@ -97,10 +97,14 @@ let rec clock_exp hst e =
     { ce_desc = e'; ce_loc = e.e_loc ; ce_clock = ce1.ce_clock}
   | When (e1,e2) ->
     let ce1 = clock_exp hst e1 in
+    let ce2 = clock_exp hst e2 in
     let i = get_ident e2 in
     let ck = On (List.hd ce1.ce_clock,i) in
     let e' = CWhen (ce1,i) in
-    { ce_desc = e' ; ce_loc = e.e_loc ; ce_clock = [ck]}
+    if (clock_eq ce1.ce_clock ce2.ce_clock) then
+      { ce_desc = e' ; ce_loc = e.e_loc ; ce_clock = [ck]}
+    else
+      clock_err [ce1.ce_clock;ce2.ce_clock] e.e_loc
   | Unit ->
     { ce_desc = CUnit ; ce_loc = e.e_loc ; ce_clock = [Base]}
   | Pre e ->

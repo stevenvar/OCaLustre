@@ -5,6 +5,7 @@ open Parsing_ocl
 
 type vertice = string * equation
 
+
 module S = Set.Make(String)
 
 (* We use a graph to represent dependences *)
@@ -23,7 +24,7 @@ let rec get_patt_id { p_desc ; p_loc } =
   | Ident i -> [i]
   | Tuple t -> List.flatten (List.map get_patt_id t)
 
-let rec get_expr_id e s =
+let rec get_expr_id e s  =
   match e.e_desc with
   | Variable i -> S.add i s
   | Alternative (e1,e2,e3) ->
@@ -31,7 +32,7 @@ let rec get_expr_id e s =
     let s = get_expr_id e2 s in
     get_expr_id e3 s
   | Application (i,el) ->
-     List.fold_left (fun accu e -> get_expr_id e accu) s el
+    List.fold_left (fun accu e -> get_expr_id e accu) s el
   | InfixOp (op, e1, e2) ->
     let s = get_expr_id e1 s in
     get_expr_id e2 s
@@ -80,6 +81,7 @@ let remove_inputs_dependency g inputs =
   G.fold (fun ((y,e),s) g -> G.add ((y,e),S.diff s inputs') g)
     g G.empty
 
+
 (* reverse topological sort of the graph = order of the dependencies *)
 let rec toposort topo g name loc =
   if G.is_empty g then List.rev topo
@@ -90,20 +92,20 @@ let rec toposort topo g name loc =
       Error.print_error loc
         ("Causality loop in node "^name^" including these variables : "^vars )
     else
-    let sv =
-      G.fold (fun ((x,_),_) s -> S.add x s) g1 S.empty
-    in
-    let g =
-      G.fold
-        (fun ((y,e),s) g -> G.add ((y,e),S.diff s sv) g)
-        g2 G.empty
-    in
-    let topo =
-      G.fold
-        (fun ((_,e),s) l -> if List.mem e l then l else e::l)
-        g1 topo
-    in
-    toposort topo g name loc
+      let sv =
+        G.fold (fun ((x,_),_) s -> S.add x s) g1 S.empty
+      in
+      let g =
+        G.fold
+          (fun ((y,e),s) g -> G.add ((y,e),S.diff s sv) g)
+          g2 G.empty
+      in
+      let topo =
+        G.fold
+          (fun ((_,e),s) l -> if List.mem e l then l else e::l)
+          g1 topo
+      in
+      toposort topo g name loc
 
 let schedule node =
   let inputs = node.inputs in

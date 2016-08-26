@@ -9,7 +9,8 @@ open Parsing_ast_printer
 open Clocking_ast
 open Clocking_ocl
 open Clocking_ast_printer
-open Scheduling
+(* open Scheduling *)
+open Scheduler
 open Normalizing
 open Imperative_ast
 open Imperative_ast_printer
@@ -46,11 +47,15 @@ let lustre_mapper argv =
             print_node Format.std_formatter _node;
             let _node = schedule _node in
             print_node Format.std_formatter _node;
+            
+            (* let _node = schedule _node in
+               print_node Format.std_formatter _node; *)
+
             let _cnode = cl_node _node in
             print_cnode Format.std_formatter _cnode;
             let _inode = compile_cnode _cnode in
             printml_node Format.std_formatter _inode;
-            tocaml_node _inode
+           tocaml_node _inode
            (*  let _node = expand_node _node in
             print_node Format.std_formatter _node;
             let _node = schedule _node in
