@@ -41,8 +41,8 @@ with
 <ident> ::= [a-zA-z][a-zA-Z0-9]*
 <value> ::= int | bool | float
 <param> ::= (<ident>,*) | <ident>
-<inputs> ::= <param>
-<outputs> ::= <param>
+<inputs> ::= (<param>,*)
+<outputs> ::= (<param>,*)
 <out> ::= <ident> | (<ident>,*)
 <binop> ::= + | - | / | * | +. | -. | /. | *. | < | > | <= | >= | = | <>
 <unop> ::= not | - | -.
@@ -59,9 +59,9 @@ is - at compile time - automatically transformed into :
 
 ```ocaml
 let%node foo ~i:() ~o:(a,c,b) =
-a = 7;
-b = a * 3;
-c = b + a
+  a = 7;
+  b = a * 3;
+ c = b + a
 ```
 
 Note that scenarios where flows mutually depend on each others (ie. causality loops) are rejected during compilation :
