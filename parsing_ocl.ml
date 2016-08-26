@@ -86,9 +86,10 @@ let rec get_idents l e =
 let rec mk_expr e =
   match e with
   | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
-  | [%expr ( [%e? e1],[%e? e2] ) ] ->
-    { e_desc = ETuple ((mk_expr e2)::(mk_expr e1)::[]) ;
-      e_loc = e.pexp_loc }
+  | { pexp_desc = Pexp_tuple el ; pexp_loc ; pexp_attributes} ->
+    let l = List.map mk_expr el in
+    { e_desc = ETuple (l) ;
+      e_loc = pexp_loc }
 
   | [%expr [%e? e1] = [%e? e2] ] ->
     { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ;

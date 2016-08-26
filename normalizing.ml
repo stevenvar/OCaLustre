@@ -97,7 +97,7 @@ let rec normalize_exp l exp =
   (*TODO*)
   | Unit -> l , exp
   | ETuple el ->
-    let (l',el') = List.fold_left (fun (_l,_e) e -> let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) (l,[]) el in
+    let (l',el') = List.fold_right (fun e (_l,_e) -> let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
     l', { exp with e_desc = ETuple el' }
   | _ -> assert false
 
