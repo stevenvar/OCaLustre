@@ -22,7 +22,7 @@ and pattern = {
 }
 and patt_desc =
   | Ident of ident
-  | Tuple of ident list
+  | Tuple of pattern list
 
 and exp_desc =
   | Alternative of expression * expression * expression
@@ -33,6 +33,7 @@ and exp_desc =
   | Variable of ident
   | Fby of expression * expression
   | When of expression * expression
+  | ETuple of expression list
   (* | Current of expression *)
   | Arrow of expression * expression
   | Pre of expression

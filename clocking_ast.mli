@@ -17,10 +17,14 @@ and cexpression = {
   ce_clock : clk
 }
 and cpattern = {
-  cp_desc : patt_desc;
+  cp_desc : cpatt_desc;
   cp_loc : Location.t;
   cp_clock : clk
 }
+
+and cpatt_desc =
+  | CIdent of ident
+  | CTuple of cpattern list
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
@@ -33,4 +37,5 @@ and cexp_desc =
   | CArrow of cexpression * cexpression
   | CWhen of cexpression * ident
   | CPre of cexpression
+  | CETuple of cexpression list
   | CUnit

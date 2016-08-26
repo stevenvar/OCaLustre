@@ -21,7 +21,7 @@ module G = Set.Make(
 let rec get_patt_id { p_desc ; p_loc } =
   match p_desc with
   | Ident i -> [i]
-  | Tuple t -> t
+  | Tuple t -> List.flatten (List.map get_patt_id t)
 
 let rec get_expr_id e s =
   match e.e_desc with
@@ -43,6 +43,7 @@ let rec get_expr_id e s =
   | When (e,i) -> get_expr_id e s
   | Unit -> s
   | Pre e -> get_expr_id e s
+  | ETuple el -> List.fold_left (fun accu e -> get_expr_id e accu) s el
 
 (* make the graph *)
 let mk_dep_graph eqs =

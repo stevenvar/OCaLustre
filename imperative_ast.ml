@@ -11,11 +11,11 @@ and imp_expr =
   | IConstr of string
   | IVariable of ident
   | IApplication of ident * imp_expr list
-  | ITuple of imp_expr list
   | IRef of ident
   | IInfixOp of imp_infop * imp_expr * imp_expr
   | IPrefixOp of imp_preop * imp_expr
   | IAlternative of imp_expr * imp_expr * imp_expr
+  | IETuple of imp_expr list
   | IUnit
 and
   imp_infop =
@@ -47,8 +47,8 @@ type imp_step = {
 
 type imp_node = {
   i_name : ident;
-  i_inputs : ident list;
-  i_outputs : ident list;
+  i_inputs : cpattern list;
+  i_outputs : cpattern list;
   i_inits : imp_inits;
   i_step_fun : imp_step;
 }

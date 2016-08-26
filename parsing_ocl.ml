@@ -32,25 +32,37 @@ let ( // ) e1 e2 = InfixOp (Div, e1, e2)
 
 let mk_not e1 = PrefixOp ( Not , e1)
 
+let string_of_pattern p =
+  match p.ppat_desc with
+  | Ppat_var sl -> sl.txt
+  | _ -> failwith "not a good pattern"
 
 (* check if the pattern is a variable *)
-let checkname_pattern n =
+let rec checkname_pattern n =
   match n.ppat_desc with
-    Ppat_var sl -> {p_loc=sl.loc ; p_desc= Ident sl.txt }
+  |  Ppat_var sl -> {p_loc=sl.loc ; p_desc= Ident sl.txt }
+  |  Ppat_tuple t -> {p_loc=n.ppat_loc ; p_desc= Tuple (List.map checkname_pattern t) }
   | _ -> Error.print_error n.ppat_loc "this is not a pattern"
 
 (* check if the name is an ident  *)
 let checkname_ident id =
   match id.pexp_desc with
     Pexp_ident {loc; txt=Lident s } -> s
-  | _ -> Error.print_error id.pexp_loc "this is not an expression"
+  | _ -> Error.print_error id.pexp_loc "this is not an ident"
+
+(* check if the tuple is an ident list  *)
+let checkname_tuple il =
+  List.map checkname_ident il
+
+
+
 
 (* Returns the idents inside each construct in a list *)
 let rec get_idents l e =
   match e.e_desc with
   | Variable i -> i::l
   | Application (i,el) ->
-     List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
+    List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
   | Alternative (e1,e2,e3) ->
     let l = get_idents l e3 in
     let l = get_idents l e2 in
@@ -66,6 +78,7 @@ let rec get_idents l e =
   | Fby (i , e') -> get_idents l e'
   | Arrow (i, e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
+  | ETuple (el) -> List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
   | Pre (e) ->  get_idents l e
 
 
@@ -73,23 +86,41 @@ let rec get_idents l e =
 let rec mk_expr e =
   match e with
   | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] = [%e? e2] ] -> { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] <> [%e? e2] ] -> { e_desc = InfixOp(Diff, mk_expr e1, mk_expr e2) ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] + [%e? e2] ] -> { e_desc = mk_expr e1 +/ mk_expr e2 ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] * [%e? e2] ] -> { e_desc = mk_expr e1 */ mk_expr e2 ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] - [%e? e2] ] -> { e_desc = mk_expr e1 -/ mk_expr e2 ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] / [%e? e2] ] -> { e_desc = mk_expr e1 // mk_expr e2 ; e_loc = e.pexp_loc }
+  | [%expr ( [%e? e1],[%e? e2] ) ] ->
+    { e_desc = ETuple ((mk_expr e2)::(mk_expr e1)::[]) ;
+      e_loc = e.pexp_loc }
+
+  | [%expr [%e? e1] = [%e? e2] ] ->
+    { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ;
+      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] <> [%e? e2] ] ->
+    { e_desc = InfixOp(Diff, mk_expr e1, mk_expr e2) ;
+      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] + [%e? e2] ] -> { e_desc = mk_expr e1 +/ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] * [%e? e2] ] -> { e_desc = mk_expr e1 */ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] - [%e? e2] ] -> { e_desc = mk_expr e1 -/ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] / [%e? e2] ] -> { e_desc = mk_expr e1 // mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
-    { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ; e_loc = e.pexp_loc }
-  | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ; e_loc = e.pexp_loc }
-  | [%expr ~- [%e? e] ] -> { e_desc = PrefixOp (Neg,(mk_expr e)) ; e_loc = e.pexp_loc }
-  | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ; e_loc = e.pexp_loc }
+    { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
+      e_loc = e.pexp_loc }
+  | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ;
+                              e_loc = e.pexp_loc }
+  | [%expr ~- [%e? e] ] -> { e_desc = PrefixOp (Neg,(mk_expr e)) ;
+                             e_loc = e.pexp_loc }
+  | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ;
+                              e_loc = e.pexp_loc }
   | { pexp_desc = Pexp_constant c;
       pexp_loc ;
       pexp_attributes } ->
     begin match c with
-      | Pconst_integer (i,s) -> { e_desc = Value (Integer (int_of_string i)) ; e_loc = e.pexp_loc }
-      | Pconst_float (f,s) -> { e_desc = Value (Float (float_of_string f)) ; e_loc = e.pexp_loc }
+      | Pconst_integer (i,s) -> { e_desc = Value (Integer (int_of_string i)) ;
+                                  e_loc = e.pexp_loc }
+      | Pconst_float (f,s) -> { e_desc = Value (Float (float_of_string f)) ;
+                                e_loc = e.pexp_loc }
       | _ -> assert false   (* only int/float ftm *)
     end
   | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
@@ -99,18 +130,24 @@ let rec mk_expr e =
      pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
   | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
   | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] ->> [%e? e2] ]  -> { e_desc = Fby (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] --> [%e? e2] ]  ->  { e_desc = Arrow (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] @ [%e? e2] ] -> { e_desc =  When (mk_expr e1 , mk_expr e2) ; e_loc = e.pexp_loc }
+  | [%expr [%e? e1] ->> [%e? e2] ]  ->
+    { e_desc = Fby (mk_expr e1 , mk_expr e2);
+      e_loc = e.pexp_loc  }
+  | [%expr [%e? e1] --> [%e? e2] ]  ->
+    { e_desc = Arrow (mk_expr e1 , mk_expr e2) ;
+      e_loc = e.pexp_loc  }
+  | [%expr [%e? e1] @ [%e? e2] ] ->
+    { e_desc =  When (mk_expr e1 , mk_expr e2) ;
+      e_loc = e.pexp_loc }
   | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
-     let app = Application(checkname_ident e1,
-                 begin match e2.pexp_desc with
-                 | Pexp_tuple l -> List.map mk_expr l
-                 | _ -> [mk_expr e2]
-                 end )
-     in
-     { e_desc = app ; e_loc = e.pexp_loc }
+    let app = Application(checkname_ident e1,
+                          begin match e2.pexp_desc with
+                            | Pexp_tuple l -> List.map mk_expr l
+                            | _ -> [mk_expr e2]
+                          end )
+    in
+    { e_desc = app ; e_loc = e.pexp_loc }
   | _ ->
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc
@@ -119,8 +156,25 @@ let rec mk_expr e =
 let mk_equation eq =
   match eq with
   | [%expr [%e? p] = [%e? e] ] ->
+    begin
+      match p.pexp_desc with
+    | Pexp_ident _ ->
     {pattern= { p_desc =  Ident (checkname_ident p) ; p_loc = p.pexp_loc } ;
      expression = mk_expr e}
+    | Pexp_tuple tu ->
+      let tul = List.map
+          (fun p -> {p_desc = Ident (checkname_ident p) ; p_loc = p.pexp_loc })
+          tu in
+    {pattern= { p_desc =  Tuple tul ; p_loc = p.pexp_loc } ;
+     expression = mk_expr e}
+    | _ -> Error.syntax_error eq.pexp_loc
+    end
+      (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
+    pexp_loc ;
+      pexp_attributes} ->
+    print_endline "tuuuuple";
+    {pattern= { p_desc =  Tuple (checkname_tuple p) ; p_loc = pexp_loc } ;
+            expression = mk_expr (snd e)} *)
   | _ -> Error.syntax_error eq.pexp_loc
 
 
@@ -133,7 +187,6 @@ let rec mk_equations eqs =
 
 (* check that the I/O are tuples and returns a list of corresponding idents *)
 let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
-
   match pexp_desc with
   | Pexp_fun (l,_,p,e) ->
     if s = l then
@@ -144,18 +197,18 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
       | Ppat_constraint (p,t) ->
         begin match p.ppat_desc with
           | Ppat_var s -> [checkname_pattern p], e
-          | _ -> failwith "unknown"
+          | _ -> Error.syntax_error p.ppat_loc
         end
       | _ -> Error.syntax_error p.ppat_loc
     else
       Error.syntax_error body.pexp_loc
-(*  | [%expr fun () -> [%e? body] ] -> ( [], body)
-  | [%expr fun [%p? inputs] -> [%e? body] ] ->
-    begin match inputs.ppat_desc with
-      | Ppat_var s -> ([(checkname_pattern inputs)], body )
-      | Ppat_tuple l -> (List.map (fun x -> checkname_pattern x) l, body) (* todo *)
-      | _ -> (* Error.syntax_error body.pexp_loc *) failwith "okok"
-    end *)
+  (*  | [%expr fun () -> [%e? body] ] -> ( [], body)
+      | [%expr fun [%p? inputs] -> [%e? body] ] ->
+      begin match inputs.ppat_desc with
+        | Ppat_var s -> ([(checkname_pattern inputs)], body )
+        | Ppat_tuple l -> (List.map (fun x -> checkname_pattern x) l, body) (* todo *)
+        | _ -> (* Error.syntax_error body.pexp_loc *) failwith "okok"
+      end *)
   | _ -> Error.syntax_error body.pexp_loc
 
 

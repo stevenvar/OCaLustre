@@ -31,6 +31,7 @@ let rec get_clock hst e =
   (*)  On ((get_clock hst e), e2) (* the clock is in the expression *) *)
   | Unit -> Base
   | Pre e -> get_clock hst e
+  | ETuple el -> get_clock hst (List.hd el)
 
 let rec clock_err cl loc =
   match cl with
@@ -105,18 +106,30 @@ let rec clock_exp hst e =
   | Pre e ->
     let ce = clock_exp hst e in
     { ce_desc = CPre ce ; ce_loc = e.e_loc ; ce_clock = ce.ce_clock }
+  | ETuple el ->
+    let cel = List.map (fun e -> clock_exp hst e) el in
+    { ce_desc = CETuple(cel) ; ce_loc = e.e_loc ; ce_clock = [Base] } (* TODO *)
+
+let rec cpat_of_pat ck p =
+  match p.p_desc with
+  | Ident i -> { cp_desc = CIdent i ; cp_loc = p.p_loc ; cp_clock = ck }
+  | Tuple t ->
+    let pl = List.map (cpat_of_pat ck) t in
+    { cp_desc = CTuple pl ; cp_loc = p.p_loc ; cp_clock = ck }
 
 
 let clock_equations hst el =
-  let clock_eq e =
+  let rec aux hst ck p=
+  begin match p.p_desc with
+    | Ident i -> Hashtbl.add hst i ck
+    | Tuple t -> List.iter (aux hst ck) t
+  end;
+  in
+  let rec clock_eq e =
     let ce = clock_exp hst e.expression in
-    begin match e.pattern.p_desc with
-      | Ident i -> Hashtbl.add hst i (List.hd ce.ce_clock)
-      | Tuple t -> failwith "todo"
-    end;
-    let cpat = { cp_desc = e.pattern.p_desc;
-                 cp_loc = e.pattern.p_loc;
-                 cp_clock = ce.ce_clock}
+    aux hst (List.hd ce.ce_clock) e.pattern;
+
+    let cpat = cpat_of_pat ce.ce_clock e.pattern
     in
     { cpattern = cpat ; cexpression = ce }
   in
@@ -126,8 +139,8 @@ let clock_io hst ios =
   let aux hst io =
     match io.p_desc with
     | Ident i ->  let ck = (try Hashtbl.find hst i with _ -> Base) in
-      { cp_desc = io.p_desc ; cp_loc = io.p_loc ; cp_clock = [ck]}
-    | Tuple t -> failwith "todo"
+      cpat_of_pat [ck] io
+    | Tuple t -> cpat_of_pat [Base] io (*todo*)
   in
   List.map (fun x -> aux hst x) ios
 
@@ -139,5 +152,5 @@ let cl_node node =
   let clocks_in = List.map (fun x -> x.cp_clock) cinputs in
   let clocks_out = List.map (fun x -> x.cp_clock) coutputs in
   let ll = List.flatten (clocks_in@clocks_out) in
-  let cname = { cp_desc = node.name.p_desc ; cp_loc = node.name.p_loc ; cp_clock = ll} in
+  let cname = cpat_of_pat ll node.name in
   { cname ; cinputs; coutputs; cequations }

@@ -2,30 +2,20 @@ open Imperative_ast
 open Parsing_ast_printer
 open Clocking_ast
 open Parsing_ast
-(*
-let printml_string fmt p =
-  Format.fprintf fmt "%s" p
-*)
-
-let rec printml_tuple fmt l =
-  match l with
-  | [] -> ()
-  | [x] -> Format.fprintf fmt "%s"  x
-  | h::t -> Format.fprintf fmt "%s," h; printml_tuple fmt t
-
-(*
-let printml_pattern fmt p =
-  -> printml_string fmt x.content
-
-*)
 
 
 
-let print_pattern fmt p =
+
+let rec print_pattern fmt p =
   match p.cp_desc with
-  | Ident i -> Format.fprintf fmt "%s" i
-  | Tuple t -> Format.fprintf fmt "%a" print_tuple t
+  | CIdent i -> Format.fprintf fmt "%s" i
+  | CTuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
 
+  let rec printml_tuple fmt l =
+    match l with
+    | [] -> ()
+    | [x] -> Format.fprintf fmt "%a"  print_pattern x
+    | h::t -> Format.fprintf fmt "%a,"  print_pattern h; printml_tuple fmt t
 
 let rec printml_expression fmt exp =
   let printml_preop fmt op =
@@ -58,7 +48,6 @@ let rec printml_expression fmt exp =
   in
   match exp with
   | IValue c -> print_value fmt c
-  | ITuple t -> printml_expressions fmt t
   | IVariable v ->  Format.fprintf fmt "%s" v
   | IRef v -> Format.fprintf fmt "!pre_%s" v
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
@@ -77,6 +66,8 @@ let rec printml_expression fmt exp =
                              i
                              printml_expressions el
   | IConstr s -> Format.fprintf fmt "%s" s
+  | IETuple el -> Format.fprintf fmt "(%a)"
+                    printml_expressions el
 
 
 let printml_updates fmt il =
@@ -109,7 +100,7 @@ let rec printml_io fmt il =
 let printml_step fmt node =
   Format.fprintf fmt "let %s_step (%a) = \n%a%a(%a) \n in %s_step "
     node.i_name
-    printml_tuple node.i_inputs
+    (print_list print_pattern) node.i_inputs
     printml_equations node.i_step_fun.i_equations
     printml_updates node.i_step_fun.i_updates
     printml_tuple node.i_outputs

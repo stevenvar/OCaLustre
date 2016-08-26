@@ -14,10 +14,10 @@ let rec print_clock fmt cl =
   print_list print_one_clock fmt cl
 
 
-let print_cpattern fmt { cp_desc ; cp_loc ; cp_clock } =
+let rec print_cpattern fmt { cp_desc ; cp_loc ; cp_clock } =
   match cp_desc with
-  | Ident i -> Format.fprintf fmt "(%s)%a" i print_clock cp_clock
-  | Tuple t -> Format.fprintf fmt "(%a)%a" print_tuple t print_clock cp_clock
+  | CIdent i -> Format.fprintf fmt "(%s)%a" i print_clock cp_clock
+  | CTuple t -> Format.fprintf fmt "(%a)%a" (print_list print_cpattern) t print_clock cp_clock
 
 let print_io fmt l =
   print_list print_cpattern fmt l
@@ -70,6 +70,9 @@ let rec print_cexpression fmt { ce_desc ; ce_loc; ce_clock }=
                      print_clock ce_clock
   | CApplication (i,el) -> Format.fprintf fmt "(%s (%a))%a"
                              i
+                             print_cexpression_list el
+                             print_clock ce_clock
+  | CETuple el -> Format.fprintf fmt "(%a)%a"
                              print_cexpression_list el
                              print_clock ce_clock
 

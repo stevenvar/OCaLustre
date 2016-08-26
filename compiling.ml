@@ -6,8 +6,8 @@ open Clocking_ast
 
 let get_ident p =
   match p.cp_desc with
-  | Ident i -> i
-  | _ -> failwith "tuple"
+  | CIdent i -> i
+  | _ -> failwith "no tuple"
 
 let rec compile_expression e p =
   let compile_preop op =
@@ -48,6 +48,9 @@ let rec compile_expression e p =
   | CUnit -> IUnit
   | CFby (v,e') -> IRef (get_ident p)
   | CWhen (e',i) -> compile_expression e' p
+  | CETuple el ->
+    let iel = List.map (fun e -> compile_expression e p) el in
+    IETuple (iel)
   | _ -> assert false
 
 
@@ -88,15 +91,12 @@ let compile_equation e =
     i_expression = compile_expression e.cexpression pat;
   }
 
-let compile_io l =
-  List.map (fun io -> get_ident io) l
-
 let compile_cnode cnode =
 
   {
     i_name = get_ident (cnode.cname) ;
-    i_inputs = compile_io cnode.cinputs;
-    i_outputs = compile_io cnode.coutputs;
+    i_inputs = cnode.cinputs;
+    i_outputs = cnode.coutputs;
     i_inits = generate_inits cnode;
     i_step_fun = {
       i_equations = List.map (compile_equation) cnode.cequations;

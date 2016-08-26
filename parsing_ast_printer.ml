@@ -16,16 +16,11 @@ let rec print_list f fmt l =
 
 let print_ident fmt i = Format.fprintf fmt "%s" i
 
-let rec print_tuple fmt l =
-  match l with
-  | [x] -> Format.fprintf fmt "%s" x
-  | h::t -> Format.fprintf fmt "%s," h; print_tuple fmt t
-  | [] -> ()
 
-let print_pattern fmt p =
+let rec print_pattern fmt p =
   match p.p_desc with
-  | Ident i -> Format.fprintf fmt "(%s)" i
-  | Tuple t -> Format.fprintf fmt "(%a)" print_tuple t
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
 
 let print_io fmt l =
     Format.fprintf fmt "(%a)"
@@ -93,6 +88,8 @@ let rec print_expression fmt e =
                     print_expression e2
   | Pre e -> Format.fprintf fmt "(pre %a)"
                print_expression e
+  | ETuple el -> Format.fprintf fmt "(%a)"
+                 print_expression_list el
 
 
 let print_equation fmt e =
