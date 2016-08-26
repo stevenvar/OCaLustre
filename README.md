@@ -61,15 +61,15 @@ is - at compile time - automatically transformed into :
 let%node foo ~i:() ~o:(a,c,b) =
   a = 7;
   b = a * 3;
- c = b + a
+  c = b + a
 ```
 
 Note that scenarios where flows mutually depend on each others (ie. causality loops) are rejected during compilation :
 
 ```ocaml
 let%node loop ~i:() ~o:(a,b) =
-a = 7 + b;
-b = a - 2
+  a = 7 + b;
+  b = a - 2
 ```
 ```
   Error:Causality loop in node loop including these variables : b a
