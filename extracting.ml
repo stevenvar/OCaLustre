@@ -13,14 +13,8 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
     loc = Location.none
   }
 
-let lid_of_pattern ?(prefix="") ?(suffix="") p =
-  match p.cp_desc with
-  | CIdent i ->
-  {
-    txt = Lident (prefix^i^suffix);
-    loc = Location.none
-  }
-  |  _ -> failwith "cannot accept a tuple"
+
+
 
 
 let rec tocaml_expression e =
@@ -104,14 +98,34 @@ let tocaml_updates node outs =
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates
 
+let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
+  match p.cp_desc with
+  | CIdent i ->
+    {
+      txt = Lident (prefix^i^suffix);
+      loc = Location.none
+    }
+  |  CTuple t -> failwith "no tuple"
+
+let rec pexp_of_pat p =
+    match p.cp_desc with
+    | CIdent i ->
+      { pexp_desc = Pexp_ident (lident_of_pattern p) ;
+        pexp_loc = p.cp_loc ;
+        pexp_attributes = [] }
+    | CTuple t ->
+      let tl = List.map (fun p -> pexp_of_pat p) t in
+      { pexp_desc = Pexp_tuple tl ;
+        pexp_loc = p.cp_loc ;
+        pexp_attributes = [] }
 
 let tocaml_outputs node =
   let aux ol =
-    List.map (fun o -> Exp.ident (lid_of_pattern o)) ol
+    List.map pexp_of_pat ol
   in
   match node.i_outputs with
   | [] -> [%expr () ]
-  | [x] -> [%expr [%e Exp.ident (lid_of_pattern x) ]]
+  | [x] -> [%expr [%e pexp_of_pat x ]]
   | _ -> [%expr [%e Exp.tuple (aux node.i_outputs) ] ]
 
 let tocaml_eq_list el acc =
