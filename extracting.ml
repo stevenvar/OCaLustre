@@ -105,7 +105,7 @@ let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
       txt = Lident (prefix^i^suffix);
       loc = Location.none
     }
-  |  CTuple t -> failwith "no tuple"
+  |  CTuple t -> failwith "no tuple !"
 
 let rec pexp_of_pat p =
     match p.cp_desc with
@@ -128,23 +128,27 @@ let tocaml_outputs node =
   | [x] -> [%expr [%e pexp_of_pat x ]]
   | _ -> [%expr [%e Exp.tuple (aux node.i_outputs) ] ]
 
+let rec pat_of_pattern p =
+  match p.cp_desc with
+  | CIdent i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
+                  ppat_loc = p.cp_loc ;
+                  ppat_attributes = [] }
+  | CTuple t ->
+    let tl = List.map (fun p -> pat_of_pattern p) t in
+    { ppat_desc = Ppat_tuple tl ;
+      ppat_loc = p.cp_loc ;
+      ppat_attributes = [] }
+
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =
     let x = e.i_pattern in
-    match x.cp_desc with
-    | CIdent i ->
-    let ppat = stringloc_of_pattern x in
+    let ppat = pat_of_pattern x in
     let pexpr = tocaml_expression e.i_expression in
-    [%expr let [%p Ast_helper.Pat.var ppat ] = ( [%e pexpr ] ) in  [%e acc ]]
-    | CTuple t ->
-      let lpat = List.map stringloc_of_pattern t in
-      let lastpat = List.map (fun x -> Ast_helper.Pat.var x ) lpat in
-      let pexpr = tocaml_expression e.i_expression in
-      [%expr let [%p Ast_helper.Pat.tuple lastpat ] = ( [%e pexpr ] ) in  [%e acc ] ]
-
-
+    [%expr let [%p ppat ] = ( [%e pexpr ] ) in  [%e acc ] ]
   in
   List.fold_left (fun l e -> tocaml_eq e l) acc el
+
+
 
 let tocaml_inits inits acc =
   let aux (p,e) acc =
@@ -162,16 +166,7 @@ let tocaml_inits inits acc =
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
 
-let rec pat_of_pattern p =
-  match p.cp_desc with
-  | CIdent i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
-                 ppat_loc = p.cp_loc ;
-                 ppat_attributes = [] }
-  | CTuple t ->
-    let tl = List.map (fun p -> pat_of_pattern p) t in
-    { ppat_desc = Ppat_tuple tl ;
-      ppat_loc = p.cp_loc ;
-      ppat_attributes = [] }
+
 
 let tocaml_inputs node pname acc =
   let aux il =

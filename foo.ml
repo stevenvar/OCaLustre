@@ -1,7 +1,7 @@
 
 
 let%node naturels ~i:(a,b,c) ~o:(d,e,f) =
-  (d,e,f) = (a,b,c)
+  ((d,e),f) = ((a,b),c)
 
 
 
