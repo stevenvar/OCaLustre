@@ -91,7 +91,6 @@ let rec remove_inputs_dep inputs g =
   | [] -> []
   | h::t -> aux h :: remove_inputs_dep inputs t
 
-
 let rec remove_dups lst= match lst with
   | [] -> []
   | h::t -> h::(remove_dups (List.filter (fun x -> x<>h) t))

@@ -54,9 +54,6 @@ let checkname_ident id =
 let checkname_tuple il =
   List.map checkname_ident il
 
-
-
-
 (* Returns the idents inside each construct in a list *)
 let rec get_idents l e =
   match e.e_desc with
@@ -153,6 +150,22 @@ let rec mk_expr e =
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc
 
+let id_of_lid lid =
+  match lid with
+  | Lident li -> li
+  | _ -> failwith "not a lident"
+
+let rec pat_of_pexp p =
+  match p.pexp_desc with
+  | Pexp_ident i -> { p_desc = Ident (id_of_lid i.txt) ;
+                  p_loc = p.pexp_loc ; }
+  | Pexp_tuple t ->
+    let tl = List.map (fun p -> pat_of_pexp p) t in
+    { p_desc = Tuple tl ;
+      p_loc = p.pexp_loc ;
+    }
+  | _ -> failwith "not an ident"
+
 (* creates equation node in the AST *)
 let mk_equation eq =
   match eq with
@@ -160,14 +173,13 @@ let mk_equation eq =
     begin
       match p.pexp_desc with
     | Pexp_ident _ ->
-    {pattern= { p_desc =  Ident (checkname_ident p) ; p_loc = p.pexp_loc } ;
-     expression = mk_expr e}
+      {
+        pattern= pat_of_pexp p ;
+        expression = mk_expr e
+    }
     | Pexp_tuple tu ->
-      let tul = List.map
-          (fun p -> {p_desc = Ident (checkname_ident p) ; p_loc = p.pexp_loc })
-          tu in
-    {pattern= { p_desc =  Tuple tul ; p_loc = p.pexp_loc } ;
-     expression = mk_expr e}
+     { pattern=  pat_of_pexp p;
+       expression = mk_expr e}
     | _ -> Error.syntax_error eq.pexp_loc
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
