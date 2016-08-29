@@ -4,6 +4,10 @@ open Imperative_ast
 open Parsing_ast
 open Clocking_ast
 
+let get_num =
+  let cpt = ref 0 in
+  fun () -> incr cpt; !cpt
+
 let get_ident p =
   match p.cp_desc with
   | CIdent i -> i
@@ -33,7 +37,8 @@ let rec compile_expression e p =
   | CValue v -> IValue v
   | CVariable s -> IVariable s
   | CApplication (i, e) ->
-    IApplication (i, compile_expression e p)
+    let num = get_num () in
+    IApplication (i, num, compile_expression e p)
   | CInfixOp (op,e1,e2) ->
     IInfixOp(compile_infop op,
              compile_expression e1 p,
@@ -53,14 +58,22 @@ let rec compile_expression e p =
   | _ -> assert false
 
 
-let generate_inits cnode =
+let generate_fby_inits el =
   let generate_init e l =
     match e.cexpression.ce_desc with
     | CFby (v, e') -> ( e.cpattern , IValue v)::l
-    | CApplication (i,el) -> (e.cpattern, IApplication (i,IUnit))::l
     | _ -> l
   in
-  List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations
+  List.fold_left (fun acc e -> generate_init e acc) [] el
+
+let generate_app_inits el =
+let generate_init e l =
+  match e.i_expression with
+  | IApplication (i,num,el) ->
+    (e.i_pattern, IApplication (i,num, IUnit))::l
+  | _ -> l
+in
+List.fold_left (fun acc e -> generate_init e acc) [] el
 
 let init_pre cnode =
   let rec gen_pre name exp l =
@@ -91,14 +104,16 @@ let compile_equation e =
   }
 
 let compile_cnode cnode =
-
+  let i_eqs = List.map (compile_equation) cnode.cequations in
+  let i_fby_inits = generate_fby_inits cnode.cequations in
+  let i_app_inits = generate_app_inits i_eqs in
   {
     i_name = get_ident (cnode.cname) ;
     i_inputs = cnode.cinputs;
     i_outputs = cnode.coutputs;
-    i_inits = generate_inits cnode;
+    i_inits = i_fby_inits@i_app_inits;
     i_step_fun = {
-      i_equations = List.map (compile_equation) cnode.cequations;
+      i_equations = i_eqs;
       i_updates = generate_updates cnode
     }
   }

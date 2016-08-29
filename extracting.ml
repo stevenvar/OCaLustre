@@ -50,9 +50,10 @@ let rec tocaml_expression e =
     [%expr [%e tocaml_expression e1 ] *. [%e tocaml_expression e2 ]]
   | IInfixOp (IDivf,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] /. [%e tocaml_expression e2 ]]
-  | IApplication (id, e) ->
+  | IApplication (id, num, e) ->
     let e' = tocaml_expression e in
-    [%expr [%e (Exp.ident (lid_of_ident ~suffix:"_step" id))] [%e e' ]]
+    let n = string_of_int num in
+    [%expr [%e (Exp.ident (lid_of_ident ~suffix:"_step" (id^n)))] [%e e' ]]
 
   | IAlternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
@@ -151,9 +152,10 @@ let tocaml_inits inits acc =
     | IValue _ ->
       [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
                ref ([%e tocaml_expression e]) in [%e acc] ]
-    | IApplication (i,_) ->
+    | IApplication (i,num,_) ->
       let listexp = [(Nolabel, [%expr ()])] in
-      [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" i)] =
+      let n = string_of_int num in
+      [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" (i^n))] =
                [%e Exp.apply
                    (Exp.ident (lid_of_ident i)) listexp ] in [%e acc] ]
 

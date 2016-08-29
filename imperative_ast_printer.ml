@@ -4,8 +4,6 @@ open Clocking_ast
 open Parsing_ast
 
 
-
-
 let rec print_pattern fmt p =
   match p.cp_desc with
   | CIdent i -> Format.fprintf fmt "%s" i
@@ -62,7 +60,7 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
-  | IApplication (i,e) -> Format.fprintf fmt "%s (%a)"
+  | IApplication (i,_,e) -> Format.fprintf fmt "%s (%a)"
                              i
                              printml_expression e
   | IConstr s -> Format.fprintf fmt "%s" s

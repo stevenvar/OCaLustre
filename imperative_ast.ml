@@ -10,7 +10,7 @@ and imp_expr =
   | IValue of constant
   | IConstr of string
   | IVariable of ident
-  | IApplication of ident * imp_expr
+  | IApplication of ident * int * imp_expr
   | IRef of ident
   | IInfixOp of imp_infop * imp_expr * imp_expr
   | IPrefixOp of imp_preop * imp_expr
