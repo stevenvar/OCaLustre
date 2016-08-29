@@ -62,10 +62,10 @@ let rec print_expression fmt e =
       print_expression e1
       print_expression e2
       print_expression e3
-  | Application (i, el) ->
+  | Application (i, e) ->
      Format.fprintf fmt "(%a (%a))"
                     print_ident i
-                    print_expression_list el
+                    print_expression e
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1

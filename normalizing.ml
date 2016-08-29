@@ -40,9 +40,9 @@ let rec transform_exp exp =
     let e2' = transform_exp e2 in
     let e3' = transform_exp e3 in
     { exp with e_desc = Alternative (e1', e2', e3') }
-  | Application (i,el) ->
-    let el' = List.map transform_exp el in
-    { exp with e_desc = Application (i,el') }
+  | Application (i,e) ->
+    let e' = transform_exp e in
+    { exp with e_desc = Application (i,e') }
   | InfixOp (op,e1,e2) ->
     let e1' = transform_exp e1 in
     let e2' = transform_exp e2 in
@@ -69,7 +69,10 @@ let rec normalize_exp l exp =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Alternative (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
-  | Application (i,el) -> failwith "todo"
+  | Application (i,e) ->
+    let (l',e') = normalize_exp l e in
+    let exp' = Application (i,e') in
+    l', { exp with e_desc = exp' }
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in

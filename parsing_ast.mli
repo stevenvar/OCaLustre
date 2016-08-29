@@ -26,7 +26,7 @@ and patt_desc =
 
 and exp_desc =
   | Alternative of expression * expression * expression
-  | Application of ident * expression list
+  | Application of ident * expression
   | InfixOp of inf_operator * expression * expression
   | PrefixOp of pre_operator * expression
   | Value of constant

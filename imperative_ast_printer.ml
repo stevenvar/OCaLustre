@@ -62,9 +62,9 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
-  | IApplication (i,el) -> Format.fprintf fmt "%s (%a)"
+  | IApplication (i,e) -> Format.fprintf fmt "%s (%a)"
                              i
-                             printml_expressions el
+                             printml_expression e
   | IConstr s -> Format.fprintf fmt "%s" s
   | IETuple el -> Format.fprintf fmt "(%a)"
                     printml_expressions el

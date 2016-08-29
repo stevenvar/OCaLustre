@@ -58,8 +58,8 @@ let checkname_tuple il =
 let rec get_idents l e =
   match e.e_desc with
   | Variable i -> i::l
-  | Application (i,el) ->
-    List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
+  | Application (i,e) ->
+    get_idents l e
   | Alternative (e1,e2,e3) ->
     let l = get_idents l e3 in
     let l = get_idents l e2 in
@@ -139,11 +139,7 @@ let rec mk_expr e =
       e_loc = e.pexp_loc }
   | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
-    let app = Application(checkname_ident e1,
-                          begin match e2.pexp_desc with
-                            | Pexp_tuple l -> List.map mk_expr l
-                            | _ -> [mk_expr e2]
-                          end )
+    let app = Application(checkname_ident e1, mk_expr e2)
     in
     { e_desc = app ; e_loc = e.pexp_loc }
   | _ ->

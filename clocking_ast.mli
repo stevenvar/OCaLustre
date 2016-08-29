@@ -28,7 +28,7 @@ and cpatt_desc =
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
-  | CApplication of ident * cexpression list
+  | CApplication of ident * cexpression
   | CInfixOp of inf_operator * cexpression * cexpression
   | CPrefixOp of pre_operator * cexpression
   | CValue of constant

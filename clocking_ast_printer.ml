@@ -68,9 +68,9 @@ let rec print_cexpression fmt { ce_desc ; ce_loc; ce_clock }=
   | CPre e -> Format.fprintf fmt "(pre %a)%a"
                      print_cexpression e
                      print_clock ce_clock
-  | CApplication (i,el) -> Format.fprintf fmt "(%s (%a))%a"
+  | CApplication (i,e) -> Format.fprintf fmt "(%s (%a))%a"
                              i
-                             print_cexpression_list el
+                             print_cexpression e
                              print_clock ce_clock
   | CETuple el -> Format.fprintf fmt "(%a)%a"
                              print_cexpression_list el

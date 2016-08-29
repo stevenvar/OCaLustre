@@ -20,7 +20,7 @@ let rec get_clock hst e =
        Hashtbl.find hst i
      with _ -> Base)
   | Alternative (e1, e2, e3) -> get_clock hst e2
-  | Application (i,el) -> get_clock hst (List.hd el)
+  | Application (i,e) -> get_clock hst e
   | InfixOp (op, e1, e2) -> get_clock hst e1
   | PrefixOp (op, e) -> get_clock hst e
   | Value v -> Base
@@ -31,7 +31,7 @@ let rec get_clock hst e =
   (*)  On ((get_clock hst e), e2) (* the clock is in the expression *) *)
   | Unit -> Base
   | Pre e -> get_clock hst e
-  | ETuple el -> get_clock hst (List.hd el)
+  | ETuple el -> get_clock hst (List.hd el) (* TODO *)
 
 let rec clock_err cl loc =
   match cl with
@@ -58,9 +58,9 @@ let rec clock_exp hst e =
     let ck = try Hashtbl.find hst i with
         _ -> Base in
     { ce_desc = CVariable i ; ce_loc = e.e_loc ; ce_clock = [ck] }
-  | Application (i,el) ->
-    let cel = List.map (fun e -> clock_exp hst e) el in
-    { ce_desc = CApplication (i, cel) ; ce_loc = e.e_loc ; ce_clock = [Base] } (* TODO *)
+  | Application (i,e) ->
+    let e' = clock_exp hst e in
+    { ce_desc = CApplication (i, e') ; ce_loc = e.e_loc ; ce_clock = [Base] } (* TODO *)
   | Alternative (e1,e2,e3) ->
     let ce1 = clock_exp hst e1 in
     let ce2 = clock_exp hst e2 in

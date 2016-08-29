@@ -1,9 +1,12 @@
 
 
+let%node id ~i:x ~o:y =
+  y = x
+
 let%node naturels ~i:(a,b,c) ~o:(d,e,f) =
-  ((d,e),f) = ((a,b),c)
-
-
+  d = a;
+  e = id b;
+  f = id c
 
 let _ =
   let nat = naturels () in

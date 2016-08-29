@@ -32,9 +32,8 @@ let rec compile_expression e p =
   match e.ce_desc with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
-  | CApplication (i, el) ->
-    let iel = List.map (fun e -> compile_expression e p) el in
-    IApplication (i, iel)
+  | CApplication (i, e) ->
+    IApplication (i, compile_expression e p)
   | CInfixOp (op,e1,e2) ->
     IInfixOp(compile_infop op,
              compile_expression e1 p,
@@ -58,7 +57,7 @@ let generate_inits cnode =
   let generate_init e l =
     match e.cexpression.ce_desc with
     | CFby (v, e') -> ( e.cpattern , IValue v)::l
-    | CApplication (i,el) -> (e.cpattern, IApplication (i,[]))::l
+    | CApplication (i,el) -> (e.cpattern, IApplication (i,IUnit))::l
     | _ -> l
   in
   List.fold_left (fun acc e -> generate_init e acc) [] cnode.cequations
