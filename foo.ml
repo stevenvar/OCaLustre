@@ -1,16 +1,15 @@
 
 
-let%node nat ~i:() ~o:y =
-  y = 0 ->> (y + 1)
+let%node nat ~i:(x,z) ~o:y =
+  w = x + (2 @ z);
+  y = 0 @ x
 
-let%node naturels ~i:(a) ~o:(d,e,f) =
-  d = a;
-  e = nat ();
-  f = nat ()
+
+
 
 let _ =
-  let n = naturels () in
+  let n = nat () in
   for i = 0 to 10 do
-    let a,b,c = n (1) in
-    Printf.printf "---> %d %d %d\n" a b c
+    let a = n () in
+    Printf.printf "---> %d %d %d\n" a a a
   done

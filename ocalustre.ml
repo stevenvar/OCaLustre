@@ -6,6 +6,7 @@ open Longident
 open Parsing_ocl
 open Parsing_ast
 open Parsing_ast_printer
+open Clocker
 open Clocking_ast
 open Clocking_ocl
 open Clocking_ast_printer
@@ -42,15 +43,30 @@ let lustre_mapper argv =
       | Pstr_extension (({txt="node";_},PStr [s]),_) ->
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
+            print_endline "Node : ";
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             print_node Format.std_formatter _node;
-            let _node = normalize_node _node in
-            print_node Format.std_formatter _node;
+
+            print_endline "Scheduled node : ";
             let _node = schedule _node in
             print_node Format.std_formatter _node;
 
+            type_node _node ;
+
+            print_endline "Normalized node : ";
+            let _node = normalize_node _node in
+            print_node Format.std_formatter _node;
+
+            print_endline "Scheduled node : ";
+            let _node = schedule _node in
+            print_node Format.std_formatter _node;
+
+
+            print_endline "Clocked node : " ;
+
             (* let _node = schedule _node in
                print_node Format.std_formatter _node; *)
+
 
             let _cnode = cl_node _node in
             print_cnode Format.std_formatter _cnode;

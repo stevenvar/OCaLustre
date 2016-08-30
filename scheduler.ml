@@ -11,7 +11,7 @@ let rec get_dep_id e l  =
     let l = get_dep_id e2 l in
     get_dep_id e3 l
   | Application (i,e) ->
-    get_dep_id e l 
+    get_dep_id e l
   | InfixOp (op, e1, e2) ->
     let l = get_dep_id e1 l in
     get_dep_id e2 l
@@ -20,7 +20,7 @@ let rec get_dep_id e l  =
   | Value v -> l
   | Fby (v,e) -> l (* not dependent on e since it appears at the next instant *)
   | Arrow (v,e) -> l
-  | When (e,i) -> get_dep_id e l
+  | When (e,i) -> get_dep_id e (get_dep_id i l)
   | Unit -> l
   | Pre e -> get_dep_id e l
   | ETuple el -> List.fold_left (fun accu e -> get_dep_id e accu) l el

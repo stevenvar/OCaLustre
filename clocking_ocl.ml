@@ -10,7 +10,7 @@ match e.e_desc with
 let get_ident e =
   match e.e_desc with
   | Variable i -> i
-  | _ -> Error.print_error e.e_loc "This must be a constant"
+  | _ -> Error.print_error e.e_loc "This must be an ident"
 
 
 let rec get_clock hst e =
@@ -43,7 +43,7 @@ let rec clock_eq l1 l2 =
   match l1 , l2 with
   | [] , [] -> assert false
   | [c1] , [c2] -> c1 = c2
-  | h1::t1 , h2::t2 -> h1 = h2 && clock_eq t1 t2
+  | h1::t1 , h2::t2 -> h1 = Base || h2 = Base || h1 = h2 && clock_eq t1 t2
   | _ -> false
 
 

@@ -86,6 +86,11 @@ let rec normalize_exp l exp =
   | Variable v -> l, exp
   | Fby (c, e) ->
     begin match e.e_desc with
+      | Value v ->
+      let exp' = { exp with e_desc = Fby (c,e) } in
+      let (eq_y,y) = new_eq_var exp' in
+      let l' = eq_y::l in
+      l' , y
       | _ ->
         let (l',e') = normalize_exp l e in
         let (eq_x,x) = new_eq_var e' in
