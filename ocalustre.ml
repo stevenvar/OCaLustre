@@ -43,38 +43,32 @@ let lustre_mapper argv =
       | Pstr_extension (({txt="node";_},PStr [s]),_) ->
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
-            print_endline "Node : ";
-            let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
-            print_node Format.std_formatter _node;
 
-            print_endline "Scheduled node : ";
+            let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
+            (* print_node Format.std_formatter _node; *)
+
+
             let _node = schedule _node in
-            print_node Format.std_formatter _node;
+            (* print_node Format.std_formatter _node; *)
 
             type_node _node ;
 
-            print_endline "Normalized node : ";
+
             let _node = normalize_node _node in
-            print_node Format.std_formatter _node;
+            (* print_node Format.std_formatter _node; *)
 
-            print_endline "Scheduled node : ";
+
             let _node = schedule _node in
-            print_node Format.std_formatter _node;
-
-
-            print_endline "Clocked node : " ;
+            (* print_node Format.std_formatter _node; *)
 
             (* let _node = schedule _node in
                print_node Format.std_formatter _node; *)
 
 
             let _cnode = cl_node _node in
-            print_cnode Format.std_formatter _cnode;
+            (* print_cnode Format.std_formatter _cnode; *)
             let _inode = compile_cnode _cnode in
-            printml_node Format.std_formatter _inode;
-
-
-
+            (* printml_node Format.std_formatter _inode; *)
 
            tocaml_node _inode
            (*  let _node = expand_node _node in
