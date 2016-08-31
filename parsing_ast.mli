@@ -3,8 +3,8 @@
 type ident = string
 and node = {
   name : pattern;
-  inputs : pattern list;
-  outputs : pattern list;
+  inputs : pattern;
+  outputs : pattern;
   equations : equation list;
 }
 and equation = {
@@ -23,6 +23,7 @@ and pattern = {
 and patt_desc =
   | Ident of ident
   | Tuple of pattern list
+  | PUnit
 
 and exp_desc =
   | Alternative of expression * expression * expression

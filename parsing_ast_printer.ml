@@ -21,6 +21,7 @@ let rec print_pattern fmt p =
   match p.p_desc with
   | Ident i -> Format.fprintf fmt "%s" i
   | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
+  | PUnit -> Format.fprintf fmt "()"
 
 let print_io fmt l =
     Format.fprintf fmt "(%a)"
@@ -109,6 +110,6 @@ let rec print_equations fmt le =
 let print_node fmt n =
   Format.fprintf fmt  "let_node %a ~inf:%a ~outf:%a = \n%a \n \n"
     print_pattern n.name
-    print_io n.inputs
-    print_io n.outputs
+    print_pattern n.inputs
+    print_pattern n.outputs
     print_equations n.equations

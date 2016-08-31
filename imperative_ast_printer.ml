@@ -8,6 +8,7 @@ let rec print_pattern fmt p =
   match p.cp_desc with
   | CIdent i -> Format.fprintf fmt "%s" i
   | CTuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
+  | CPUnit -> Format.fprintf fmt "()"
 
   let rec printml_tuple fmt l =
     match l with

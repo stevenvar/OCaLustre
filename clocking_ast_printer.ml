@@ -18,6 +18,7 @@ let rec print_cpattern fmt { cp_desc ; cp_loc ; cp_clock } =
   match cp_desc with
   | CIdent i -> Format.fprintf fmt "(%s)%a" i print_clock cp_clock
   | CTuple t -> Format.fprintf fmt "(%a)%a" (print_list print_cpattern) t print_clock cp_clock
+  | CPUnit -> Format.fprintf fmt "()"
 
 let print_io fmt l =
   print_list print_cpattern fmt l

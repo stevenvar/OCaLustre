@@ -30,11 +30,13 @@ let rec get_id p =
   match p.p_desc with
   | Ident i -> i
   | Tuple t -> failwith "tuple"
+  | PUnit -> failwith "unit"
 
 let rec contains e i =
   match e.pattern.p_desc with
   | Ident j -> i = j
   | Tuple t -> List.fold_left (fun acc p' ->  contains { pattern = p' ; expression = { e_desc = Unit ; e_loc = Location.none }} i || acc) false t
+  | PUnit -> false
 
 let rec find_eq_from_id i eqs =
   match eqs with
@@ -47,6 +49,7 @@ let rec get_ids p =
   | Tuple t ->
     let ids = List.map get_ids t in
     List.flatten ids
+  | PUnit -> []
 
 let mk_dep_graph (eqs : equation list) =
   let eq_dep eq =
@@ -96,12 +99,12 @@ let rec remove_dups lst= match lst with
   | h::t -> h::(remove_dups (List.filter (fun x -> x<>h) t))
 
 let schedule node =
-  let inputs = List.map get_ids node.inputs |> List.flatten in
+  let inputs = get_ids node.inputs  in
   let eqs = node.equations in
   try
     let g = mk_dep_graph eqs in
     let g = remove_inputs_dep inputs g in
-  let ids_sorted = List.rev (toposort g) in
+    let ids_sorted = List.rev (toposort g) in
   let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
   let eqs_sorted = remove_dups eqs_sorted in
   {

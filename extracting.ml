@@ -91,6 +91,7 @@ let tocaml_updates node outs =
       [%expr [%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ] := ([%e tocaml_expression e]) ;
              [%e acc ]]
     | CTuple t -> assert false
+    | CPUnit -> assert false
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates
 
@@ -102,6 +103,14 @@ let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
       loc = Location.none
     }
   |  CTuple t -> failwith "no tuple !"
+  | CPUnit -> failwith "no unit"
+
+  let rec lident_of_string s =
+      {
+        txt = Lident s;
+        loc = Location.none
+      }
+
 
 let rec pexp_of_pat p =
     match p.cp_desc with
@@ -114,6 +123,9 @@ let rec pexp_of_pat p =
       { pexp_desc = Pexp_tuple tl ;
         pexp_loc = p.cp_loc ;
         pexp_attributes = [] }
+    | CPUnit ->   { pexp_desc = Pexp_construct (lident_of_string "()" ,None) ;
+                    pexp_loc = p.cp_loc ;
+                    pexp_attributes = [] }
 
 let tocaml_outputs node =
   let aux ol =
@@ -134,6 +146,9 @@ let rec pat_of_pattern p =
     { ppat_desc = Ppat_tuple tl ;
       ppat_loc = p.cp_loc ;
       ppat_attributes = [] }
+  | CPUnit -> { ppat_desc = Ppat_construct (lident_of_string "()" ,None);
+                ppat_loc = p.cp_loc ;
+                ppat_attributes = [] }
 
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =

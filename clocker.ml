@@ -12,12 +12,21 @@ and
   | CTuple of ct list
   | Arrow of ct * ct
   | On of ct * ident
+  | Carrier of ident * ct
 and exptype = { e_index : int ; mutable e_value : ct }
 and scheme = Forall of int list * ct (* arrow ? *)
 
 exception TypingBug of string
 
 type env = (string * ct) list
+
+let cpt = ref 0
+
+let new_exptype, reset_exptypes =
+  (function () -> incr cpt;
+     { e_index = !cpt; e_value = CtUnknown }),
+  (function () -> cpt := 0)
+
 
 let get_ident e =
   match e.e_desc with
@@ -27,21 +36,68 @@ let get_ident e =
 
 let typing_env = ref []
 
-let rec get_type v env =
-  let rec aux p v =
-    match p.p_desc with
-    | Ident i -> i = v
-    | Tuple tl -> List.fold_left (fun acc t -> aux t v || acc) false tl
-  in
-  match env with
-  |  [] -> failwith "not found "
-  | (i,ck)::t -> if aux i v then ck else get_type v t
 
-let new_exptype, reset_exptypes =
-  let counter = ref 0 in
-  (function () -> incr counter;
-     { e_index = !counter; e_value = CtUnknown }),
-  (function () -> counter := 0)
+let tvar_name n =
+  let rec name_of n =
+    let q,r = (n/26), (n mod 26) in
+    let s = String.make 1 (char_of_int (96+r)) in
+    if q = 0 then s else ((name_of q)^s)
+  in "'"^(name_of n)
+
+let rec print_tuple f fmt l =
+  match l with
+  | [s] -> Format.fprintf fmt  "%a" f s
+  | h :: t -> Format.fprintf fmt  "%a * " f h ; print_tuple f fmt t
+  | _ -> ()
+
+
+let rec print_type fmt = function
+  | ExpVar {e_index = n ; e_value = CtUnknown } ->
+    (*let name = try List.assoc n tvar_names
+      with Not_found ->
+        raise (TypingBug ("Non generic variable :"^(string_of_int n)))
+      in *) Format.fprintf Format.std_formatter "%s" (tvar_name n)
+  | ExpVar {e_index = _ ; e_value = t} -> print_type fmt t
+  | Arrow (t1,t2) -> Format.fprintf fmt "(%a -> %a)" print_type t1 print_type t2
+  | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_type) tl
+  | On (x,i) ->  Format.fprintf fmt "%a on %s" print_type x i;
+  | CtUnknown -> Format.fprintf fmt  "?"
+  | Carrier (i,x) -> Format.fprintf fmt "(%s : %a)" i print_type x;
+  | _ -> raise (TypingBug "print_type")
+
+let rec add_pat_to_env i env =
+  match i.p_desc with
+  | Ident id ->
+    let exp = incr cpt; ExpVar { e_index = !cpt; e_value = CtUnknown } in
+    env := (i.p_desc,exp) :: !env ;
+  | PUnit -> let exp = incr cpt; ExpVar { e_index = !cpt; e_value = CtUnknown } in
+    env := (i.p_desc,exp) :: !env ;
+  | Tuple tl -> List.iter (fun i -> add_pat_to_env i env) tl
+
+let rec add_to_env i tau env =
+match i.p_desc with
+| Ident id ->
+  env := (i.p_desc,tau) :: !env ;
+| PUnit ->
+  env := (i.p_desc,tau) :: !env ;
+| Tuple il ->
+  match tau with
+  | CTuple tl -> let lit = List.combine il tl in
+    List.iter (fun (i,t) -> (add_to_env i t env)) lit
+  | _ -> failwith "not a tuple ..."
+
+
+let print_env fmt gamma =
+  List.iter (fun (x,t) -> Format.fprintf Format.std_formatter "%a :: %a \n" print_pattern {p_desc = x ; p_loc = Location.none} print_type t) gamma
+
+let rec get_type p env =
+  match p.p_desc with
+  | Ident i -> List.assoc p.p_desc env
+  | PUnit -> List.assoc p.p_desc env
+  | Tuple pl ->
+    let tl = List.map (fun p -> List.assoc p.p_desc env) pl in
+    CTuple tl
+
 
 let rec shorten_exp t =
   match t with
@@ -60,6 +116,7 @@ let occurs {e_index = n; e_value = _ } =
     | Arrow(ct1, ct2) -> occrec ct1 || occrec ct2
     | CTuple (ctl) -> List.fold_left (fun acc ctl -> occrec ctl || acc) false ctl
     | On (x,i) -> occrec x
+    | Carrier (i,x) -> occrec x
     | _  -> raise (TypingBug "occurs")
   in occrec
 
@@ -138,7 +195,7 @@ let rec typing_expr gamma =
     | Value _ -> ExpVar (new_exptype () )
     | Variable n ->begin
         try
-        let sigma =  List.assoc (Ident n) gamma in
+          let sigma =  get_type { p_desc = (Ident n) ; p_loc = Location.none } gamma in
         sigma
         with  Not_found -> ExpVar (new_exptype ())
       end
@@ -156,7 +213,8 @@ let rec typing_expr gamma =
       let t2 = type_rec e2 in
       unify (t1,t2) ; t1
     | PrefixOp (op, e1) -> type_rec e1
-    | Unit -> CtUnknown
+    | Unit ->
+      ExpVar (new_exptype ())
     | Fby (e1,e2) ->
       let t1 = type_rec e1 in
       let t2 = type_rec e2 in
@@ -168,9 +226,14 @@ let rec typing_expr gamma =
     | When (e1,e2) ->
       let t1 = type_rec e1 in
       let t2 = type_rec e2 in
-      unify (t1,t2) ;
       let i =  get_ident e2 in
-      On (t2,i)
+      unify (t1,t2) ;
+      begin match t2 with
+      | ExpVar ev -> (ev.e_value <- Carrier (i,ev.e_value))
+      | _ -> ()
+      end ;
+
+      On (t1,i)
     | Pre e -> type_rec e
 
   in
@@ -180,57 +243,25 @@ let rec string_of_pattern p =
   match p.p_desc with
   | Ident i -> [i]
   | Tuple pl -> List.fold_left (fun acc p -> (string_of_pattern p)@acc) [] pl
-
-
-
-let tvar_name n =
-  let rec name_of n =
-    let q,r = (n/26), (n mod 26) in
-    let s = String.make 1 (char_of_int (96+r)) in
-    if q = 0 then s else ((name_of q)^s)
-  in "'"^(name_of n)
-
-let rec print_tuple f fmt l =
-  match l with
-  | [s] -> Format.fprintf fmt  "%a" f s
-  | h :: t -> Format.fprintf fmt  "%a * " f h ; print_tuple f fmt t
-  | _ -> ()
-
-let rec print_type fmt = function
-  | ExpVar {e_index = n ; e_value = CtUnknown } ->
-    (*let name = try List.assoc n tvar_names
-      with Not_found ->
-        raise (TypingBug ("Non generic variable :"^(string_of_int n)))
-      in *) Format.fprintf fmt "%s" (tvar_name n)
-  | ExpVar {e_index = _ ; e_value = t} -> print_type fmt t
-  | Arrow (t1,t2) ->
-    Format.fprintf fmt "(%a -> %a)" print_type t1 print_type t2
-
-  | CTuple tl -> Format.fprintf fmt "(%a)" (print_tuple print_type) tl
-  | On (x,i) ->  Format.fprintf fmt "%a on %s"
-                   print_type x
-                   i;
-  | CtUnknown | _ -> raise (TypingBug "print_type_scheme")
+  | PUnit -> []
 
 
 let print_type_scheme fmt (Forall(gv,t)) =
 
-  let rec print_rec = function
+  let rec print_rec fmt = function
     | ExpVar {e_index = n ; e_value = CtUnknown } ->
       (*let name = try List.assoc n tvar_names
         with Not_found ->
           raise (TypingBug ("Non generic variable :"^(string_of_int n)))
-        in *) print_string (tvar_name n)
-    | ExpVar {e_index = _ ; e_value = t} -> print_rec t
-    | Arrow (t1,t2) -> print_string "("; print_rec t1;
-      print_string " -> "; print_rec t2;
-      print_string ")"
+        in *) Format.fprintf Format.std_formatter "%s" (tvar_name n)
+    | ExpVar {e_index = _ ; e_value = t} -> print_rec fmt t
+    | Arrow (t1,t2) -> Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
     | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_type) tl
-    | On (x,i) ->  print_rec x; print_string " on "; print_string i;
-    | CtUnknown | _ -> raise (TypingBug "print_type_scheme")
-  in print_rec t
-
-
+    | On (x,i) ->  Format.fprintf fmt "%a on %s" print_rec x i;
+    | CtUnknown -> Format.fprintf fmt  "?"
+    | Carrier (i,x) -> Format.fprintf fmt "(%s : %a)" i print_rec x;
+    | _ -> raise (TypingBug "print_type_scheme")
+  in print_rec fmt t
 
 let typing_equation { pattern = p ; expression = e} =
   let tau =
@@ -243,41 +274,21 @@ let typing_equation { pattern = p ; expression = e} =
       print_type_scheme Format.std_formatter (Forall(vars,t2));
       print_newline ();
       raise (Failure "clocking") in
-  typing_env := (p.p_desc,tau) :: !typing_env
-
-
-let print_env fmt gamma =
-  List.iter (fun (x,t) -> Format.fprintf Format.std_formatter "%a :: " print_pattern {p_desc = x ; p_loc = Location.none } ; (print_type fmt t); print_endline "") gamma
-
-let typing eq =
-  Format.fprintf Format.std_formatter "I try to clock the equation : %a \n" print_equation eq;
-  reset_exptypes ();
-  reset_exptypes ();
-
-  print_env Format.std_formatter !typing_env
-
-let tuple_of_list l = CTuple l
-
-(* let%node f x y = (y=x) *)
+  add_to_env p tau typing_env
 
 let type_node node =
   typing_env := [];
   reset_exptypes ();
 
-  let cpt = ref 1 in
-  List.iter (fun p ->
-      let pdsc = p.p_desc in
-      let exp = ExpVar { e_index = !cpt; e_value = CtUnknown } in
-      incr cpt;
-      typing_env := (pdsc,exp) :: !typing_env ) node.inputs;
+  add_pat_to_env node.inputs typing_env;
 
-
-  print_newline ();
   List.iter (fun e -> typing_equation e) node.equations;
 
-  let lin = List.map (fun x -> List.assoc x.p_desc !typing_env) node.inputs in
-  let lout = List.map (fun x -> List.assoc x.p_desc !typing_env) node.outputs in
-  let tt = Arrow (CTuple lin, CTuple lout) in
+  let lin = try get_type node.inputs !typing_env with Not_found -> print_pattern Format.std_formatter node.inputs ; failwith "lin" in
+
+  let lout = try get_type node.outputs !typing_env with Not_found -> print_pattern Format.std_formatter node.outputs ; failwith "lout" in
+
+  let tt = Arrow (lin, lout) in
   Format.fprintf Format.std_formatter "The clock type of the node %s is %a "
     (List.hd (string_of_pattern node.name))
     print_type tt;

@@ -25,6 +25,7 @@ and cpattern = {
 and cpatt_desc =
   | CIdent of ident
   | CTuple of cpattern list
+  | CPUnit 
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression

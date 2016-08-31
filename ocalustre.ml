@@ -44,11 +44,18 @@ let lustre_mapper argv =
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
 
+
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
             (* print_node Format.std_formatter _node; *)
+
+
             let _node = schedule _node in
             (* print_node Format.std_formatter _node; *)
-            type_node _node ;
+
+             type_node _node ;
+
+
+
             let _node = normalize_node _node in
             (* print_node Format.std_formatter _node; *)
 
@@ -56,8 +63,8 @@ let lustre_mapper argv =
             let _node = schedule _node in
             (* print_node Format.std_formatter _node; *)
 
-            (* let _node = schedule _node in
-               print_node Format.std_formatter _node; *)
+            let _node = schedule _node in
+            (*  print_node Format.std_formatter _node; *)
 
 
             let _cnode = cl_node _node in

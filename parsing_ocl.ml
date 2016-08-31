@@ -194,18 +194,18 @@ let rec mk_equations eqs =
   | [%expr [%e? e1]; [%e? eq]] -> mk_equation e1 :: mk_equations eq
   | e -> [mk_equation e]
 
-(* check that the I/O are tuples and returns a list of corresponding idents *)
+(* check that the I/O are tuples and returns a tuple of corresponding idents *)
 let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
   match pexp_desc with
   | Pexp_fun (l,_,p,e) ->
     if s = l then
       match p.ppat_desc with
-      | Ppat_construct _ -> [], e
-      | Ppat_var s -> [checkname_pattern p], e
-      | Ppat_tuple l -> List.map (fun x -> checkname_pattern x) l, e
+      | Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc } , e
+      | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }, e
+      | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> checkname_pattern x) l) ; p_loc = p.ppat_loc }, e
       | Ppat_constraint (p,t) ->
         begin match p.ppat_desc with
-          | Ppat_var s -> [checkname_pattern p], e
+          | Ppat_var s ->{ p_desc = (Ident s.txt) ; p_loc = p.ppat_loc } , e
           | _ -> Error.syntax_error p.ppat_loc
         end
       | _ -> Error.syntax_error p.ppat_loc

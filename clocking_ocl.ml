@@ -120,6 +120,7 @@ let rec cpat_of_pat ck p =
   | Tuple t ->
     let pl = List.map (cpat_of_pat ck) t in
     { cp_desc = CTuple pl ; cp_loc = p.p_loc ; cp_clock = ck }
+  | PUnit -> { cp_desc = CPUnit ; cp_loc = p.p_loc ; cp_clock = ck }
 
 
 let clock_equations hst el =
@@ -127,6 +128,7 @@ let clock_equations hst el =
   begin match p.p_desc with
     | Ident i -> Hashtbl.add hst i ck
     | Tuple t -> List.iter (aux hst ck) t
+    | PUnit -> ()
   end;
   in
   let rec clock_eq e =
@@ -145,14 +147,15 @@ let clock_io hst ios =
     | Ident i ->  let ck = (try Hashtbl.find hst i with _ -> Base) in
       cpat_of_pat [ck] io
     | Tuple t -> cpat_of_pat [Base] io (*todo*)
+    | PUnit -> cpat_of_pat [Base] io
   in
   List.map (fun x -> aux hst x) ios
 
 let cl_node node =
-  let hst =  Hashtbl.create (List.length node.inputs + List.length node.outputs) in
+  let hst =  Hashtbl.create (2) in
   let cequations = clock_equations hst node.equations in
-  let cinputs = clock_io hst node.inputs in
-  let coutputs = clock_io hst node.outputs in
+  let cinputs = clock_io hst [node.inputs] in
+  let coutputs = clock_io hst [node.outputs] in
   let clocks_in = List.map (fun x -> x.cp_clock) cinputs in
   let clocks_out = List.map (fun x -> x.cp_clock) coutputs in
   let ll = List.flatten (clocks_in@clocks_out) in

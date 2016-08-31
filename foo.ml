@@ -1,8 +1,11 @@
 
-let%node fibo ~i:() ~o:(f) =
+let%node my_when ~i:(a,ck1) ~o:(f) =
+  f = a @ ck1
+
+ let%node fibo ~i:() ~o:f =
   f = 0 ->> ( 1 --> (pre f + f ))
 
-let%node test ~i:(i) ~o:(c,o) =
+let%node test ~i:(i,j) ~o:(c,o) =
   c = true --> (not (pre c));
   o = i @ c
 
