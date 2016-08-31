@@ -1,21 +1,14 @@
 
+let%node fibo ~i:() ~o:(f) =
+  f = 0 ->> ( 1 --> (pre f + f ))
 
-let%node nat ~i:(x,y,w,ck1,ck2,ck3) ~o:(z,k,r) =
-  z = x @ ck1;
-  k = y @ ck2;
-  r = w @ ck3
-
-
-let%node ooot ~i:(x) ~o:(c,y) =
+let%node test ~i:(i) ~o:(c,o) =
   c = true --> (not (pre c));
-  y = x @ c
-
-let%node test ~i:(a,ck) ~o:x =
-  x = a @ ck
+  o = i @ c
 
 let _ =
-  let n = nat () in
-  for i = 0 to 10 do
-    let (a,b,c) = n (1,3,2,2,2,3) in
-    Printf.printf "---> %d %d\n" a b
+  let n = fibo () in
+  for i = 0 to 30 do
+    let a= n () in
+    Printf.printf "---> %d \n" a
   done

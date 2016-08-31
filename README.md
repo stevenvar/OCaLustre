@@ -128,7 +128,7 @@ And use it with ocamlfind as any other package, for example :
 ```ocaml
 
 let%node fibonacci ~i:() ~o:(f) =
-  f = 1 ->> ( 1 --> (pre f + f))
+  f = 0 ->> ( 1 --> (pre f + f))
 ```
 
 Returns the fibonacci sequence : `1, 1, 2, 3, 5, 8, 13, ...`  
