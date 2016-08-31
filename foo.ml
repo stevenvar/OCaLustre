@@ -5,8 +5,13 @@ let%node nat ~i:(x,y,w,ck1,ck2,ck3) ~o:(z,k,r) =
   k = y @ ck2;
   r = w @ ck3
 
+
+let%node ooot ~i:(x) ~o:(c,y) =
+  c = true --> (not (pre c));
+  y = x @ c
+
 let%node test ~i:(a,ck) ~o:x =
-  x = a @ ck 
+  x = a @ ck
 
 let _ =
   let n = nat () in

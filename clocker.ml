@@ -137,8 +137,10 @@ let rec typing_expr gamma =
     match e with
     | Value _ -> ExpVar (new_exptype () )
     | Variable n ->begin
+        try
         let sigma =  List.assoc (Ident n) gamma in
         sigma
+        with  Not_found -> ExpVar (new_exptype ())
       end
     | Alternative (e1,e2,e3) ->
       let t1 = type_rec e1 in
@@ -188,6 +190,12 @@ let tvar_name n =
     if q = 0 then s else ((name_of q)^s)
   in "'"^(name_of n)
 
+let rec print_tuple f fmt l =
+  match l with
+  | [s] -> Format.fprintf fmt  "%a" f s
+  | h :: t -> Format.fprintf fmt  "%a * " f h ; print_tuple f fmt t
+  | _ -> ()
+
 let rec print_type fmt = function
   | ExpVar {e_index = n ; e_value = CtUnknown } ->
     (*let name = try List.assoc n tvar_names
@@ -198,7 +206,7 @@ let rec print_type fmt = function
   | Arrow (t1,t2) ->
     Format.fprintf fmt "(%a -> %a)" print_type t1 print_type t2
 
-  | CTuple tl -> Format.fprintf fmt "(%a)" (print_list print_type) tl
+  | CTuple tl -> Format.fprintf fmt "(%a)" (print_tuple print_type) tl
   | On (x,i) ->  Format.fprintf fmt "%a on %s"
                    print_type x
                    i;
@@ -217,7 +225,7 @@ let print_type_scheme fmt (Forall(gv,t)) =
     | Arrow (t1,t2) -> print_string "("; print_rec t1;
       print_string " -> "; print_rec t2;
       print_string ")"
-    | CTuple tl -> Format.fprintf fmt  "(%a)" (print_list print_type) tl
+    | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_type) tl
     | On (x,i) ->  print_rec x; print_string " on "; print_string i;
     | CtUnknown | _ -> raise (TypingBug "print_type_scheme")
   in print_rec t
