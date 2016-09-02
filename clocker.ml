@@ -151,6 +151,7 @@ let vars_of_type tau =
     | Arrow (t1,t2) -> vars (vars vs t1) t2
     | CTuple (c::ctl) -> List.fold_left (fun acc t -> vars acc t) (vars vs c) ctl
     | On (x,i) -> vars vs x
+    | Carrier (i,x) -> vars vs x
     | CtUnknown | _ -> raise (TypingBug "vars_of_type")
 
   in vars [] tau
@@ -160,7 +161,7 @@ let substract l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
 let unknowns_of_type bv t = substract (vars_of_type t) bv
 
 let unknowns_of_type_env env = List.flatten
-    (List.map (fun (id,Forall(gv,t)) -> (unknowns_of_type gv t)) env)
+    (List.map (fun (id,t) -> (unknowns_of_type [] t)) env)
 
 let rec make_set l =
   match l with
@@ -168,7 +169,7 @@ let rec make_set l =
   | x::l -> if List.mem x l then make_set l else x :: make_set l
 
 let generalise_type (gamma,tau) =
-  let fv = (substract (vars_of_type tau) (unknowns_of_type_env gamma)) in
+  let fv = vars_of_type tau in
   let genvars = make_set fv  in
   Forall (genvars, tau)
 
@@ -247,21 +248,25 @@ let rec string_of_pattern p =
 
 
 let print_type_scheme fmt (Forall(gv,t)) =
-
+let names = let rec names_of = function
+               | (n,[]) -> []
+               | (n,(v1::lv)) -> (tvar_name n)::(names_of (n+1,lv))
+             in names_of (1,gv) in
+  let tvar_names = List.combine (List.rev gv) names in
   let rec print_rec fmt = function
     | ExpVar {e_index = n ; e_value = CtUnknown } ->
-      (*let name = try List.assoc n tvar_names
+      let name = try List.assoc n tvar_names
         with Not_found ->
           raise (TypingBug ("Non generic variable :"^(string_of_int n)))
-        in *) Format.fprintf Format.std_formatter "%s" (tvar_name n)
+      in Format.fprintf Format.std_formatter "%s" name
     | ExpVar {e_index = _ ; e_value = t} -> print_rec fmt t
     | Arrow (t1,t2) -> Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
-    | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_type) tl
+    | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_rec) tl
     | On (x,i) ->  Format.fprintf fmt "%a on %s" print_rec x i;
     | CtUnknown -> Format.fprintf fmt  "?"
     | Carrier (i,x) -> Format.fprintf fmt "(%s : %a)" i print_rec x;
     | _ -> raise (TypingBug "print_type_scheme")
-  in print_rec fmt t
+in  Format.fprintf Format.std_formatter "forall " ; List.iter (fun s -> Format.fprintf Format.std_formatter "%s" s ) names; Format.fprintf Format.std_formatter "." ; print_rec fmt t
 
 let typing_equation { pattern = p ; expression = e} =
   let tau =
@@ -291,6 +296,6 @@ let type_node node =
   let tt = Arrow (lin, lout) in
   Format.fprintf Format.std_formatter "The clock type of the node %s is %a "
     (List.hd (string_of_pattern node.name))
-    print_type tt;
+    print_type_scheme (generalise_type (!typing_env,tt));
 
     print_newline ()
