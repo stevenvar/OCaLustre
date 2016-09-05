@@ -344,7 +344,7 @@ let rec typing_expr gamma =
       let u2 = CVar (new_vartype ()) in
       unify (u,Arrow (t2, u2)) ;
       print_type fmt u2;
-      let u3 = CVar{c_index = 1; c_value= CtUnknown} in
+      let u3 = CVar (new_vartype ()) in
       unify (u2,Arrow (t3, u3)) ;
 
 
