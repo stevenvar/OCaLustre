@@ -255,7 +255,6 @@ in  Format.fprintf Format.std_formatter "forall %a . %a" print_string_list names
         unify (t2,t3); t3
       | Application (i,e2) ->
         let t1 = List.assoc i !typing_scheme_env in
-
         let u = CVar (new_vartype ()) in
         let t1' = inst t1 in
         unify (t1' , Arrow (type_rec e2, u)); u
@@ -310,7 +309,7 @@ let type_node node tse =
   add_pat_to_env node.inputs typing_env;
   List.iter (fun e -> typing_equation e) node.equations;
 
-  
+
   let lin =
     try get_type node.inputs !typing_env
     with Not_found ->
