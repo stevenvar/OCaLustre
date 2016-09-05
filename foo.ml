@@ -1,8 +1,8 @@
 
 
 
-let%node id ~i:(x,f) ~o:x =
-  x = x 
+let%node id ~i:(x,f) ~o:y =
+  y = x @ f
 
 let%node fibo ~i:() ~o:(g,f) =
   l = 1 ->> g;
