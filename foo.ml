@@ -10,6 +10,9 @@ let%node fibo ~i:() ~o:(g,f) =
   g = 0 ->> k;
   f = 0 ->> ( 1 --> (pre f + f ))
 
+let%node ffff ~i:(x) ~o:(y) =
+  y = (x,x)
+
 let%node test ~i:(i,j) ~o:(c,o) =
   c = true --> (not (pre c));
   o = i @ c

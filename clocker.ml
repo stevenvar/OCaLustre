@@ -8,12 +8,12 @@ type clock =
 and
   ct =
   | CtUnknown
-  | ExpVar of exptype
+  | CVar of vartype
   | CTuple of ct list
   | Arrow of ct * ct
   | On of ct * ident
   | Carrier of ident * ct
-and exptype = { e_index : int ; mutable e_value : ct }
+and vartype = { c_index : int ; mutable c_value : ct }
 and scheme = Forall of int list * ct (* arrow ? *)
 
 exception TypingBug of string
@@ -22,9 +22,9 @@ type env = (string * ct) list
 
 let cpt = ref 0
 
-let new_exptype, reset_exptypes =
+let new_vartype, reset_vartypes =
   (function () -> incr cpt;
-     { e_index = !cpt; e_value = CtUnknown }),
+     { c_index = !cpt; c_value = CtUnknown }),
   (function () -> cpt := 0)
 
 
@@ -52,12 +52,12 @@ let rec print_tuple f fmt l =
 
 
 let rec print_type fmt = function
-  | ExpVar {e_index = n ; e_value = CtUnknown } ->
+  | CVar {c_index = n ; c_value = CtUnknown } ->
     (*let name = try List.assoc n tvar_names
       with Not_found ->
         raise (TypingBug ("Non generic variable :"^(string_of_int n)))
       in *) Format.fprintf Format.std_formatter "%s" (tvar_name n)
-  | ExpVar {e_index = _ ; e_value = t} -> print_type fmt t
+  | CVar {c_index = _ ; c_value = t} -> print_type fmt t
   | Arrow (t1,t2) -> Format.fprintf fmt "(%a -> %a)" print_type t1 print_type t2
   | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_type) tl
   | On (x,i) ->  Format.fprintf fmt "%a on %s" print_type x i;
@@ -68,10 +68,10 @@ let rec print_type fmt = function
 let rec add_pat_to_env i env =
   match i.p_desc with
   | Ident id ->
-    let exp = incr cpt; ExpVar { e_index = !cpt; e_value = CtUnknown } in
-    env := (i.p_desc,exp) :: !env ;
-  | PUnit -> let exp = incr cpt; ExpVar { e_index = !cpt; e_value = CtUnknown } in
-    env := (i.p_desc,exp) :: !env ;
+    let var = incr cpt; CVar { c_index = !cpt; c_value = CtUnknown } in
+    env := (i.p_desc,var) :: !env ;
+  | PUnit -> let var = incr cpt; CVar { c_index = !cpt; c_value = CtUnknown } in
+    env := (i.p_desc,var) :: !env ;
   | Tuple tl -> List.iter (fun i -> add_pat_to_env i env) tl
 
 let rec add_to_env i tau env =
@@ -99,20 +99,20 @@ let rec get_type p env =
     CTuple tl
 
 
-let rec shorten_exp t =
+let rec shorten_var t =
   match t with
-  | ExpVar { e_index = _ ; e_value= CtUnknown} -> t
-  | ExpVar ({ e_index = _ ; e_value = ExpVar {e_index = m ; e_value = CtUnknown}}) -> ExpVar {e_index = m ; e_value = CtUnknown}
-  | ExpVar ({e_index = _ ; e_value = ExpVar tv1} as tv2) -> tv2.e_value <- tv1.e_value; shorten_exp t
-  | ExpVar {e_index = _ ; e_value = t'} -> t'
+  | CVar { c_index = _ ; c_value= CtUnknown} -> t
+  | CVar ({ c_index = _ ; c_value = CVar {c_index = m ; c_value = CtUnknown}}) -> CVar {c_index = m ; c_value = CtUnknown}
+  | CVar ({c_index = _ ; c_value = CVar tv1} as tv2) -> tv2.c_value <- tv1.c_value; shorten_var t
+  | CVar {c_index = _ ; c_value = t'} -> t'
   (* )  | CtUnknown -> raise (TypingBug "shorten" ) *)
   | t' -> t'
 
 exception TypeClash of ct * ct
 
-let occurs {e_index = n; e_value = _ } =
+let occurs {c_index = n; c_value = _ } =
   let rec occrec = function
-    | ExpVar {e_index = m; e_value = _ } -> (n = m)
+    | CVar {c_index = m; c_value = _ } -> (n = m)
     | Arrow(ct1, ct2) -> occrec ct1 || occrec ct2
     | CTuple (ctl) -> List.fold_left (fun acc ctl -> occrec ctl || acc) false ctl
     | On (x,i) -> occrec x
@@ -121,16 +121,16 @@ let occurs {e_index = n; e_value = _ } =
   in occrec
 
 let rec unify (tau1, tau2) =
-  match (shorten_exp tau1, shorten_exp tau2) with
-  | (ExpVar ({e_index = n ;e_value =CtUnknown}) as t1),
-    (ExpVar ({e_index = m ;e_value =CtUnknown} as tv2))
+  match (shorten_var tau1, shorten_var tau2) with
+  | (CVar ({c_index = n ;c_value =CtUnknown}) as t1),
+    (CVar ({c_index = m ;c_value =CtUnknown} as tv2))
     ->
-    if n <> m then tv2.e_value <- t1
-  | t1, (ExpVar ({e_index = _ ;e_value =CtUnknown} as tv) as t2)
-    -> if not (occurs tv t1) then tv.e_value <- t1
+    if n <> m then tv2.c_value <- t1
+  | t1, (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t2)
+    -> if not (occurs tv t1) then tv.c_value <- t1
     else raise (TypeClash (t1,t2))
-  | (ExpVar ({e_index = _ ;e_value =CtUnknown} as tv) as t1) , t2
-    -> if not (occurs tv t2) then tv.e_value <- t2
+  | (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t1) , t2
+    -> if not (occurs tv t2) then tv.c_value <- t2
     else raise (TypeClash (t1,t2))
   | Arrow (t1,t2) , Arrow (t'1, t'2)
     -> unify (t1,t'1) ; unify (t2,t'2)
@@ -146,8 +146,8 @@ let rec unify (tau1, tau2) =
 let vars_of_type tau =
   let rec vars vs ck =
     match ck with
-    | ExpVar {e_index = n ; e_value = CtUnknown} -> if List.mem n vs then vs else n::vs
-    | ExpVar {e_index = _ ; e_value = t} -> vars vs t
+    | CVar {c_index = n ; c_value = CtUnknown} -> if List.mem n vs then vs else n::vs
+    | CVar {c_index = _ ; c_value = t} -> vars vs t
     | Arrow (t1,t2) -> vars (vars vs t1) t2
     | CTuple (c::ctl) -> List.fold_left (fun acc t -> vars acc t) (vars vs c) ctl
     | On (x,i) -> vars vs x
@@ -174,15 +174,15 @@ let generalise_type (gamma,tau) =
   Forall (genvars, tau)
 
 let inst (Forall(gv,ct)) =
-  let unknowns = List.map (function n -> n, ExpVar (new_exptype ())) gv in
+  let unknowns = List.map (function n -> n, CVar (new_vartype ())) gv in
   let rec ginstance ct =
     match ct with
-    | ExpVar { e_index = n ; e_value = CtUnknown } ->
+    | CVar { c_index = n ; c_value = CtUnknown } ->
       begin
         try List.assoc n unknowns
         with Not_found -> ct
       end
-    | ExpVar {e_index = _ ; e_value = t } -> ginstance t
+    | CVar {c_index = _ ; c_value = t } -> ginstance t
     | CTuple tl -> CTuple (List.map ginstance tl)
     | Arrow (t1,t2) -> Arrow (ginstance t1, ginstance t2)
     | On (x,i) -> On(ginstance x,i)
@@ -193,12 +193,12 @@ let inst (Forall(gv,ct)) =
 let rec typing_expr gamma =
   let rec type_rec { e_desc = e ; e_loc = _} =
     match e with
-    | Value _ -> ExpVar (new_exptype () )
+    | Value _ -> CVar (new_vartype () )
     | Variable n ->begin
         try
           let sigma =  get_type { p_desc = (Ident n) ; p_loc = Location.none } gamma in
         sigma
-        with  Not_found -> ExpVar (new_exptype ())
+        with  Not_found -> CVar (new_vartype ())
       end
     | Alternative (e1,e2,e3) ->
       let t1 = type_rec e1 in
@@ -215,7 +215,7 @@ let rec typing_expr gamma =
       unify (t1,t2) ; t1
     | PrefixOp (op, e1) -> type_rec e1
     | Unit ->
-      ExpVar (new_exptype ())
+      CVar (new_vartype ())
     | Fby (e1,e2) ->
       let t1 = type_rec e1 in
       let t2 = type_rec e2 in
@@ -230,7 +230,7 @@ let rec typing_expr gamma =
       let i =  get_ident e2 in
       unify (t1,t2) ;
       begin match t2 with
-      | ExpVar ev -> (ev.e_value <- Carrier (i,ev.e_value))
+      | CVar ev -> (ev.c_value <- Carrier (i,ev.c_value))
       | _ -> ()
       end ;
 
@@ -259,12 +259,12 @@ let rec print_string_list fmt l =
   | [h] -> Format.fprintf fmt "%s" h
   | h :: t -> Format.fprintf fmt "%s,%a" h print_string_list t  in
   let rec print_rec fmt = function
-    | ExpVar {e_index = n ; e_value = CtUnknown } ->
+    | CVar {c_index = n ; c_value = CtUnknown } ->
       let name = try List.assoc n tvar_names
         with Not_found ->
           raise (TypingBug ("Non generic variable :"^(string_of_int n)))
       in Format.fprintf Format.std_formatter "%s" name
-    | ExpVar {e_index = _ ; e_value = t} -> print_rec fmt t
+    | CVar {c_index = _ ; c_value = t} -> print_rec fmt t
     | Arrow (t1,t2) -> Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
     | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_rec) tl
     | On (x,i) ->  Format.fprintf fmt "%a on %s" print_rec x i;
@@ -288,7 +288,7 @@ let typing_equation { pattern = p ; expression = e} =
 
 let type_node node =
   typing_env := [];
-  reset_exptypes ();
+  reset_vartypes ();
 
   add_pat_to_env node.inputs typing_env;
 
