@@ -53,9 +53,14 @@ let lustre_mapper argv =
             let _node = schedule _node in
             (* print_node Format.std_formatter _node; *)
 
-            typing_scheme_env := (type_node _node) :: !typing_scheme_env;
+            typing_scheme_env := (type_node _node typing_scheme_env);
 
-            List.iter (fun (n,s) -> Format.fprintf Format.std_formatter "%a :: %a \n" print_pattern n print_type_scheme s)  !typing_scheme_env;
+            Format.fprintf Format.std_formatter "_____ \n\n";
+            List.iter (fun (n,s) ->
+                Format.fprintf Format.std_formatter "%s :: %a \n"
+                  n
+                  print_type_scheme s)
+              !typing_scheme_env;
 
             let _node = normalize_node _node in
             (* print_node Format.std_formatter _node; *)

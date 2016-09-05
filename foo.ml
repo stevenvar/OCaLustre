@@ -1,8 +1,8 @@
 
 
 
-let%node lolol ~i:() ~o:x =
-  x = 1 ->> (2 ->> (3 ->> (4 ->> x)))
+let%node id ~i:(x,f) ~o:y =
+  y = x @ f
 
 let%node fibo ~i:() ~o:(g,f) =
   l = 1 ->> g;
@@ -10,12 +10,13 @@ let%node fibo ~i:() ~o:(g,f) =
   g = 0 ->> k;
   f = 0 ->> ( 1 --> (pre f + f ))
 
-let%node ffff ~i:(x) ~o:(y) =
-  y = (x,x)
+let%node test ~i:(x,c) ~o:(y,ck) =
+  y = id (x,c);
+  ck = c
 
-let%node test ~i:(i,j) ~o:(c,o) =
-  c = true --> (not (pre c));
-  o = i @ c
+let%node foo ~i:(x,c) ~o:y =
+  y = test (x,c)
+
 
 let _ =
   let n = fibo () in
