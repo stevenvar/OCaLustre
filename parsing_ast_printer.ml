@@ -87,10 +87,19 @@ let rec print_expression fmt e =
   | When (e1,e2) -> Format.fprintf fmt "( %a when %a )"
                     print_expression e1
                     print_expression e2
+  | Whennot (e1,e2) -> Format.fprintf fmt "( %a whennot %a )"
+                                      print_expression e1
+                                      print_expression e2
   | Pre e -> Format.fprintf fmt "(pre %a)"
                print_expression e
   | ETuple el -> Format.fprintf fmt "(%a)"
-                 print_expression_list el
+                   print_expression_list el
+  | Merge (e1,e2,e3) ->
+    Format.fprintf fmt  "(merge (%a) (%a) (%a))"
+    print_expression e1
+    print_expression e2
+    print_expression e3
+
 
 
 let print_equation fmt e =

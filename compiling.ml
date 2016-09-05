@@ -52,9 +52,15 @@ let rec compile_expression e p =
   | CUnit -> IUnit
   | CFby (v,e') -> IRef (get_ident p)
   | CWhen (e',i) -> compile_expression e' p
+  | CWhennot (e',i) -> compile_expression e' p
   | CETuple el ->
     let iel = List.map (fun e -> compile_expression e p) el in
     IETuple (iel)
+  | CMerge (e1,e2,e3) ->
+    IAlternative (compile_expression e1 p,
+                  compile_expression e2 p,
+                  compile_expression e3 p)
+
   | _ -> assert false
 
 

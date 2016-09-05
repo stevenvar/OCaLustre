@@ -28,10 +28,13 @@ let rec get_clock hst e =
   | Arrow (v,e) -> get_clock hst e
   | When (e1, e2) ->
     failwith "todo"
+  | Whennot (e1, e2) ->
+      failwith "todo"
   (*)  On ((get_clock hst e), e2) (* the clock is in the expression *) *)
   | Unit -> Base
   | Pre e -> get_clock hst e
   | ETuple el -> get_clock hst (List.hd el) (* TODO *)
+  | Merge (e1, e2, e3) -> get_clock hst e2
 
 let rec clock_err cl loc =
   match cl with
@@ -105,6 +108,16 @@ let rec clock_exp hst e =
       { ce_desc = e' ; ce_loc = e.e_loc ; ce_clock = [ck]}
     else
       clock_err [ce1.ce_clock;ce2.ce_clock] e.e_loc
+      | Whennot (e1,e2) ->
+        let ce1 = clock_exp hst e1 in
+        let ce2 = clock_exp hst e2 in
+        let i = get_ident e2 in
+        let ck = On (List.hd ce1.ce_clock,i) in
+        let e' = CWhennot (ce1,i) in
+        if (clock_eq ce1.ce_clock ce2.ce_clock) then
+          { ce_desc = e' ; ce_loc = e.e_loc ; ce_clock = [ck]}
+        else
+          clock_err [ce1.ce_clock;ce2.ce_clock] e.e_loc
   | Unit ->
     { ce_desc = CUnit ; ce_loc = e.e_loc ; ce_clock = [Base]}
   | Pre e ->
@@ -113,6 +126,13 @@ let rec clock_exp hst e =
   | ETuple el ->
     let cel = List.map (fun e -> clock_exp hst e) el in
     { ce_desc = CETuple(cel) ; ce_loc = e.e_loc ; ce_clock = [Base] } (* TODO *)
+  | Merge (e1,e2,e3) ->
+    let ce1 = clock_exp hst e1 in
+    let ce2 = clock_exp hst e2 in
+    let ce3 = clock_exp hst e3 in
+    let e' = CMerge (ce1, ce2, ce3) in
+    { ce_desc = e' ; ce_loc = e.e_loc ; ce_clock = ce1.ce_clock }
+
 
 let rec cpat_of_pat ck p =
   match p.p_desc with

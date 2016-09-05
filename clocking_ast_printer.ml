@@ -5,11 +5,11 @@ open Parsing_ast
 
 let rec print_clock fmt cl =
   let rec print_one_clock fmt c =
-  match c with
-  | Base -> Format.fprintf fmt "\x1b[32m<base>\x1b[0m"
-  | On (ck,x)-> Format.fprintf fmt "\x1b[35m<%a \x1b[35mon %a>\x1b[0m"
-                  print_one_clock ck
-                  print_ident x
+    match c with
+    | Base -> Format.fprintf fmt "\x1b[32m<base>\x1b[0m"
+    | On (ck,x)-> Format.fprintf fmt "\x1b[35m<%a \x1b[35mon %a>\x1b[0m"
+                    print_one_clock ck
+                    print_ident x
   in
   print_list print_one_clock fmt cl
 
@@ -34,8 +34,8 @@ let rec print_cexpression fmt { ce_desc ; ce_loc; ce_clock }=
   in
   match ce_desc with
   | CVariable i -> Format.fprintf fmt "%a%a"
-                    print_ident i
-                    print_clock ce_clock
+                     print_ident i
+                     print_clock ce_clock
   | CAlternative (e1,e2,e3) ->
     Format.fprintf fmt  "(if (%a) then (%a) else (%a))%a"
       print_cexpression e1
@@ -49,34 +49,43 @@ let rec print_cexpression fmt { ce_desc ; ce_loc; ce_clock }=
       print_cexpression e2
       print_clock ce_clock
   | CPrefixOp (op, e1) -> Format.fprintf fmt "(%a %a)%a"
-                           print_preop op
-                           print_cexpression e1
-                           print_clock ce_clock
+                            print_preop op
+                            print_cexpression e1
+                            print_clock ce_clock
   | CValue v -> print_value fmt v
   | CFby (v, e) -> Format.fprintf fmt "(%a fby %a)%a"
                      print_value v
                      print_cexpression e
                      print_clock ce_clock
   | CArrow (e1,e2) -> Format.fprintf fmt "(%a --> %a)%a"
-                      print_cexpression e1
-                      print_cexpression e2
-                      print_clock ce_clock
+                        print_cexpression e1
+                        print_cexpression e2
+                        print_clock ce_clock
   | CUnit -> Format.fprintf fmt "()"
   | CWhen (e,i) -> Format.fprintf fmt "( %a when %a )%a"
-                    print_cexpression e
-                    print_ident i
-                    print_clock ce_clock
-  | CPre e -> Format.fprintf fmt "(pre %a)%a"
                      print_cexpression e
+                     print_ident i
                      print_clock ce_clock
+  | CWhennot (e,i) -> Format.fprintf fmt "( %a when not %a )%a"
+                        print_cexpression e
+                        print_ident i
+                        print_clock ce_clock
+  | CPre e -> Format.fprintf fmt "(pre %a)%a"
+                print_cexpression e
+                print_clock ce_clock
   | CApplication (i,e) -> Format.fprintf fmt "(%s (%a))%a"
-                             i
-                             print_cexpression e
-                             print_clock ce_clock
+                            i
+                            print_cexpression e
+                            print_clock ce_clock
   | CETuple el -> Format.fprintf fmt "(%a)%a"
-                             print_cexpression_list el
-                             print_clock ce_clock
-
+                    print_cexpression_list el
+                    print_clock ce_clock
+  | CMerge (e1,e2,e3) ->
+    Format.fprintf fmt  "(if (%a) then (%a) else (%a))%a"
+      print_cexpression e1
+      print_cexpression e2
+      print_cexpression e3
+      print_clock ce_clock
 
 let print_cequation fmt e =
   Format.fprintf fmt  "  %a = %a;"

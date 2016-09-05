@@ -34,12 +34,13 @@ and exp_desc =
   | Variable of ident
   | Fby of expression * expression
   | When of expression * expression
+  | Whennot of expression * expression
   | ETuple of expression list
   (* | Current of expression *)
   | Arrow of expression * expression
   | Pre of expression
+  | Merge of expression * expression * expression
   | Unit
-  (* merge ? *)
 and inf_operator =
   | Diff
   | Equals

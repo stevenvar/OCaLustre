@@ -56,6 +56,9 @@ let rec transform_exp exp =
   | When (e,i) ->
     let e' = transform_exp e in
     { exp with e_desc = When (e',i) }
+  | Whennot (e,i) ->
+    let e' = transform_exp e in
+    { exp with e_desc = Whennot (e',i) }
   | ETuple el ->
     let el' = List.map transform_exp el in
     { exp with e_desc = ETuple (el') }
@@ -102,11 +105,20 @@ let rec normalize_exp l exp =
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = When (e',i) }
-  (*TODO*)
+(*TODO*)
+  | Whennot (e,i) ->
+    let (l',e') = normalize_exp l e in
+    l' , { exp with e_desc = Whennot (e',i) }
   | Unit -> l , exp
   | ETuple el ->
     let (l',el') = List.fold_right (fun e (_l,_e) -> let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
     l', { exp with e_desc = ETuple el' }
+  | Merge (e1,e2,e3) ->
+    let (l1,e1') = normalize_exp l e1 in
+    let (l2,e2') = normalize_exp l1 e2 in
+    let (l3,e3') = normalize_exp l2 e3 in
+    let exp' = Merge (e1',e2',e3') in
+    l3, { exp with e_desc =  exp' }
   | _ -> assert false
 
 let normalize_eqs eqs =

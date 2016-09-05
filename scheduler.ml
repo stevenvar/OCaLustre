@@ -21,9 +21,14 @@ let rec get_dep_id e l  =
   | Fby (v,e) -> l (* not dependent on e since it appears at the next instant *)
   | Arrow (v,e) -> l
   | When (e,i) -> get_dep_id e (get_dep_id i l)
+  | Whennot (e,i) -> get_dep_id e (get_dep_id i l)
   | Unit -> l
   | Pre e -> get_dep_id e l
   | ETuple el -> List.fold_left (fun accu e -> get_dep_id e accu) l el
+  | Merge (e1,e2,e3) ->
+    let l = get_dep_id e1 l in
+    let l = get_dep_id e2 l in
+    get_dep_id e3 l
 
 
 let rec get_id p =

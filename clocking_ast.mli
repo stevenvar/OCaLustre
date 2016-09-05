@@ -25,7 +25,7 @@ and cpattern = {
 and cpatt_desc =
   | CIdent of ident
   | CTuple of cpattern list
-  | CPUnit 
+  | CPUnit
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
@@ -37,6 +37,8 @@ and cexp_desc =
   | CFby of constant * cexpression
   | CArrow of cexpression * cexpression
   | CWhen of cexpression * ident
+  | CWhennot of cexpression * ident
   | CPre of cexpression
   | CETuple of cexpression list
+  | CMerge of cexpression * cexpression * cexpression
   | CUnit

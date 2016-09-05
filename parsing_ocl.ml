@@ -75,8 +75,14 @@ let rec get_idents l e =
   | Fby (i , e') -> get_idents l e'
   | Arrow (i, e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
+  | Whennot (e',c) -> get_idents l e'
   | ETuple (el) -> List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
   | Pre (e) ->  get_idents l e
+  | Merge (e1,e2,e3) ->
+  let l = get_idents l e3 in
+  let l = get_idents l e2 in
+  let l = get_idents l e1 in
+  l
 
 
 (* transform expressions to node of the ocalustre AST *)
@@ -104,6 +110,9 @@ let rec mk_expr e =
                                       e_loc = e.pexp_loc }
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
+      e_loc = e.pexp_loc }
+  | [%expr merge ([%e? e1]) ([%e? e2]) ([%e? e3]) ] ->
+    { e_desc = Merge ((mk_expr e1),(mk_expr e2),(mk_expr e3)) ;
       e_loc = e.pexp_loc }
   | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ;
                               e_loc = e.pexp_loc }
@@ -134,8 +143,11 @@ let rec mk_expr e =
   | [%expr [%e? e1] --> [%e? e2] ]  ->
     { e_desc = Arrow (mk_expr e1 , mk_expr e2) ;
       e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] @ [%e? e2] ] ->
+  | [%expr [%e? e1] @wh [%e? e2] ] ->
     { e_desc =  When (mk_expr e1 , mk_expr e2) ;
+      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] @whnot [%e? e2] ] ->
+    { e_desc =  Whennot (mk_expr e1 , mk_expr e2) ;
       e_loc = e.pexp_loc }
   | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
