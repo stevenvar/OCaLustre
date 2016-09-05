@@ -252,7 +252,12 @@ let names = let rec names_of = function
                | (n,[]) -> []
                | (n,(v1::lv)) -> (tvar_name n)::(names_of (n+1,lv))
              in names_of (1,gv) in
-  let tvar_names = List.combine (List.rev gv) names in
+let tvar_names = List.combine (List.rev gv) names in
+let rec print_string_list fmt l =
+  match l with
+  | [] -> ()
+  | [h] -> Format.fprintf fmt "%s" h
+  | h :: t -> Format.fprintf fmt "%s,%a" h print_string_list t  in
   let rec print_rec fmt = function
     | ExpVar {e_index = n ; e_value = CtUnknown } ->
       let name = try List.assoc n tvar_names
@@ -265,8 +270,8 @@ let names = let rec names_of = function
     | On (x,i) ->  Format.fprintf fmt "%a on %s" print_rec x i;
     | CtUnknown -> Format.fprintf fmt  "?"
     | Carrier (i,x) -> Format.fprintf fmt "(%s : %a)" i print_rec x;
-    | _ -> raise (TypingBug "print_type_scheme")
-in  Format.fprintf Format.std_formatter "forall " ; List.iter (fun s -> Format.fprintf Format.std_formatter "%s" s ) names; Format.fprintf Format.std_formatter "." ; print_rec fmt t
+in  Format.fprintf Format.std_formatter "forall %a . %a" print_string_list names
+  print_rec t
 
 let typing_equation { pattern = p ; expression = e} =
   let tau =
@@ -294,8 +299,5 @@ let type_node node =
   let lout = try get_type node.outputs !typing_env with Not_found -> print_pattern Format.std_formatter node.outputs ; failwith "lout" in
 
   let tt = Arrow (lin, lout) in
-  Format.fprintf Format.std_formatter "The clock type of the node %s is %a "
-    (List.hd (string_of_pattern node.name))
-    print_type_scheme (generalise_type (!typing_env,tt));
-
-    print_newline ()
+  let ts = (generalise_type (!typing_env,tt)) in
+  (node.name, ts)

@@ -19,6 +19,7 @@ open Compiling
 open Extracting
 
 
+let typing_scheme_env = ref []
 
 (*open Transform
 open Ast_imperative
@@ -52,9 +53,9 @@ let lustre_mapper argv =
             let _node = schedule _node in
             (* print_node Format.std_formatter _node; *)
 
-             type_node _node ;
+            typing_scheme_env := (type_node _node) :: !typing_scheme_env;
 
-
+            List.iter (fun (n,s) -> Format.fprintf Format.std_formatter "%a :: %a \n" print_pattern n print_type_scheme s)  !typing_scheme_env;
 
             let _node = normalize_node _node in
             (* print_node Format.std_formatter _node; *)
@@ -72,7 +73,7 @@ let lustre_mapper argv =
             let _inode = compile_cnode _cnode in
             (* printml_node Format.std_formatter _inode; *)
 
-           tocaml_node _inode
+            tocaml_node _inode
            (*  let _node = expand_node _node in
             print_node Format.std_formatter _node;
             let _node = schedule _node in
