@@ -108,14 +108,14 @@ means that n is equal to 0 at the first instant and then to its previous value +
 
 ## Clocks
 
-- You can use the ```@wh``` ("when") operator in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```. 
+- You can use the ```@wh``` ("when") operator in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
 
 For example, in the following example, we return the value of x only when c is true:
 
 ```ocaml
 
 let%node sampler ~i:(x,c) ~o:y =
-   y = x @wh c 
+   y = x @wh c
 ```
 
 Clocks are equivalent to a type system and the type of the previous example is :
@@ -127,14 +127,14 @@ With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a
 
 - The ```@whnot``` ("when not") operator is the counterpart of ```@wh```and produces a value only when its clock is ```false```
 
-- You can use arithmetics operators only on flows declared on the same clocks. The following node is correct : 
+- You can use arithmetics operators only on flows declared on the same clocks. The following node is correct :
 
 ```ocaml
 
 let%node sampler ~i:(x1,x2,c) ~o:y =
    a = x1 @wh c;
    b = x2 @wh c;
-   y = a + b 
+   y = a + b
 ```
 
 and has the following clock : ```('a * 'a * (c : 'a)) -> ('a on c) ```
@@ -146,25 +146,18 @@ But the following example is incorrect :
 let%node sampler ~i:(x1,x2,c,d) ~o:y =
    a = x1 @wh c;
    b = x2 @wh d;
-   y = a + b 
+   y = a + b
 ```
 
 - You can combine two flows on complementary clocks ( ```'a on x```and ```'a on not x```) by using the ```merge``` operator. The result is on clock ```'a```
 
-In the following example, we display the value ```1``` half the time, and the value ```2``` the other half of time:
+In the following example, we return the value ```1``` half the time, and the value ```2``` the other half of time:
 
 ```ocaml
 let%node tictoc ~i:c ~o:y =
   a = 1 @wh c ;
   b = 2 @whnot c;
   y = merge c a b
-
-let _ =
-  let tictoc_step = tictoc () in
-  for i = 0 to 30 do
-    let v = tictoc_step (i mod 2 = 0) in
-    Printf.printf "%d \n" v
-  done
 ```
 
 The clock of tictoc is ```(c : 'a ) -> 'a  ```
@@ -196,6 +189,13 @@ And use it with ocamlfind as any other package, for example :
 
 let%node fibonacci ~i:() ~o:(f) =
   f = 0 ->> ( 1 --> (pre f + f))
+
+let _ =
+  let fibonacci_step = fibonacci () in
+  for i = 0 to 30 do
+    let v = fibonacci_step () in
+    Printf.printf "%d \n" v
+  done
 ```
 
-Returns the fibonacci sequence : `1, 1, 2, 3, 5, 8, 13, ...`  
+Displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`  
