@@ -80,7 +80,7 @@ let%node loop ~i:() ~o:(a,b) =
 
 ## Synchronous Operators
 
-- The --> operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants.
+- The ```-->``` operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants.
 
 
 For example :
@@ -90,7 +90,7 @@ For example :
 
 produces `0, 1, 1, 1, ...`
 
-- The pre operator is the memory operator : it returns the value of the flow at the previous instant.
+- The ```pre``` operator is the memory operator : it returns the value of the flow at the previous instant.
 
 For example :
 ```ocaml
@@ -100,7 +100,7 @@ means that n is equal to 0 at the first instant and then to its previous value +
 
 
 
-- The ->> operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
+- The ```->>``` operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
 
 ```ocaml
    n = 0 ->> (n + 1)
@@ -125,7 +125,7 @@ Clocks are equivalent to a type system and the type of the previous example is :
 With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
 
 
-- The ````@whnot``` ("when not") operator is the counterpart of ```@wh```and produces a value only when its clock is ```false```
+- The ```@whnot``` ("when not") operator is the counterpart of ```@wh```and produces a value only when its clock is ```false```
 
 - You can use arithmetics operators only on flows declared on the same clocks. The following node is correct : 
 
