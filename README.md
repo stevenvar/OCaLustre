@@ -108,7 +108,7 @@ means that n is equal to 0 at the first instant and then to its previous value +
 
 ## Clocks
 
-- You can use the ```@wh`` ("when") operator in order to generate flows at a slower rate. This operator takes an expression```e``` and a clock ```ck`` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```. 
+- You can use the ```@wh``` ("when") operator in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck`` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```. 
 
 For example, in the following example, we return the value of x only when c is true:
 
@@ -120,7 +120,7 @@ let%node sampler ~i:(x,c) ~o:y =
 
 Clocks are equivalent to a type system and the type of the previous example is :
 
-```forall 'a.('a * (c : 'a)) -> ('a on c)```
+```('a * (c : 'a)) -> ('a on c)```
 
 With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
 
@@ -137,7 +137,7 @@ let%node sampler ~i:(x1,x2,c) ~o:y =
    y = a + b 
 ```
 
-and as the following clock : ``` forall 'a. ('a * 'a * (c : 'a)) -> ('a on c) ```
+and as the following clock : ```('a * 'a * (c : 'a)) -> ('a on c) ```
 
 But the following example is incorrect :
 
@@ -167,7 +167,7 @@ let _ =
   done
 ```
 
-The clock of tictoc is ``` forall 'a. (c : 'a ) -> 'a  ```
+The clock of tictoc is ```(c : 'a ) -> 'a  ```
 
 
 ## Requirements
