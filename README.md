@@ -80,7 +80,7 @@ let%node loop ~i:() ~o:(a,b) =
 
 ## Synchronous Operators
 
-- The ```-->``` operator is the init operator : it initializes a flow with a value for the first instant and another value for the next instants.
+- The ```-->``` operator is the initialization operator : it initializes a flow with a value for the first instant and another value for the next instants.
 
 
 For example :
