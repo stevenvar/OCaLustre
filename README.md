@@ -70,12 +70,12 @@ let%node foo ~i:() ~o:(a,c,b) =
 Note that scenarios where flows mutually depend on each others (ie. causality loops) are rejected during compilation :
 
 ```ocaml
-let%node loop ~i:() ~o:(a,b) =
+let%node causloop ~i:() ~o:(a,b) =
   a = 7 + b;
   b = a - 2
 ```
 ```
-  Error:Causality loop in node loop including these variables : b a
+  Error:Causality loop in node causloop including these variables : b a
 ```
 
 ## Synchronous Operators
@@ -108,7 +108,7 @@ means that n is equal to 0 at the first instant and then to its previous value +
 
 ## Clocks
 
-- You can use the ```@wh``` ("when") operator in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck`` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```. 
+- You can use the ```@wh``` ("when") operator in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```. 
 
 For example, in the following example, we return the value of x only when c is true:
 
