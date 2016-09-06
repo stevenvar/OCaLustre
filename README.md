@@ -137,7 +137,7 @@ let%node sampler ~i:(x1,x2,c) ~o:y =
    y = a + b 
 ```
 
-and as the following clock : ```('a * 'a * (c : 'a)) -> ('a on c) ```
+and has the following clock : ```('a * 'a * (c : 'a)) -> ('a on c) ```
 
 But the following example is incorrect :
 
