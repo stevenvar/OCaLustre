@@ -162,7 +162,7 @@ let%node tictoc ~i:c ~o:y =
 let _ =
   let tictoc_step = tictoc () in
   for i = 0 to 30 do
-    let v = tictoc_step (i mod 2 = true) in
+    let v = tictoc_step (i mod 2 = 0) in
     Printf.printf "%d \n" v
   done
 ```

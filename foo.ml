@@ -12,22 +12,14 @@ let%node fibo ~i:() ~o:(g,f) =
 *)
 
 
-let%node test ~i:c ~o:y =
-
+let%node tictoc ~i:c ~o:y =
   a = 1 @wh c ;
   b = 2 @whnot c;
   y = merge c a b
 
-(*
-let%node test ~i:c ~o:y =
-  y =  (1 @wh c) + (3 @wh c)
-
-*)
 let _ =
-  let n = test () in
-  let c = ref true in
+  let tictoc_step = tictoc () in
   for i = 0 to 30 do
-    c := not !c;
-    let a= n !c  in
-    Printf.printf "---> %d \n" a
+    let v = tictoc_step (i mod 2 = 0) in
+    Printf.printf "%d \n" v
   done
