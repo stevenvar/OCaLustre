@@ -23,11 +23,14 @@ let%node tictac ~i:(c) ~o:(y) =
   b = 2 @whnot c ;
   y = merge c a b
 
+  let%node tictoc ~i:(d,e) ~o:(y,z) =
+    y = tictac d;
+    z = tictac e
 
 
 let _ =
   let tictoc_step = tictoc () in
   for i = 0 to 30 do
-    let (v,_) = tictoc_step (i mod 2 = 0,34) in
+    let (v,w) = tictoc_step (true,false) in
     Printf.printf "%d \n" v
   done

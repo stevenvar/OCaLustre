@@ -370,8 +370,10 @@ let rec typing_expr gamma =
       shorten_var u
 
     | Merge (e1,e2,e3) ->
-      let _var = CVar{c_index = 20; c_value= CtUnknown} in
-      let t0 = Arrow (Carrier {carr_index = 1 ; carr_value = _var}, Arrow (On (_var,{carr_index = 1 ; carr_value = _var}), Arrow ( Onnot (_var,{carr_index = 1 ; carr_value = _var}) , _var))) in
+      let var = CVar (new_vartype ()) in
+      let carr = new_carrier () in
+      carr.carr_value <- var;
+      let t0 = Arrow (Carrier carr, Arrow (On (var,carr), Arrow ( Onnot (var,carr) ,var))) in
       let t1 = type_rec e1 in
       let t2 = type_rec e2 in
       let t3 = type_rec e3 in
@@ -403,6 +405,7 @@ let type_node node tse =
 
   typing_scheme_env := !tse;
   reset_vartypes ();
+  reset_carrier ();
   add_pat_to_env node.inputs typing_env;
   List.iter (fun e -> typing_equation e) node.equations;
 
