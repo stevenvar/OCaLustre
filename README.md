@@ -181,7 +181,7 @@ The clock of tictoc is ```(c : 'a ) -> 'a  ```
 OCaLustre is still a prototype! But if you really want to try it out, just do :
 
 ```
-  oasis setup && make install
+  make && make install
 ```
 
 And use it with ocamlfind as any other package, for example :
