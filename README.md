@@ -27,7 +27,7 @@ let%node <ident> ~i:<inputs> ~o:<outputs> =
 ```
 with
 <br />
-```haskell
+```ocaml
 <expr> ::= ()
        | if <expr> then <expr> else <expr>
        | <ident> <param> (* function application *)
@@ -38,6 +38,9 @@ with
        | <value>
        | (<expr>,*)
        | pre <expr>
+       | <expr> @wh <ident>
+       | <expr> @whnot <ident>
+       | merge <ident> <expr> <expr>
 <ident> ::= [a-zA-z][a-zA-Z0-9]*
 <value> ::= int | bool | float
 <param> ::= (<ident>,*) | <ident>
@@ -102,6 +105,70 @@ means that n is equal to 0 at the first instant and then to its previous value +
 ```ocaml
    n = 0 ->> (n + 1)
 ```
+
+## Clocks
+
+- You can use the ```@wh`` ("when") operator in order to generate flows at a slower rate. This operator takes an expression```e``` and a clock ```ck`` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```. 
+
+For example, in the following example, we return the value of x only when c is true:
+
+```ocaml
+
+let%node sampler ~i:(x,c) ~o:y =
+   y = x @wh c 
+```
+
+Clocks are equivalent to a type system and the type of the previous example is :
+
+```forall 'a.('a * (c : 'a)) -> ('a on c)```
+
+With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
+
+
+- The ````@whnot``` ("when not") operator is the counterpart of ```@wh```and produces a value only when its clock is ```false```
+
+- You can use arithmetics operators only on flows declared on the same clocks. The following node is correct : 
+
+```ocaml
+
+let%node sampler ~i:(x1,x2,c) ~o:y =
+   a = x1 @wh c;
+   b = x2 @wh c;
+   y = a + b 
+```
+
+and as the following clock : ``` forall 'a. ('a * 'a * (c : 'a)) -> ('a on c) ```
+
+But the following example is incorrect :
+
+```ocaml
+
+let%node sampler ~i:(x1,x2,c,d) ~o:y =
+   a = x1 @wh c;
+   b = x2 @wh d;
+   y = a + b 
+```
+
+- You can combine two flows on complementary clocks ( ```'a on x```and ```'a on not x```) by using the ```merge``` operator. The result is on clock ```'a```
+
+In the following example, we display the value ```1``` half the time, and the value ```2``` the other half of time:
+
+```ocaml
+let%node tictoc ~i:c ~o:y =
+  a = 1 @wh c ;
+  b = 2 @whnot c;
+  y = merge c a b
+
+let _ =
+  let tictoc_step = tictoc () in
+  for i = 0 to 30 do
+    let v = tictoc_step (i mod 2 = true) in
+    Printf.printf "%d \n" v
+  done
+```
+
+The clock of tictoc is ``` forall 'a. (c : 'a ) -> 'a  ```
+
 
 ## Requirements
 
