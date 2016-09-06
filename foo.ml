@@ -11,7 +11,7 @@ let%node fibo ~i:() ~o:(g,f) =
   f = 0 ->> ( 1 --> (pre f + f ))
 *)
 
-(*)
+(*
 let%node tictoc ~i:(c,d) ~o:(y,w) =
   y = 1 @wh c ;
   w = 2 @wh d

@@ -28,7 +28,7 @@ let new_vartype, reset_vartypes =
      { c_index = !cpt; c_value = CtUnknown }),
   (function () -> cpt := 0)
 
-let carr = ref 10
+let carr = ref 0
 let new_carrier, reset_carrier =
   (function () -> incr carr;
      { carr_index = !carr; carr_value = CtUnknown }),
@@ -192,21 +192,21 @@ let vars_of_type tau =
 
   in vars [] tau
 
-  let carriers_of_type tau =
-    let rec vars vs ck =
-      match ck with
-      | CVar {c_index = n ; c_value = CtUnknown} -> vs
-      | CVar {c_index = _ ; c_value = t} -> vars vs t
-      | Arrow (t1,t2) -> vars (vars vs t1) t2
-      | CTuple (c::ctl) ->
-        List.fold_left (fun acc t -> vars acc t) (vars vs c) ctl
-      | On (x,i) -> i.carr_index::(vars vs x)
-      | Onnot (x,i) -> i.carr_index::(vars vs x)
-      | Carrier c -> c.carr_index :: vs
-      | CTuple [] -> assert false
-      | CtUnknown -> raise (TypingBug "carriers_of_type")
+let carriers_of_type tau =
+  let rec vars vs ck =
+    match ck with
+    | CVar {c_index = n ; c_value = CtUnknown} -> vs
+    | CVar {c_index = _ ; c_value = t} -> vars vs t
+    | Arrow (t1,t2) -> vars (vars vs t1) t2
+    | CTuple (c::ctl) ->
+      List.fold_left (fun acc t -> vars acc t) (vars vs c) ctl
+    | On (x,i) -> i.carr_index::(vars vs x)
+    | Onnot (x,i) -> i.carr_index::(vars vs x)
+    | Carrier c -> c.carr_index :: vs
+    | CTuple [] -> assert false
+    | CtUnknown -> raise (TypingBug "carriers_of_type")
 
-    in vars [] tau
+  in vars [] tau
 
 let substract l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
 
@@ -242,15 +242,18 @@ let inst (Forall(gv,gc,ct)) =
     | Arrow (t1,t2) -> Arrow (ginstance t1, ginstance t2)
     | On (x,i) ->
       begin
-      try List.assoc i.carr_index carriers
-      with _ -> ct (* On(ginstance x,i) *)
+        try List.assoc i.carr_index carriers
+        with _ -> failwith "not found" (* On(ginstance x,i) *)
       end
     | Onnot (x,i) ->
-    begin
-    try List.assoc i.carr_index carriers
-    with _ -> ct (* On(ginstance x,i) *)
-    end
-    | Carrier c -> Carrier { c with carr_value =  ginstance c.carr_value }
+      begin
+        try List.assoc i.carr_index carriers
+        with _ -> failwith "not found" (* On(ginstance x,i) *)
+      end
+    | Carrier c ->
+      let carr = new_carrier () in
+      carr.carr_value <- ginstance c.carr_value;
+      Carrier carr
     | CtUnknown -> raise (TypingBug "inst")
 
   in ginstance ct
@@ -275,10 +278,10 @@ let print_type_scheme fmt (Forall(gv,gc,t)) =
       | (n,[]) -> []
       | (n,(v1::lv)) -> (tvar_name n)::(names_of (n+1,lv))
     in names_of (1,gv) in
- let carr_names = let rec names_of = function
-        | (n,[]) -> []
-        | (n,(v1::lv)) -> (carr_name n)::(names_of (n+1,lv))
-      in names_of (1,gc) in
+  let carr_names = let rec names_of = function
+      | (n,[]) -> []
+      | (n,(v1::lv)) -> (carr_name n)::(names_of (n+1,lv))
+    in names_of (1,gc) in
   let tvar_names = List.combine (List.rev gv) names in
   let carr_name_list = List.combine (List.rev gc) carr_names in
   let rec print_string_list fmt l =
@@ -288,10 +291,10 @@ let print_type_scheme fmt (Forall(gv,gc,t)) =
     | h :: t -> Format.fprintf fmt "%s,%a" h print_string_list t  in
   let rec print_carr fmt c =
     let name = try List.assoc c.carr_index carr_name_list
-    with Not_found ->
-      raise (TypingBug ("Non generic variable :"^(string_of_int c.carr_index)))
-  in Format.fprintf Format.std_formatter "%s" name
-in
+      with Not_found ->
+        raise (TypingBug ("Non generic variable :"^(string_of_int c.carr_index)))
+    in Format.fprintf Format.std_formatter "%s" name
+  in
   let rec print_rec fmt = function
     | CVar {c_index = n ; c_value = CtUnknown } ->
       let name = try List.assoc n tvar_names
@@ -349,15 +352,15 @@ let rec typing_expr gamma =
       unify (t1,t2) ; t1
     | Whennot (e1,e2) ->
 
-    let carr = new_carrier () in
-    let var = new_vartype () in
-    carr.carr_value <- CVar var ;
-    let t0 = Arrow (CVar var, Arrow (Carrier carr, Onnot (CVar var,carr))) in
-    let t1 = type_rec e1 in
-    let t2 = type_rec e2 in
-    let u = CVar (new_vartype ()) in
-    unify (Arrow (t1, Arrow (t2,u)),t0);
-    shorten_var u
+      let carr = new_carrier () in
+      let var = new_vartype () in
+      carr.carr_value <- CVar var ;
+      let t0 = Arrow (CVar var, Arrow (Carrier carr, Onnot (CVar var,carr))) in
+      let t1 = type_rec e1 in
+      let t2 = type_rec e2 in
+      let u = CVar (new_vartype ()) in
+      unify (Arrow (t1, Arrow (t2,u)),t0);
+      shorten_var u
     | When (e1,e2) ->
       let carr = new_carrier () in
       let var = new_vartype () in
@@ -410,9 +413,6 @@ let type_node node tse =
   List.iter (fun e -> typing_equation e) node.equations;
 
 
-  print_env Format.std_formatter !typing_env ;
-  print_newline ();
-
   let lin =
     try get_type node.inputs !typing_env
     with Not_found ->
@@ -426,4 +426,6 @@ let type_node node tse =
   in
   let tt = Arrow (lin, lout) in
   let ts = (generalise_type (!typing_env,tt)) in
+  Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern node.name print_type_scheme ts;
+
   (List.hd (string_of_pattern node.name), ts)::!typing_scheme_env
