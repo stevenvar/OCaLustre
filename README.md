@@ -120,7 +120,7 @@ let%node sampler ~i:(x,c) ~o:y =
 
 Clocks are equivalent to a type system and the type of the previous example is :
 
-```('a * (c : 'a)) -> ('a on c)```
+```('a * (ck_a : 'a)) -> ('a on ck_a)```
 
 With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
 
@@ -137,7 +137,7 @@ let%node sampler ~i:(x1,x2,c) ~o:y =
    y = a + b
 ```
 
-and has the following clock : ```('a * 'a * (c : 'a)) -> ('a on c) ```
+and has the following clock : ```('a * 'a * (ck_a : 'a)) -> ('a on ck_a) ```
 
 But the following example is incorrect :
 
@@ -160,7 +160,7 @@ let%node tictoc ~i:c ~o:y =
   y = merge c a b
 ```
 
-The clock of tictoc is ```(c : 'a ) -> 'a  ```
+The clock of tictoc is ```(ck_a : 'a ) -> 'a  ```
 
 
 ## Requirements
