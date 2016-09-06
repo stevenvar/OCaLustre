@@ -1,6 +1,0 @@
-"Resource: /Users/steven/OCaLustre/ocalustre/ppx_lustre.ml": "M\1370_\209\023\236%\"]\213\236|+\245!"
-"Resource: /Users/steven/OCaLustre/ocalustre/ast.ml": "=\026\200s&\219\021\238\184\167\234\216\145\254\020\131"
-"Rule: ocaml dependencies ml (%=ast )": "b\243K\224\153\145\222`\0204\129\019\173\145\171{"
-"Rule: ocaml dependencies ml (%=astimperative )": "%\201V\193GJ\159\135N\172\179%\172k\180\138"
-"Resource: /Users/steven/OCaLustre/ocalustre/astimperative.ml": "m\003\028Z7L\130\171(\195\209\002\220\228\179\248"
-"Rule: ocaml dependencies ml (%=ppx_lustre )": "\031\029\211FI\134\019\168\0202\224\225t\011\189\240"
