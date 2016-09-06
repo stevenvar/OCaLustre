@@ -191,7 +191,8 @@ let%node fibonacci ~i:() ~o:(f) =
   f = 0 ->> ( 1 --> (pre f + f))
 
 let _ =
-  let fibonacci_step = fibonacci () (* the call to fibonacci initialize the node and returns the step function *)
+  let fibonacci_step = fibonacci ()
+  (* the call to fibonacci initializes the node and returns the step function *)
   in
   for i = 0 to 30 do
     let v = fibonacci_step () in
