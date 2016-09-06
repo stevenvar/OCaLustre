@@ -99,7 +99,6 @@ For example :
 means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
 
 
-
 - The ```->>``` operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
 
 ```ocaml
