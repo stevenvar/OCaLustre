@@ -80,9 +80,6 @@ let generate_fby_inits el =
     | Fby (v, e') -> begin
       match v.e_desc with
       | Value v -> ( e.pattern , IValue v)::l
-      | Variable x ->
-        if List.mem x !inputs then (e.pattern, IVariable x)::l else
-          Error.print_error e.expression.e_loc "A fby must begin with a constant or an input variable"
       | _ -> Error.syntax_error v.e_loc
       end
     | Arrow (e1,e2) -> (e.pattern , compile_expression e1 e.pattern)::l
@@ -94,7 +91,7 @@ let generate_app_inits el =
 let rec generate_init e p l =
   match e with
   | IApplication (i,num,el') ->
-    (p, IApplication (i,num, el'))::l
+    (p, IApplication (i,num, IUnit))::l
   | IAlternative (e1,e2,e3) ->
     let l1 = generate_init e1 p l in
     let l2 = generate_init e2 p l1 in

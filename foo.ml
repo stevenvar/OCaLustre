@@ -39,7 +39,8 @@ let _ =
 
 *)
 let%node testo ~i:(x) ~o:(m) =
-  m = x ->> (m + 1)
+  n = true ->> false ;
+  m = if n then x else (0 ->> m + 1)
 (*
 
 let%node nat ~i:() ~o:(n) =
@@ -48,8 +49,9 @@ let%node nat ~i:() ~o:(n) =
 *)
 
 let%node tictoc ~i:(c) ~o:(k) =
-  n = (testo 1) @wh c;
-  m = (testo 11)  @whnot c;
+
+  n = (testo 12) @wh c;
+  m = (testo 38)  @whnot c;
   k = merge c n m
 
 let _ =

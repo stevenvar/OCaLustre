@@ -117,9 +117,8 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "let %s %a =\n%a \n%a \n\n"
+  Format.fprintf fmt "let %s () =\n%a \n%a \n\n"
     node.i_name
-    print_pattern node.i_inputs
     printml_inits node.i_inits
     printml_step node
     (*
