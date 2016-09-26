@@ -1,6 +1,7 @@
 
 open Parsing_ast
 open Parsing_ocl
+open Error
 
 let new_name =
   let count = ref 0 in
@@ -26,8 +27,9 @@ let rec transform_exp exp =
   match exp.e_desc with
   | Pre e ->
     let e' = transform_exp e in
-    let magic_exp = { e_desc = Value (Magic) ; e_loc = e.e_loc }  in
-    { exp with e_desc = Fby (magic_exp, e') }
+    let id = get_ident e in
+    let magic_exp = { e_desc = Variable id ; e_loc = e.e_loc }  in
+        { exp with e_desc = Fby (magic_exp, e') }
   | Arrow (e1,e2) ->
     let e1' = transform_exp e1 in
     let e2' = transform_exp e2 in
@@ -99,7 +101,7 @@ let rec normalize_exp l exp =
         let (eq_x,x) = new_eq_var e' in
         let exp' = { exp with e_desc = Fby (c,x) } in
         let (eq_y,y) = new_eq_var exp' in
-        let l' = eq_y::eq_x::l' in
+        let l' = eq_x::eq_y::l' in
         l' , y
     end
   | When (e,i) ->
@@ -128,14 +130,16 @@ let normalize_eqs eqs =
     { pattern = eq.pattern ; expression = new_exp} ,  new_eqs
   in
   let normalizeed_eqs = List.map normalize_eq eqs in
+
   List.fold_left (fun (l1,l2) (x,yl) -> (x::l1),(l2@yl) ) ([],[]) normalizeed_eqs
 
 
 let normalize_node node =
-  let (eqs1,eqs2) = normalize_eqs node.equations in
+
+  let (eqs1,eqs2) =  normalize_eqs node.equations in
   {
     name = node.name;
     inputs = node.inputs;
     outputs = node.outputs;
-    equations = eqs1@eqs2;
+    equations = eqs2@(List.rev eqs1);
   }

@@ -4,17 +4,17 @@ open Clocking_ast
 open Parsing_ast
 
 
-let rec print_cpattern fmt p =
-  match p.cp_desc with
-  | CIdent i -> Format.fprintf fmt "%s" i
-  | CTuple t -> Format.fprintf fmt "(%a)" (print_list print_cpattern) t
-  | CPUnit -> Format.fprintf fmt "()"
+let rec print_pattern fmt p =
+  match p.p_desc with
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
+  | PUnit -> Format.fprintf fmt "()"
 
   let rec printml_tuple fmt l =
     match l with
     | [] -> ()
-    | [x] -> Format.fprintf fmt "%a"  print_cpattern x
-    | h::t -> Format.fprintf fmt "%a,"  print_cpattern h; printml_tuple fmt t
+    | [x] -> Format.fprintf fmt "%a"  print_pattern x
+    | h::t -> Format.fprintf fmt "%a,"  print_pattern h; printml_tuple fmt t
 
 let rec printml_expression fmt exp =
   let printml_preop fmt op =
@@ -73,7 +73,7 @@ let printml_updates fmt il =
   let aux fmt (s,e) =
     match e with
     | x -> Format.fprintf fmt "pre_%a := %a;\n"
-             print_cpattern s
+             print_pattern s
              printml_expression x
   in
   List.iter (fun i -> aux fmt i) il
@@ -81,7 +81,7 @@ let printml_updates fmt il =
 let printml_equations fmt el =
   let printml_equation fmt e =
     Format.fprintf fmt "let %a = %a in \n"
-      print_cpattern e.i_pattern
+      print_pattern e.i_pattern
       printml_expression e.i_expression
   in
   List.iter (fun x -> printml_equation fmt x) el
@@ -99,10 +99,10 @@ let rec printml_io fmt il =
 let printml_step fmt node =
   Format.fprintf fmt "let %s_step (%a) = \n%a%a(%a) \n in %s_step "
     node.i_name
-    (print_list print_cpattern) node.i_inputs
+    print_pattern node.i_inputs
     printml_equations node.i_step_fun.i_equations
     printml_updates node.i_step_fun.i_updates
-    printml_tuple node.i_outputs
+    print_pattern node.i_outputs
     node.i_name
 
 
@@ -110,15 +110,16 @@ let printml_inits fmt il =
   let printml_init fmt (s,e) =
     begin match e with
       | x -> Format.fprintf fmt "let pre_%a = ref %a in\n"
-               print_cpattern s
+               print_pattern s
                printml_expression x
     end
   in
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "let %s () =\n%a \n%a \n\n"
+  Format.fprintf fmt "let %s %a =\n%a \n%a \n\n"
     node.i_name
+    print_pattern node.i_inputs
     printml_inits node.i_inits
     printml_step node
     (*

@@ -17,6 +17,7 @@ open Imperative_ast
 open Imperative_ast_printer
 open Compiling
 open Extracting
+open Error 
 
 
 let typing_scheme_env = ref []
@@ -50,26 +51,26 @@ let lustre_mapper argv =
             (* print_node Format.std_formatter _node; *)
 
 
-            let _node = schedule _node in
-            (* print_node Format.std_formatter _node; *)
 
-            typing_scheme_env := (type_node _node typing_scheme_env);
+
 
             let _node = normalize_node _node in
-            (* print_node Format.std_formatter _node; *)
-
-
+            print_node Format.std_formatter _node;
             let _node = schedule _node in
-            (* print_node Format.std_formatter _node; *)
+            print_node Format.std_formatter _node;
 
+            typing_scheme_env := (clock_node _node typing_scheme_env);
+
+            (*)
             let _node = schedule _node in
             (*  print_node Format.std_formatter _node; *)
+            *)
 
-
-            let _cnode = cl_node _node in
+            (*)  let _cnode = cl_node _node in
             (* print_cnode Format.std_formatter _cnode; *)
-            let _inode = compile_cnode _cnode in
-            (* printml_node Format.std_formatter _inode; *)
+            *)
+              let _inode = compile_cnode _node in
+            printml_node Format.std_formatter _inode;
 
             tocaml_node _inode
            (*  let _node = expand_node _node in
@@ -101,4 +102,4 @@ let lustre_mapper argv =
       | x -> default_mapper.structure_item mapper str
   }
 
-let () = register "lustre" lustre_mapper
+let () = register "ocalustre" lustre_mapper

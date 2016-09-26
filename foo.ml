@@ -18,12 +18,14 @@ let%node tictoc ~i:(c,d) ~o:(y,w) =
 
          *)
 
+(*
+
 let%node tictac ~i:(c) ~o:(y) =
   a = 1 @wh c ;
   b = 2 @whnot c ;
   y = merge c a b
 
-  let%node tictoc ~i:(d,e) ~o:(y,z) =
+let%node tictoc ~i:(d,e) ~o:(y,z) =
     y = tictac d;
     z = tictac e
 
@@ -34,3 +36,18 @@ let _ =
     let (v,w) = tictoc_step (true,false) in
     Printf.printf "%d \n" v
   done
+
+*)
+let%node testo ~i:(x) ~o:(m) =
+  m = x ->> (m + 1)
+(*
+
+let%node nat ~i:() ~o:(n) =
+  n = 0 ->> (n+1)
+
+*)
+
+let%node pipi ~i:(c) ~o:(k) =
+  n = 21 @wh c;
+  m = 18 @whnot c;
+  k = merge c n m

@@ -1,6 +1,7 @@
 open Parsing_ast
 open Parsing_ast_printer
 open Parsing_ocl
+open Error 
 
 type clock =
   | Clock_exp of ct
@@ -8,22 +9,22 @@ type clock =
 and
   ct =
   | CtUnknown
-  | CVar of vartype
+  | CVar of varclock
   | CTuple of ct list
   | Arrow of ct * ct
   | On of ct * carrier
   | Onnot of ct * carrier
   | Carrier of carrier
-and vartype = { c_index : int ; mutable c_value : ct }
+and varclock = { c_index : int ; mutable c_value : ct }
 and scheme = Forall of int list * int list *  ct (* arrow ? *)
 and carrier = { carr_index : int ; mutable carr_value : ct }
-exception TypingBug of string
+exception ClockingBug of string
 
 type env = (string * ct) list
 
 let cpt = ref 0
 
-let new_vartype, reset_vartypes =
+let new_varclock, reset_varclocks =
   (function () -> incr cpt;
      { c_index = !cpt; c_value = CtUnknown }),
   (function () -> cpt := 0)
@@ -60,22 +61,22 @@ let rec print_tuple f fmt l =
   | _ -> ()
 
 
-let rec print_type fmt = function
+let rec print_clock fmt = function
 
   | CVar {c_index = n ; c_value = CtUnknown } ->
     (*let name = try List.assoc n tvar_names
       with Not_found ->
-        raise (TypingBug ("Non generic variable :"^(string_of_int n)))
+        raise (ClockingBug ("Non generic variable :"^(string_of_int n)))
       in *) Format.fprintf Format.std_formatter "%d" n
   | CVar {c_index = n ; c_value = t} ->
-    Format.fprintf Format.std_formatter "%a" print_type t
-  | Arrow (t1,t2) -> Format.fprintf fmt "%a -> %a" print_type t1 print_type t2
-  | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_type) tl
-  | On (x,i) ->  Format.fprintf fmt "%a on %d" print_type x i.carr_index
-  | Onnot (x,i) -> Format.fprintf fmt "%a on (not %d)" print_type x i.carr_index
+    Format.fprintf Format.std_formatter "%a" print_clock t
+  | Arrow (t1,t2) -> Format.fprintf fmt "%a -> %a" print_clock t1 print_clock t2
+  | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_clock) tl
+  | On (x,i) ->  Format.fprintf fmt "%a on %d" print_clock x i.carr_index
+  | Onnot (x,i) -> Format.fprintf fmt "%a on (not %d)" print_clock x i.carr_index
   | CtUnknown -> Format.fprintf fmt  "?"
   | Carrier c ->
-    Format.fprintf fmt "(%d : %a)" c.carr_index print_type c.carr_value
+    Format.fprintf fmt "(%d : %a)" c.carr_index print_clock c.carr_value
 
 let rec add_pat_to_env i env =
   match i.p_desc with
@@ -102,10 +103,10 @@ let rec add_to_env i tau env =
 let print_env fmt gamma =
   List.iter (fun (x,t) -> Format.fprintf Format.std_formatter "%a :: %a \n"
                 print_pattern {p_desc = x ; p_loc = Location.none}
-                print_type t)
+                print_clock t)
     gamma
 
-let rec get_type p env =
+let rec get_clock p env =
   match p.p_desc with
   | Ident i -> List.assoc p.p_desc env
   | PUnit -> List.assoc p.p_desc env
@@ -126,10 +127,10 @@ let rec shorten_var t =
   | Carrier ({carr_index = n ; carr_value = CVar tv1} as tv2)->
     tv2.carr_value <- shorten_var tv2.carr_value;
     t
-  (* )  | CtUnknown -> raise (TypingBug "shorten" ) *)
+  (* )  | CtUnknown -> raise (ClockingBug "shorten" ) *)
   | t' -> t'
 
-exception TypeClash of ct * ct
+exception ClockClash of ct * ct
 
 let occurs {c_index = n; c_value = _ } =
   let rec occrec = function
@@ -139,7 +140,7 @@ let occurs {c_index = n; c_value = _ } =
     | On (x,i) -> occrec x
     | Onnot (x,i) -> occrec x
     | Carrier c -> false
-    | _  -> raise (TypingBug "occurs")
+    | _  -> raise (ClockingBug "occurs")
   in occrec
 
 
@@ -155,10 +156,10 @@ let rec unify (tau1, tau2) =
 
   | t1, (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t2)
     -> if not (occurs tv t1) then tv.c_value <- t1
-    else raise (TypeClash (t1,t2))
+    else raise (ClockClash (t1,t2))
   | (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t1) , t2
     -> if not (occurs tv t2) then tv.c_value <- t2
-    else raise (TypeClash (t1,t2))
+    else raise (ClockClash (t1,t2))
   | Arrow (t1,t2) , Arrow (t1', t2')
     -> unify (t1,t1') ; unify (t2,t2')
   | CTuple ctl1 , CTuple ctl2 ->
@@ -172,10 +173,10 @@ let rec unify (tau1, tau2) =
     unify (ct1, ct2)
   | Carrier c , Carrier d ->
     unify (c.carr_value, d.carr_value)
-  | (t1,t2) -> raise (TypeClash (t1,t2))
+  | (t1,t2) -> raise (ClockClash (t1,t2))
 
 
-let vars_of_type tau =
+let vars_of_clock tau =
   let rec vars vs ck =
     match ck with
     | CVar {c_index = n ; c_value = CtUnknown} ->
@@ -188,11 +189,11 @@ let vars_of_type tau =
     | Onnot (x,i) -> vars vs x
     | Carrier c -> vars vs c.carr_value
     | CTuple [] -> assert false
-    | CtUnknown -> raise (TypingBug "vars_of_type")
+    | CtUnknown -> raise (ClockingBug "vars_of_clock")
 
   in vars [] tau
 
-let carriers_of_type tau =
+let carriers_of_clock tau =
   let rec vars vs ck =
     match ck with
     | CVar {c_index = n ; c_value = CtUnknown} -> vs
@@ -204,31 +205,31 @@ let carriers_of_type tau =
     | Onnot (x,i) -> i.carr_index::(vars vs x)
     | Carrier c -> c.carr_index :: vs
     | CTuple [] -> assert false
-    | CtUnknown -> raise (TypingBug "carriers_of_type")
+    | CtUnknown -> raise (ClockingBug "carriers_of_clock")
 
   in vars [] tau
 
 let substract l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
 
-let unknowns_of_type bv t = substract (vars_of_type t) bv
+let unknowns_of_clock bv t = substract (vars_of_clock t) bv
 
-let unknowns_of_type_env env = List.flatten
-    (List.map (fun (id,t) -> (unknowns_of_type [] t)) env)
+let unknowns_of_clock_env env = List.flatten
+    (List.map (fun (id,t) -> (unknowns_of_clock [] t)) env)
 
 let rec make_set l =
   match l with
   | [] -> []
   | x::l -> if List.mem x l then make_set l else x :: make_set l
 
-let generalise_type (gamma,tau) =
-  let fv = vars_of_type tau in
-  let cv = carriers_of_type tau in
+let generalise_clock (gamma,tau) =
+  let fv = vars_of_clock tau in
+  let cv = carriers_of_clock tau in
   let genvars = make_set fv  in
   let carriers = make_set cv in
   Forall (genvars, carriers, tau)
 
 let inst (Forall(gv,gc,ct)) =
-  let unknowns = List.map (function n -> n, CVar (new_vartype ())) gv in
+  let unknowns = List.map (function n -> n, CVar (new_varclock ())) gv in
   let carriers = List.map (function n -> n, Carrier (new_carrier ())) gc in
   let rec ginstance ct =
     match ct with
@@ -254,7 +255,7 @@ let inst (Forall(gv,gc,ct)) =
       let carr = new_carrier () in
       carr.carr_value <- ginstance c.carr_value;
       Carrier carr
-    | CtUnknown -> raise (TypingBug "inst")
+    | CtUnknown -> raise (ClockingBug "inst")
 
   in ginstance ct
 
@@ -273,7 +274,7 @@ let carr_name n =
     if q = 0 then s else ((name_of q)^s)
   in "ck_"^(name_of n)
 
-let print_type_scheme fmt (Forall(gv,gc,t)) =
+let print_clock_scheme fmt (Forall(gv,gc,t)) =
   let names = let rec names_of = function
       | (n,[]) -> []
       | (n,(v1::lv)) -> (tvar_name n)::(names_of (n+1,lv))
@@ -289,17 +290,21 @@ let print_type_scheme fmt (Forall(gv,gc,t)) =
     | [] -> ()
     | [h] -> Format.fprintf fmt "%s" h
     | h :: t -> Format.fprintf fmt "%s,%a" h print_string_list t  in
+  let print_forall fmt l =
+    match l with
+    |  [] -> ()
+    |  _ -> Format.fprintf fmt "forall %a ." print_string_list l in
   let rec print_carr fmt c =
     let name = try List.assoc c.carr_index carr_name_list
       with Not_found ->
-        raise (TypingBug ("Non generic variable :"^(string_of_int c.carr_index)))
+        raise (ClockingBug ("Non generic variable :"^(string_of_int c.carr_index)))
     in Format.fprintf Format.std_formatter "%s" name
   in
   let rec print_rec fmt = function
     | CVar {c_index = n ; c_value = CtUnknown } ->
       let name = try List.assoc n tvar_names
         with Not_found ->
-          raise (TypingBug ("Non generic variable :"^(string_of_int n)))
+          raise (ClockingBug ("Non generic variable :"^(string_of_int n)))
       in Format.fprintf Format.std_formatter "%s" name
     | CVar {c_index = _ ; c_value = t} -> print_rec fmt t
     | Arrow (t1,t2) -> Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
@@ -308,124 +313,122 @@ let print_type_scheme fmt (Forall(gv,gc,t)) =
     | Onnot (x,i) ->  Format.fprintf fmt "%a on (not %a)" print_rec x print_carr i
     | CtUnknown -> Format.fprintf fmt  "?"
     | Carrier c -> Format.fprintf fmt "(%a : %a)" print_carr c print_rec c.carr_value
-  in  Format.fprintf Format.std_formatter "forall %a . forall %a . %a" print_string_list names print_string_list carr_names
+  in  Format.fprintf Format.std_formatter "%a %a %a" print_forall names print_forall carr_names
     print_rec t
 
 
 let rec typing_expr gamma =
-  let rec type_rec { e_desc = e ; e_loc = _} =
+  let rec clock_rec { e_desc = e ; e_loc = _} =
     match e with
-    | Value _ -> CVar (new_vartype () )
+    | Value _ -> CVar (new_varclock () )
     | Variable n ->begin
         try
           let sigma =
-            get_type { p_desc = (Ident n) ; p_loc = Location.none } gamma in
+            get_clock { p_desc = (Ident n) ; p_loc = Location.none } gamma in
           sigma
-        with  Not_found -> CVar (new_vartype ())
+        with  Not_found -> CVar (new_varclock ())
       end
     | Alternative (e1,e2,e3) ->
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
-      let t3 = type_rec e3 in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
+      let t3 = clock_rec e3 in
       unify (t1,t2);
       unify (t2,t3); t3
     | Application (i,e2) ->
       let t1 = List.assoc i !typing_scheme_env in
-      let u = CVar (new_vartype ()) in
+      let u = CVar (new_varclock ()) in
       let t1' = inst t1 in
-      unify (Arrow (type_rec e2, u),t1'); shorten_var u
-    | ETuple t -> CTuple (List.map type_rec t)
+      unify (Arrow (clock_rec e2, u),t1'); shorten_var u
+    | ETuple t -> CTuple (List.map clock_rec t)
     | InfixOp (op, e1,e2) ->
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
       unify (t1,t2) ; t1
-    | PrefixOp (op, e1) -> type_rec e1
+    | PrefixOp (op, e1) -> clock_rec e1
     | Unit ->
-      CVar (new_vartype ())
+      CVar (new_varclock ())
     | Fby (e1,e2) ->
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
       unify (t1,t2); t1
     | Arrow (e1,e2) ->
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
       unify (t1,t2) ; t1
     | Whennot (e1,e2) ->
-
       let carr = new_carrier () in
-      let var = new_vartype () in
+      let var = new_varclock () in
       carr.carr_value <- CVar var ;
       let t0 = Arrow (CVar var, Arrow (Carrier carr, Onnot (CVar var,carr))) in
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
-      let u = CVar (new_vartype ()) in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
+      let u = CVar (new_varclock ()) in
       unify (Arrow (t1, Arrow (t2,u)),t0);
       shorten_var u
     | When (e1,e2) ->
       let carr = new_carrier () in
-      let var = new_vartype () in
+      let var = new_varclock () in
       carr.carr_value <- CVar var ;
       let t0 = Arrow (CVar var, Arrow (Carrier carr, On (CVar var,carr))) in
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
-      let u = CVar (new_vartype ()) in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
+      let u = CVar (new_varclock ()) in
       unify (Arrow (t1, Arrow (t2,u)),t0);
       shorten_var u
-
     | Merge (e1,e2,e3) ->
-      let var = CVar (new_vartype ()) in
+      let var = CVar (new_varclock ()) in
       let carr = new_carrier () in
       carr.carr_value <- var;
       let t0 = Arrow (Carrier carr, Arrow (On (var,carr), Arrow ( Onnot (var,carr) ,var))) in
-      let t1 = type_rec e1 in
-      let t2 = type_rec e2 in
-      let t3 = type_rec e3 in
-      let u = CVar (new_vartype ()) in
+      let t1 = clock_rec e1 in
+      let t2 = clock_rec e2 in
+      let t3 = clock_rec e3 in
+      let u = CVar (new_varclock ()) in
       unify(Arrow (t1, Arrow (t2, Arrow(t3, u))),t0);
       shorten_var u
-    | Pre e -> type_rec e
+    | Pre e -> clock_rec e
 
   in
-  type_rec
+  clock_rec
 
-let typing_equation { pattern = p ; expression = e} =
+let clocking_equation { pattern = p ; expression = e} =
   let tau =
     try typing_expr !typing_env e
-    with TypeClash(t1,t2) ->
-      let vars = (vars_of_type t1)@(vars_of_type t2) in
-      let carrs = (carriers_of_type t1)@(carriers_of_type t2) in
+    with ClockClash(t1,t2) ->
+      let vars = (vars_of_clock t1)@(vars_of_clock t2) in
+      let carrs = (carriers_of_clock t1)@(carriers_of_clock t2) in
       Format.fprintf Format.std_formatter
         " Clock clash between %a and %a "
-        print_type_scheme  (Forall(vars,carrs,t1))
-        print_type_scheme  (Forall(vars,carrs,t2));
+        print_clock_scheme  (Forall(vars,carrs,t1))
+        print_clock_scheme  (Forall(vars,carrs,t2));
       print_newline ();
       raise (Failure "clocking") in
   add_to_env p tau typing_env
 
 
-let type_node node tse =
+let clock_node node tse =
   typing_env := [];
 
   typing_scheme_env := !tse;
-  reset_vartypes ();
+  reset_varclocks ();
   reset_carrier ();
   add_pat_to_env node.inputs typing_env;
-  List.iter (fun e -> typing_equation e) node.equations;
+  List.iter (fun e -> clocking_equation e) node.equations;
 
 
   let lin =
-    try get_type node.inputs !typing_env
+    try get_clock node.inputs !typing_env
     with Not_found ->
       print_pattern Format.std_formatter node.inputs;
       failwith "lin"
   in
   let lout =
-    try get_type node.outputs !typing_env
+    try get_clock node.outputs !typing_env
     with Not_found -> print_pattern Format.std_formatter node.outputs;
       failwith "lout"
   in
   let tt = Arrow (lin, lout) in
-  let ts = (generalise_type (!typing_env,tt)) in
-  Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern node.name print_type_scheme ts;
+  let ts = (generalise_clock (!typing_env,tt)) in
+  Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern node.name print_clock_scheme ts;
 
   (List.hd (string_of_pattern node.name), ts)::!typing_scheme_env

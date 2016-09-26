@@ -1,6 +1,7 @@
 open Parsing_ast
 open Parsing_ocl
 open Parsing_ast_printer
+open Error 
 exception CycleFound of ident list
 
 let rec get_dep_id e l  =

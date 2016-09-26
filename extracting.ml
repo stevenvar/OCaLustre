@@ -19,7 +19,7 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
 
 let rec tocaml_expression e =
   match e with
-  | IValue (Magic) -> [%expr Obj.magic () ]
+  | IValue (Nil) -> [%expr Obj.magic () ]
   | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
   | IValue (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
   | IValue (Bool true) -> Exp.construct {txt= Lident "true" ; loc = Location.none } None
@@ -75,8 +75,8 @@ let stringloc_of_ident ?(prefix="") ?(suffix="") i =
 
 
 let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
-  match p.cp_desc with
-  | CIdent i ->
+  match p.p_desc with
+  | Ident i ->
   {
     txt = prefix^i^suffix;
     loc = Location.none;
@@ -86,24 +86,24 @@ let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
 
 let tocaml_updates node outs =
   let aux (p,e) acc =
-    match p.cp_desc with
-    | CIdent i ->
+    match p.p_desc with
+    | Ident i ->
       [%expr [%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ] := ([%e tocaml_expression e]) ;
              [%e acc ]]
-    | CTuple t -> assert false
-    | CPUnit -> assert false
+    | Tuple t -> assert false
+    | PUnit -> assert false
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates
 
 let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
-  match p.cp_desc with
-  | CIdent i ->
+  match p.p_desc with
+  | Ident i ->
     {
       txt = Lident (prefix^i^suffix);
       loc = Location.none
     }
-  |  CTuple t -> failwith "no tuple !"
-  | CPUnit -> failwith "no unit"
+  | Tuple t -> failwith "no tuple !"
+  | PUnit -> failwith "no unit"
 
   let rec lident_of_string s =
       {
@@ -113,41 +113,41 @@ let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
 
 
 let rec pexp_of_pat p =
-    match p.cp_desc with
-    | CIdent i ->
+    match p.p_desc with
+    | Ident i ->
       { pexp_desc = Pexp_ident (lident_of_pattern p) ;
-        pexp_loc = p.cp_loc ;
+        pexp_loc = p.p_loc ;
         pexp_attributes = [] }
-    | CTuple t ->
+    | Tuple t ->
       let tl = List.map (fun p -> pexp_of_pat p) t in
       { pexp_desc = Pexp_tuple tl ;
-        pexp_loc = p.cp_loc ;
+        pexp_loc = p.p_loc ;
         pexp_attributes = [] }
-    | CPUnit ->   { pexp_desc = Pexp_construct (lident_of_string "()" ,None) ;
-                    pexp_loc = p.cp_loc ;
+    | PUnit ->   { pexp_desc = Pexp_construct (lident_of_string "()" ,None) ;
+                    pexp_loc = p.p_loc ;
                     pexp_attributes = [] }
 
 let tocaml_outputs node =
   let aux ol =
     List.map pexp_of_pat ol
   in
-  match node.i_outputs with
-  | [] -> [%expr () ]
-  | [x] -> [%expr [%e pexp_of_pat x ]]
-  | _ -> [%expr [%e Exp.tuple (aux node.i_outputs) ] ]
+  match node.i_outputs.p_desc with
+  | PUnit -> [%expr () ]
+  | Ident x  -> [%expr [%e pexp_of_pat node.i_outputs ]]
+  | Tuple t -> [%expr [%e Exp.tuple (aux t) ] ]
 
 let rec pat_of_pattern p =
-  match p.cp_desc with
-  | CIdent i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
-                  ppat_loc = p.cp_loc ;
+  match p.p_desc with
+  | Ident i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
+                  ppat_loc = p.p_loc ;
                   ppat_attributes = [] }
-  | CTuple t ->
+  | Tuple t ->
     let tl = List.map (fun p -> pat_of_pattern p) t in
     { ppat_desc = Ppat_tuple tl ;
-      ppat_loc = p.cp_loc ;
+      ppat_loc = p.p_loc ;
       ppat_attributes = [] }
-  | CPUnit -> { ppat_desc = Ppat_construct (lident_of_string "()" ,None);
-                ppat_loc = p.cp_loc ;
+  | PUnit -> { ppat_desc = Ppat_construct (lident_of_string "()" ,None);
+                ppat_loc = p.p_loc ;
                 ppat_attributes = [] }
 
 let tocaml_eq_list el acc =
@@ -164,16 +164,21 @@ let tocaml_eq_list el acc =
 let tocaml_inits inits acc =
   let aux (p,e) acc =
     match e with
+    | IValue Nil ->
+      [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
+               ref [%e pexp_of_pat p ] in [%e acc] ]
     | IValue _ ->
       [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
                ref ([%e tocaml_expression e]) in [%e acc] ]
-    | IApplication (i,num,_) ->
-      let listexp = [(Nolabel, [%expr ()])] in
+    | IApplication (i,num,el) ->
+      let listexp = [(Nolabel, [%expr [%e tocaml_expression el ]])] in
       let n = string_of_int num in
       [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" (i^n))] =
                [%e Exp.apply
                    (Exp.ident (lid_of_ident i)) listexp ] in [%e acc] ]
 
+    | IVariable x -> [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
+                              ref [%e tocaml_expression e ] in [%e acc] ]
     | _ -> assert false
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
@@ -185,20 +190,20 @@ let tocaml_inputs node pname acc =
     List.map (fun i -> pat_of_pattern i) il
   in
   let inputs = node.i_inputs in
-  match inputs with
-  | [] ->
+  match inputs.p_desc with
+  |  PUnit ->
     [%expr let [%p Pat.var pname ] =
              fun () -> [%e acc ]
       in
       [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name) ]]
-  | [x] ->
+  | Ident x  ->
     [%expr let [%p Pat.var pname] =
-             fun [%p pat_of_pattern x] -> [%e acc ]
+             fun [%p pat_of_pattern inputs] -> [%e acc ]
       in
       [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
-  | _ ->
+  | Tuple t ->
     [%expr let [%p Pat.var pname] =
-             fun [%p Pat.tuple (aux node.i_inputs) ] -> [%e acc]
+             fun [%p Pat.tuple (aux t) ] -> [%e acc]
       in
       [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
 
@@ -215,7 +220,19 @@ let tocaml_node inode =
   let name = stringloc_of_ident inode.i_name in
   let inits = inode.i_inits in
 
-  [%stri let [%p Pat.var name] =
-           fun () ->
-             [%e tocaml_inits inits (tocaml_step inode) ]
-  ]
+    match inode.i_inputs.p_desc with
+    | PUnit ->
+      [%stri let [%p Pat.var name] =
+               fun () ->
+                 [%e tocaml_inits inits (tocaml_step inode) ]
+      ]
+    | Ident x  ->
+      [%stri let [%p Pat.var name] =
+               fun [%p pat_of_pattern inode.i_inputs] ->
+                 [%e tocaml_inits inits (tocaml_step inode) ]
+      ]
+    | Tuple t  ->
+      [%stri let [%p Pat.var name] =
+               fun [%p Pat.tuple (List.map pat_of_pattern t) ] ->
+                 [%e tocaml_inits inits (tocaml_step inode) ]
+      ]

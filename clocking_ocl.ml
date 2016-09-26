@@ -1,6 +1,7 @@
 open Clocking_ast
 open Parsing_ast
 open Parsing_ocl
+open Error 
 
 let get_constant e =
 match e.e_desc with
@@ -90,7 +91,7 @@ let rec clock_exp hst e =
     { ce_desc = CValue v ; ce_loc = e.e_loc ; ce_clock = [Base] }
   | Fby (e1,e2) ->
     let ce = clock_exp hst e2 in
-    let v = get_constant e1 in
+    let v =  get_constant e1  in
     let e' = CFby (v, ce) in
     { ce_desc = e'; ce_loc = e.e_loc ; ce_clock = ce.ce_clock}
   | Arrow (e1,e2) ->
