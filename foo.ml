@@ -47,7 +47,14 @@ let%node nat ~i:() ~o:(n) =
 
 *)
 
-let%node pipi ~i:(c) ~o:(k) =
-  n = 21 @wh c;
-  m = 18 @whnot c;
+let%node tictoc ~i:(c) ~o:(k) =
+  n = (testo 1) @wh c;
+  m = (testo 2)  @whnot c;
   k = merge c n m
+
+let _ =
+  let tictoc_step = tictoc (true) in
+  for i = 0 to 30 do
+    let v = tictoc_step (i mod 2 = 0 ) in
+    Printf.printf "%d \n" v
+  done

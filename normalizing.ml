@@ -77,7 +77,11 @@ let rec normalize_exp l exp =
   | Application (i,e) ->
     let (l',e') = normalize_exp l e in
     let exp' = Application (i,e') in
-    l', { exp with e_desc = exp' }
+    let exp' = { exp with e_desc = exp' } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l' = eq_y::l in
+    l' , y
+    
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in
