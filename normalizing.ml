@@ -77,11 +77,7 @@ let rec normalize_exp l exp =
   | Application (i,e) ->
     let (l',e') = normalize_exp l e in
     let exp' = Application (i,e') in
-    let exp' = { exp with e_desc = exp' } in
-    let (eq_y,y) = new_eq_var exp' in
-    let l' = eq_y::l in
-    l' , y
-    
+    l', { exp with e_desc = exp' }
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in
@@ -117,7 +113,8 @@ let rec normalize_exp l exp =
     l' , { exp with e_desc = Whennot (e',i) }
   | Unit -> l , exp
   | ETuple el ->
-    let (l',el') = List.fold_right (fun e (_l,_e) -> let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
+    let (l',el') = List.fold_right (fun e (_l,_e) ->
+        let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
     l', { exp with e_desc = ETuple el' }
   | Merge (e1,e2,e3) ->
     let (l1,e1') = normalize_exp l e1 in

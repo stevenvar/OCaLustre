@@ -49,7 +49,7 @@ let%node nat ~i:() ~o:(n) =
 
 let%node tictoc ~i:(c) ~o:(k) =
   n = (testo 1) @wh c;
-  m = (testo 2)  @whnot c;
+  m = (testo 11)  @whnot c;
   k = merge c n m
 
 let _ =

@@ -55,8 +55,14 @@ let rec compile_expression e p =
                   compile_expression e3 p)
   | Unit -> IUnit
   | Fby (v,e') -> IRef (get_ident p)
-  | When (e',i) -> IAlternative ((compile_expression i p), (compile_expression e' p), (IValue (Nil)))
-  | Whennot (e',i) -> IAlternative ((compile_expression i p), IValue (Nil), compile_expression e' p)
+  | When (e',i) ->
+    IAlternative ((compile_expression i p),
+                  (compile_expression e' p),
+                  (compile_expression e' p))
+  | Whennot (e',i) ->
+    IAlternative ((compile_expression i p),
+                  (compile_expression e' p),
+                  (compile_expression e' p))
   | ETuple el ->
     let iel = List.map (fun e -> compile_expression e p) el in
     IETuple (iel)
@@ -85,13 +91,17 @@ let generate_fby_inits el =
   List.fold_left (fun acc e -> generate_init e acc) [] el
 
 let generate_app_inits el =
-let generate_init e l =
-  match e.i_expression with
+let rec generate_init e p l =
+  match e with
   | IApplication (i,num,el') ->
-    (e.i_pattern, IApplication (i,num, el'))::l
+    (p, IApplication (i,num, el'))::l
+  | IAlternative (e1,e2,e3) ->
+    let l1 = generate_init e1 p l in
+    let l2 = generate_init e2 p l1 in
+    generate_init e3 p l2
   | _ -> l
 in
-List.fold_left (fun acc e -> generate_init e acc) [] el
+List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el
 
 let init_pre cnode =
   let rec gen_pre name exp l =
