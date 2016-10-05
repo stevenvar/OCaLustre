@@ -1,32 +1,49 @@
 open Parsing_ast
 
-type clock = Base | On of clock * ident
-and clk = clock list
+
+type clock =
+  | Clock_exp of ct
+  | Clock_scheme of scheme
+and
+  ct =
+  | CtUnknown
+  | CVar of varclock
+  | CTuple of ct list
+  | Arrow of ct * ct
+  | On of ct * carrier
+  | Onnot of ct * carrier
+  | Carrier of carrier
+and varclock = { c_index : int ; mutable c_value : ct }
+and scheme = Forall of int list * int list *  ct (* arrow ? *)
+and carrier = { carr_index : int ; mutable carr_value : ct }
+
 and cnode = {
   cname : cpattern;
-  cinputs : cpattern list;
-  coutputs : cpattern list;
+  cinputs : cpattern;
+  coutputs : cpattern;
   cequations : cequation list;
 }
 and cequation = {
   cpattern : cpattern;
-  cexpression : cexpression}
+  cexpression : cexpression
+}
+
 and cexpression = {
-  ce_desc : cexp_desc ;
+  ce_desc : exp_desc ;
   ce_loc : Location.t;
-  ce_clock : clk
+  ce_clock : clock
 }
 and cpattern = {
   cp_desc : cpatt_desc;
   cp_loc : Location.t;
-  cp_clock : clk
+  cp_clock : clock
 }
-
 and cpatt_desc =
-  | CIdent of ident
-  | CTuple of cpattern list
-  | CPUnit
+  | CkIdent of ident
+  | CkTuple of cpattern list
+  | CkPUnit
 
+(*)
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
   | CApplication of ident * cexpression
@@ -42,3 +59,4 @@ and cexp_desc =
   | CETuple of cexpression list
   | CMerge of cexpression * cexpression * cexpression
   | CUnit
+*)

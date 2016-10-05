@@ -8,7 +8,7 @@ open Parsing_ast
 open Parsing_ast_printer
 open Clocker
 open Clocking_ast
-open Clocking_ocl
+
 open Clocking_ast_printer
 (* open Scheduling *)
 open Scheduler
@@ -59,17 +59,14 @@ let lustre_mapper argv =
             let _node = schedule _node in
             print_node Format.std_formatter _node;
 
-            typing_scheme_env := (clock_node _node typing_scheme_env);
+            let (new_env, _cnode) = (clock_node _node typing_scheme_env);
+            in
+            typing_scheme_env := new_env; 
+            
+            print_cnode Format.std_formatter _cnode;
+            
 
-            (*)
-            let _node = schedule _node in
-            (*  print_node Format.std_formatter _node; *)
-            *)
-
-            (*)  let _cnode = cl_node _node in
-            (* print_cnode Format.std_formatter _cnode; *)
-            *)
-              let _inode = compile_cnode _node in
+            let _inode = compile_cnode _node in
             printml_node Format.std_formatter _inode;
 
             tocaml_node _inode

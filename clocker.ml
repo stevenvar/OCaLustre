@@ -1,23 +1,9 @@
 open Parsing_ast
 open Parsing_ast_printer
 open Parsing_ocl
+open Clocking_ast 
 open Error
 
-type clock =
-  | Clock_exp of ct
-  | Clock_scheme of scheme
-and
-  ct =
-  | CtUnknown
-  | CVar of varclock
-  | CTuple of ct list
-  | Arrow of ct * ct
-  | On of ct * carrier
-  | Onnot of ct * carrier
-  | Carrier of carrier
-and varclock = { c_index : int ; mutable c_value : ct }
-and scheme = Forall of int list * int list *  ct (* arrow ? *)
-and carrier = { carr_index : int ; mutable carr_value : ct }
 exception ClockingBug of string
 
 exception CarrierClash of carrier * carrier
@@ -419,7 +405,20 @@ let rec typing_expr gamma =
   in
   clock_rec
 
-let clocking_equation { pattern = p ; expression = e} =
+let rec cpatt_of_patt { p_desc ; p_loc } cp_clock =
+  let cp_desc = 
+  match p_desc with
+  | Ident i -> CkIdent i 
+  | Tuple t -> let ct = List.map (fun t -> cpatt_of_patt t cp_clock) t in
+    CkTuple ct
+  | PUnit -> CkPUnit 
+  in
+  { cp_desc ; cp_loc = p_loc ; cp_clock}
+
+let cexp_of_exp { e_desc ; e_loc } ce_clock =
+  { ce_desc = e_desc; ce_loc = e_loc ; ce_clock }
+
+let clocking_equation ({ pattern = p ; expression = e} as eq) =
   let tau =
     try typing_expr !typing_env e
     with ClockClash(t1,t2) ->
@@ -431,7 +430,10 @@ let clocking_equation { pattern = p ; expression = e} =
         print_clock_scheme  (Forall(vars,carrs,t2));
       print_newline ();
       raise (Failure "clocking") in
-  add_to_env p tau typing_env
+  add_to_env p tau typing_env;
+  let cp = cpatt_of_patt p (Clock_exp tau) in 
+  let ce = { ce_desc = e.e_desc ; ce_loc = e.e_loc ; ce_clock = Clock_exp tau } in
+  { cpattern = cp ; cexpression = ce } 
 
 
 let clock_node node tse =
@@ -441,9 +443,9 @@ let clock_node node tse =
   reset_varclocks ();
   reset_carrier ();
   add_pat_to_env node.inputs typing_env;
-  List.iter (fun e -> clocking_equation e) node.equations;
-  List.iter (fun (e,c) -> print_string e; print_int c.carr_index  ) !carriers ;
 
+  let cequations = List.map (fun e -> clocking_equation e) node.equations in 
+  
   let lin =
     try get_clock node.inputs !typing_env
     with Not_found ->
@@ -460,3 +462,5 @@ let clock_node node tse =
   Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern node.name print_clock_scheme ts;
 
   (List.hd (string_of_pattern node.name), ts)::!typing_scheme_env
+  ,
+  { cname = ( cpatt_of_patt node.name (Clock_scheme ts) ) ; cinputs = cpatt_of_patt node.inputs (Clock_exp lin) ; coutputs = cpatt_of_patt node.outputs (Clock_exp lout) ; cequations }
