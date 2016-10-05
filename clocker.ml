@@ -1,7 +1,7 @@
 open Parsing_ast
 open Parsing_ast_printer
 open Parsing_ocl
-open Error 
+open Error
 
 type clock =
   | Clock_exp of ct
@@ -19,6 +19,8 @@ and varclock = { c_index : int ; mutable c_value : ct }
 and scheme = Forall of int list * int list *  ct (* arrow ? *)
 and carrier = { carr_index : int ; mutable carr_value : ct }
 exception ClockingBug of string
+
+exception CarrierClash of carrier * carrier
 
 type env = (string * ct) list
 
@@ -46,6 +48,7 @@ let typing_env = ref []
 
 let typing_scheme_env = ref []
 
+let carriers = ref []
 
 let tvar_name n =
   let rec name_of n =
@@ -169,9 +172,9 @@ let rec unify (tau1, tau2) =
     unify (Carrier i1, Carrier i2);
     unify (ct1, ct2)
   | Onnot (ct1,i1) , Onnot (ct2, i2) ->
-
+unify (Carrier i1, Carrier i2);
     unify (ct1, ct2)
-  | Carrier c , Carrier d ->
+  | Carrier c , Carrier d  when c = d ->
     unify (c.carr_value, d.carr_value)
   | (t1,t2) -> raise (ClockClash (t1,t2))
 
@@ -356,7 +359,12 @@ let rec typing_expr gamma =
       let t2 = clock_rec e2 in
       unify (t1,t2) ; t1
     | Whennot (e1,e2) ->
-      let carr = new_carrier () in
+    let carr =
+    begin
+      try
+        List.assoc (get_ident e2) !carriers
+      with  Not_found -> new_carrier ()
+    end in
       let var = new_varclock () in
       carr.carr_value <- CVar var ;
       let t0 = Arrow (CVar var, Arrow (Carrier carr, Onnot (CVar var,carr))) in
@@ -364,9 +372,15 @@ let rec typing_expr gamma =
       let t2 = clock_rec e2 in
       let u = CVar (new_varclock ()) in
       unify (Arrow (t1, Arrow (t2,u)),t0);
+      carriers := ((get_ident e2),carr) :: !carriers;
       shorten_var u
     | When (e1,e2) ->
-      let carr = new_carrier () in
+      let carr =
+      begin
+        try
+          List.assoc (get_ident e2) !carriers
+        with  Not_found -> new_carrier ()
+      end in
       let var = new_varclock () in
       carr.carr_value <- CVar var ;
       let t0 = Arrow (CVar var, Arrow (Carrier carr, On (CVar var,carr))) in
@@ -374,17 +388,31 @@ let rec typing_expr gamma =
       let t2 = clock_rec e2 in
       let u = CVar (new_varclock ()) in
       unify (Arrow (t1, Arrow (t2,u)),t0);
+      carriers := ((get_ident e2),carr) :: !carriers;
       shorten_var u
     | Merge (e1,e2,e3) ->
       let var = CVar (new_varclock ()) in
-      let carr = new_carrier () in
-      carr.carr_value <- var;
-      let t0 = Arrow (Carrier carr, Arrow (On (var,carr), Arrow ( Onnot (var,carr) ,var))) in
+      let carr1 =
+      begin
+        try
+          List.assoc (get_ident e2) !carriers
+        with  Not_found -> new_carrier ()
+      end in
+      carr1.carr_value <- var;
+      let carr2 =
+      begin
+        try
+          List.assoc (get_ident e3) !carriers
+        with  Not_found -> new_carrier ()
+      end in
+      carr2.carr_value <- var;
+      let t0 = Arrow (Carrier carr1, Arrow (On (var,carr1), Arrow ( Onnot (var,carr2) ,var))) in
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
       let t3 = clock_rec e3 in
       let u = CVar (new_varclock ()) in
       unify(Arrow (t1, Arrow (t2, Arrow(t3, u))),t0);
+
       shorten_var u
     | Pre e -> clock_rec e
 
@@ -398,7 +426,7 @@ let clocking_equation { pattern = p ; expression = e} =
       let vars = (vars_of_clock t1)@(vars_of_clock t2) in
       let carrs = (carriers_of_clock t1)@(carriers_of_clock t2) in
       Format.fprintf Format.std_formatter
-        " Clock clash between %a and %a "
+        " Clock clash between <%a and %a> "
         print_clock_scheme  (Forall(vars,carrs,t1))
         print_clock_scheme  (Forall(vars,carrs,t2));
       print_newline ();
@@ -408,13 +436,13 @@ let clocking_equation { pattern = p ; expression = e} =
 
 let clock_node node tse =
   typing_env := [];
-
+  carriers := []; 
   typing_scheme_env := !tse;
   reset_varclocks ();
   reset_carrier ();
   add_pat_to_env node.inputs typing_env;
   List.iter (fun e -> clocking_equation e) node.equations;
-
+  List.iter (fun (e,c) -> print_string e; print_int c.carr_index  ) !carriers ;
 
   let lin =
     try get_clock node.inputs !typing_env
