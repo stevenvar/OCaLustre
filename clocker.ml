@@ -172,9 +172,9 @@ let rec unify (tau1, tau2) =
     unify (Carrier i1, Carrier i2);
     unify (ct1, ct2)
   | Onnot (ct1,i1) , Onnot (ct2, i2) ->
-unify (Carrier i1, Carrier i2);
+    unify (Carrier i1, Carrier i2);
     unify (ct1, ct2)
-  | Carrier c , Carrier d  when c = d ->
+  | Carrier c , Carrier d  ->
     unify (c.carr_value, d.carr_value)
   | (t1,t2) -> raise (ClockClash (t1,t2))
 
