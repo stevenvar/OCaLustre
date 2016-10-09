@@ -104,15 +104,18 @@ let rec remove_dups lst= match lst with
   | [] -> []
   | h::t -> h::(remove_dups (List.filter (fun x -> x<>h) t))
 
+let schedule_eqs eqs inputs =
+  let g = mk_dep_graph eqs in
+  let g = remove_inputs_dep inputs g in
+  let ids_sorted = List.rev (toposort g) in
+  let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
+  remove_dups eqs_sorted
+
+
 let schedule node =
   let inputs = get_ids node.inputs  in
-  let eqs = node.equations in
   try
-    let g = mk_dep_graph eqs in
-    let g = remove_inputs_dep inputs g in
-    let ids_sorted = List.rev (toposort g) in
-  let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
-  let eqs_sorted = remove_dups eqs_sorted in
+  let eqs_sorted = schedule_eqs node.equations inputs in 
   {
     name = node.name;
     inputs = node.inputs;

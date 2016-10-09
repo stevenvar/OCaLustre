@@ -11,7 +11,7 @@ let get_num =
 
 
 
-let inputs = ref []
+
 
 let get_ident p =
   match p.p_desc with
@@ -117,7 +117,7 @@ let dep_of_init e l =
   | _ -> l 
   
 
-let generate_inits el =
+let generate_inits el inputs =
   let rec generate_init e  l =
     match e.expression.e_desc with
     | Value _
@@ -136,6 +136,7 @@ let generate_inits el =
   let exps = List.map (fun e -> e.expression) el in 
   let id_deps = List.fold_left (fun acc e -> dep_of_init e acc) [] exps in
   let e_deps = List.map (fun i -> find_eq_from_id i el) id_deps in
+  let e_deps = schedule_eqs e_deps inputs in 
    List.fold_left (fun acc e -> generate_init e acc) [] e_deps
 
   
@@ -176,9 +177,9 @@ let rec to_list p =
 
 
 let compile_cnode node =
-  inputs := to_list node.inputs;
+  let inputs = to_list node.inputs in 
   let i_eqs = List.map (compile_equation) node.equations in
-  let i_inits = generate_inits node.equations in 
+  let i_inits = generate_inits node.equations inputs in 
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
   {
