@@ -38,9 +38,12 @@ let _ =
   done
 
 *)
+
+(*
 let%node testo ~i:(x) ~o:(m) =
   n = true ->> false ;
   m = if n then x else (0 ->> m + 1)
+*)
 (*
 
 let%node nat ~i:() ~o:(n) =
@@ -48,15 +51,24 @@ let%node nat ~i:() ~o:(n) =
 
 *)
 
+(*
 let%node tictoc ~i:(c) ~o:(k) =
 
   n = (testo 12) @wh c;
   m = (testo 38)  @whnot c;
   k = merge c n m
+*)
+
+let%node test ~i:(x) ~o:(y) =
+  y = x ->> 12
+
+let%node user ~i:(x) ~o:(y) =
+  y = test v;
+  v = if x then 3 else 4 
 
 let _ =
-  let tictoc_step = tictoc (true) in
+  let user_step = user false in
   for i = 0 to 30 do
-    let v = tictoc_step (i mod 2 = 0 ) in
+    let v = user_step (false) in 
     Printf.printf "%d \n" v
   done

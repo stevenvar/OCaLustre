@@ -7,7 +7,7 @@ let new_name =
   let count = ref 0 in
   fun () ->
     (incr count;
-     let name = ("_id"^(string_of_int !count)) in
+     let name = ("_aux_"^(string_of_int !count)) in
      name
     )
 

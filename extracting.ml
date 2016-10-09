@@ -26,7 +26,8 @@ let rec tocaml_expression e =
   | IValue (Bool false) -> Exp.construct {txt= Lident "false" ; loc = Location.none } None
   | IETuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
-  | IRef i -> [%expr ![%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ]  ]
+  | IRef i -> [%expr ![%e Exp.ident (lid_of_ident i) ]  ]
+  | IRefDef e -> [%expr ref [%e tocaml_expression e ] ]
   | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e ] ]
   | IPrefixOp (INeg, e) -> [%expr ~- [%e tocaml_expression e ] ]
   | IPrefixOp (INegf, e) -> [%expr ~-. [%e tocaml_expression e ] ]
@@ -49,7 +50,7 @@ let rec tocaml_expression e =
   | IInfixOp (ITimesf,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] *. [%e tocaml_expression e2 ]]
   | IInfixOp (IDivf,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] /. [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 ]  /. [%e tocaml_expression e2 ]]
   | IApplication (id, num, e) ->
     let e' = tocaml_expression e in
     let n = string_of_int num in
@@ -88,7 +89,7 @@ let tocaml_updates node outs =
   let aux (p,e) acc =
     match p.p_desc with
     | Ident i ->
-      [%expr [%e Exp.ident (lid_of_ident ~prefix:"pre_" i) ] := ([%e tocaml_expression e]) ;
+      [%expr [%e Exp.ident (lid_of_ident i) ] := ([%e tocaml_expression e]) ;
              [%e acc ]]
     | Tuple t -> assert false
     | PUnit -> assert false
@@ -164,22 +165,20 @@ let tocaml_eq_list el acc =
 let tocaml_inits inits acc =
   let aux (p,e) acc =
     match e with
-    | IValue Nil ->
-      [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
-               ref [%e pexp_of_pat p ] in [%e acc] ]
-    | IValue _ ->
-      [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
-               ref ([%e tocaml_expression e]) in [%e acc] ]
     | IApplication (i,num,el) ->
       let listexp = [(Nolabel, [%expr [%e tocaml_expression el ]])] in
       let n = string_of_int num in
       [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" (i^n))] =
                [%e Exp.apply
                    (Exp.ident (lid_of_ident i)) listexp ] in [%e acc] ]
-
-    | IVariable x -> [%expr let [%p Pat.var (stringloc_of_pattern ~prefix:"pre_" p)] =
-                              ref [%e tocaml_expression e ] in [%e acc] ]
-    | _ -> assert false
+    | IRefDef e ->  [%expr let [%p Pat.var (stringloc_of_pattern p)] =
+                             ref [%e tocaml_expression e ] in [%e acc] ]
+    | _ ->
+      [%expr let [%p Pat.var (stringloc_of_pattern p)] =
+               [%e tocaml_expression e] in [%e acc] ]
+               
+      
+    
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
 
@@ -218,7 +217,7 @@ let tocaml_step node =
 
 let tocaml_node inode =
   let name = stringloc_of_ident inode.i_name in
-  let inits = inode.i_inits in
+  let inits = List.rev inode.i_inits in
 
     match inode.i_inputs.p_desc with
     | PUnit ->

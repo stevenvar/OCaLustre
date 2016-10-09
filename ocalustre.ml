@@ -67,8 +67,10 @@ let lustre_mapper argv =
             
 
             let _inode = compile_cnode _node in
-            printml_node Format.std_formatter _inode;
 
+            Format.fprintf Format.std_formatter "----"; 
+            printml_node Format.std_formatter _inode;
+            Format.fprintf Format.std_formatter "----"; 
             tocaml_node _inode
            (*  let _node = expand_node _node in
             print_node Format.std_formatter _node;

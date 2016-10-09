@@ -48,7 +48,8 @@ let rec printml_expression fmt exp =
   match exp with
   | IValue c -> print_value fmt c
   | IVariable v ->  Format.fprintf fmt "%s" v
-  | IRef v -> Format.fprintf fmt "!pre_%s" v
+  | IRef v -> Format.fprintf fmt "!%s" v
+  | IRefDef e -> Format.fprintf fmt "ref %a" printml_expression e  
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
                              printml_expression e1
                              printml_infop op
@@ -72,7 +73,7 @@ let rec printml_expression fmt exp =
 let printml_updates fmt il =
   let aux fmt (s,e) =
     match e with
-    | x -> Format.fprintf fmt "pre_%a := %a;\n"
+    | x -> Format.fprintf fmt "%a := %a;\n"
              print_pattern s
              printml_expression x
   in
@@ -109,7 +110,7 @@ let printml_step fmt node =
 let printml_inits fmt il =
   let printml_init fmt (s,e) =
     begin match e with
-      | x -> Format.fprintf fmt "let pre_%a = ref %a in\n"
+      | x -> Format.fprintf fmt "let %a = %a in\n"
                print_pattern s
                printml_expression x
     end
@@ -117,8 +118,9 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "let %s () =\n%a \n%a \n\n"
+  Format.fprintf fmt "let %s %a =\n%a \n%a \n\n"
     node.i_name
+    print_pattern node.i_inputs
     printml_inits node.i_inits
     printml_step node
     (*

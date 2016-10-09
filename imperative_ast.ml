@@ -12,6 +12,7 @@ and imp_expr =
   | IVariable of ident
   | IApplication of ident * int * imp_expr
   | IRef of ident
+  | IRefDef of imp_expr
   | IInfixOp of imp_infop * imp_expr * imp_expr
   | IPrefixOp of imp_preop * imp_expr
   | IAlternative of imp_expr * imp_expr * imp_expr
