@@ -13,7 +13,7 @@ PreInstallCommand:   $ocamlfind install ocalustre lib/META
 PreUninstallCommand: $ocamlfind remove ocalustre
 
 Executable ocalustre
-  Path:           ./
+  Path:           lib
   BuildDepends:
     compiler-libs.common,
     ppx_tools.metaquot
@@ -21,5 +21,5 @@ Executable ocalustre
   CompiledObject: best
 
 Test test_foo
-  Command:        ocamlbuild -cflags '-ppx $ocalustre -dsource' foo.byte 
+  Command:        ocamlbuild -I lib -package oUnit -cflags '-ppx $ocalustre -dsource' tests/foo.byte 
   TestTools:      ocalustre
