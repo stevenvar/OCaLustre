@@ -436,7 +436,7 @@ let clocking_equation ({ pattern = p ; expression = e} as eq) =
   { cpattern = cp ; cexpression = ce } 
 
 
-let clock_node node tse =
+let clock_node node tse clocking =
   typing_env := [];
   carriers := []; 
   typing_scheme_env := !tse;
@@ -459,6 +459,7 @@ let clock_node node tse =
   in
   let tt = Arrow (lin, lout) in
   let ts = (generalise_clock (!typing_env,tt)) in
+  if !clocking then 
   Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern node.name print_clock_scheme ts;
 
   (List.hd (string_of_pattern node.name), ts)::!typing_scheme_env

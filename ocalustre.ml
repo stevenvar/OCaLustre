@@ -17,7 +17,10 @@ open Imperative_ast
 open Imperative_ast_printer
 open Compiling
 open Extracting
-open Error 
+open Error
+
+let verbose = ref false
+let clocking = ref false 
 
 
 let typing_scheme_env = ref []
@@ -39,6 +42,11 @@ open Ast_clock_printer
 
 
 let lustre_mapper argv =
+  let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
+                 ("-i", Arg.Set clocking, "Prints clocks types");]
+                 
+    in let usage_msg = "OCaLustre : "
+    in Arg.parse speclist print_endline usage_msg;
   { default_mapper with
     structure_item = fun mapper str ->
        match str.pstr_desc with
@@ -48,57 +56,52 @@ let lustre_mapper argv =
 
 
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
-            (* print_node Format.std_formatter _node; *)
 
-
-
-
+            if !verbose then 
+            Format.fprintf Format.std_formatter
+              " -- PARSED NODE -- \n %a" print_node _node;
 
             let _node = normalize_node _node in
-            print_node Format.std_formatter _node;
-            let _node = schedule _node in
-            print_node Format.std_formatter _node;
 
-            let (new_env, _cnode) = (clock_node _node typing_scheme_env);
+            
+            if !verbose then 
+            Format.fprintf Format.std_formatter
+              " -- NORMALIZED NODE -- \n %a" print_node _node;
+
+            
+            let _node = schedule _node in
+
+            
+            if !verbose then 
+            Format.fprintf Format.std_formatter
+              " -- SCHEDULED NODE -- \n %a" print_node _node;
+
+            let (new_env, _cnode) = (clock_node _node typing_scheme_env clocking);
             in
             typing_scheme_env := new_env; 
-            
-            print_cnode Format.std_formatter _cnode;
-            
 
+            if !verbose then 
+            Format.fprintf Format.std_formatter
+              " -- CLOCKED NODE -- \n %a" print_cnode _cnode;
+
+           
             let _inode = compile_cnode _node in
 
-            Format.fprintf Format.std_formatter "----"; 
-            printml_node Format.std_formatter _inode;
-            Format.fprintf Format.std_formatter "----"; 
-            tocaml_node _inode
-           (*  let _node = expand_node _node in
-            print_node Format.std_formatter _node;
-            let _node = schedule _node in
+            if !verbose then 
+            Format.fprintf Format.std_formatter
+              " -- COMPILED NODE -- \n %a" printml_node _inode;
 
-               let cnode = cl_node _node in *)
-(*            let inode = compile_node _node in *)
-            (* )print_node Format.std_formatter _node;
-            print_cnode Format.std_formatter cnode;
-            *)
-            (*let inode = compile_cnode cnode in
-            printml_node Format.std_formatter inode;
-            extract_node inode
-            (* printml_node Format.std_formatter inode; *)
-            *)
-            (* let _node = transform_node _node in
-            let _node = schedule _node in
-            let _cnode = clock_node _node in
-            let _inode = compile_node _cnode in
-            print_node Format.std_formatter _node;
-            printml_node Format.std_formatter _inode;
-            print_cnode Format.std_formatter _cnode;  *)
-            (* print_cnode Format.std_formatter _cnode; *)
-            (* tocaml_node _inode *)
+           
+            tocaml_node _inode
+           
           | _ -> Error.syntax_error s.pstr_loc
         end
 
       | x -> default_mapper.structure_item mapper str
   }
 
-let () = register "ocalustre" lustre_mapper
+let _ =
+  
+    
+   
+  register "ocalustre" lustre_mapper
