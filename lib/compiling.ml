@@ -107,6 +107,8 @@ let rec generate_init e p l =
     let l1 = generate_init e1 p l in
     let l2 = generate_init e2 p l1 in
     generate_init e3 p l2
+  | IETuple el ->
+    List.fold_left (fun acc e -> generate_init e p l @ acc) [] el 
   | _ -> l
 in
 List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el

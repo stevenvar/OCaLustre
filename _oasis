@@ -20,6 +20,9 @@ Executable "ocalustre"
   MainIs:         ocalustre.ml
   CompiledObject: best
 
-Test test_foo
-  Command:        ocamlbuild -I lib -cflags '-ppx $ocalustre -dsource' tests/foo.byte
-  TestTools:      ocalustre
+Test "test_foo"
+  
+  TestTools:      ocalustre	
+  Command:        ocamlbuild -use-ocamlfind -I lib -cflags '-ppx $ocalustre -dsource' tests/foo.byte
+
+

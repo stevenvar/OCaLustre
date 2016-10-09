@@ -136,8 +136,8 @@ let occurs {c_index = n; c_value = _ } =
 
 let rec unify (tau1, tau2) =
   match (shorten_var tau1, shorten_var tau2) with
-  | (CVar ({c_index = n ;c_value =CtUnknown} as tv1) as t1),
-    (CVar ({c_index = m ;c_value =CtUnknown} as tv2) as t2)
+  | (CVar ({c_index = n ;c_value =CtUnknown} as tv1)),
+    (CVar ({c_index = m ;c_value =CtUnknown}) as t2)
     ->
 
 
@@ -418,7 +418,7 @@ let rec cpatt_of_patt { p_desc ; p_loc } cp_clock =
 let cexp_of_exp { e_desc ; e_loc } ce_clock =
   { ce_desc = e_desc; ce_loc = e_loc ; ce_clock }
 
-let clocking_equation ({ pattern = p ; expression = e} as eq) =
+let clocking_equation ({ pattern = p ; expression = e}) =
   let tau =
     try typing_expr !typing_env e
     with ClockClash(t1,t2) ->
