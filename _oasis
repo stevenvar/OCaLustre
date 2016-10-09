@@ -12,7 +12,7 @@ FilesAB : lib/META.ab
 PreInstallCommand:   $ocamlfind install ocalustre lib/META
 PreUninstallCommand: $ocamlfind remove ocalustre
 
-Executable ocalustre
+Executable "ocalustre"
   Path:           lib
   BuildDepends:
     compiler-libs.common,
@@ -21,5 +21,5 @@ Executable ocalustre
   CompiledObject: best
 
 Test test_foo
-  Command:        ocamlbuild -I lib -package oUnit -cflags '-ppx $ocalustre -dsource' tests/foo.byte 
+  Command:        ocamlbuild -I lib -cflags '-ppx $ocalustre -dsource' tests/foo.byte
   TestTools:      ocalustre
