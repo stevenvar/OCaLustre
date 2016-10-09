@@ -59,8 +59,11 @@ let%node tictoc ~i:(c) ~o:(k) =
   k = merge c n m
 *)
 
+let%node id ~i:(x) ~o:(y) =
+  y = x 
+
 let%node test ~i:(x) ~o:(y) =
-  y = x ->> 12
+  y = (if x = 3 then 0 else 2) ->> 12
 
 let%node user ~i:(x) ~o:(y) =
   y = test v;

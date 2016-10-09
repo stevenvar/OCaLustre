@@ -123,6 +123,7 @@ let generate_inits el =
     | Value _
     | Variable _
     | Alternative _
+    | Application _ 
     | InfixOp _
     | PrefixOp _
     | When _
