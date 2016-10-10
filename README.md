@@ -181,6 +181,12 @@ And use it with ocamlfind as any other package, for example :
   ocamlfind ocamlc -package ocalustre foo.ml
 ```
 
+Or as a ppx preprocessor : 
+
+```
+ocamlc -dsource -ppx ocalustre tests/foo.ml
+```
+
 
 ## Example
 
