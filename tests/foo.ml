@@ -59,23 +59,24 @@ let%node tictoc ~i:(c) ~o:(k) =
   k = merge c n m
 *)
 
-
-let%node id ~i:(x) ~o:(y) =
-  y = x 
-
-let%node truc ~i:(x) ~o:(y) =
-  y = if x then id 2 else id 3
+let%node count ~i:() ~o:(y) =
+  y = 0 ->> (y + 1) 
 
 let%node test ~i:(x) ~o:(y) =
-  y = (if x = 3 then 0 else 2) ->> 12
+  y = x->> count () 
 
+(*
 let%node user ~i:(x) ~o:(y) =
   y = test v;
   v = if x then 3 else 4 
 
+let%node bidule ~i:(x) ~o:(y) =
+  y = if x then count () else count () 
+
+*)
 let _ =
-  let user_step = user false in
+  let user_step = test (28) in
   for i = 0 to 30 do
-    let v = user_step (false) in 
+    let v = user_step (28) in 
     Printf.printf "%d \n" v
   done

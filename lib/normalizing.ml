@@ -75,9 +75,11 @@ let rec normalize_exp l exp =
     let exp' = Alternative (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
   | Application (i,e) ->
-    let (l',e') = normalize_exp l e in
-    let exp' = Application (i,e') in
-    l', { exp with e_desc = exp' }
+    let l',e' = normalize_exp l e in 
+    let exp' = { exp with e_desc = Application (i,e) } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l' = eq_y::l' in
+    l', y
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in
@@ -90,20 +92,12 @@ let rec normalize_exp l exp =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Fby (c, e) ->
-    begin match e.e_desc with
-      | Value v ->
-      let exp' = { exp with e_desc = Fby (c,e) } in
-      let (eq_y,y) = new_eq_var exp' in
-      let l' = eq_y::l in
-      l' , y
-      | _ ->
-        let (l',e') = normalize_exp l e in
-        let (eq_x,x) = new_eq_var e' in
-        let exp' = { exp with e_desc = Fby (c,x) } in
-        let (eq_y,y) = new_eq_var exp' in
-        let l' = eq_x::eq_y::l' in
-        l' , y
-    end
+    let (l',c') = normalize_exp l c in
+    let (l'',e') = normalize_exp l' e in 
+    let exp' = { exp with e_desc = Fby (c',e') } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l''' = eq_y::l'' in
+    l''' , y
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = When (e',i) }
