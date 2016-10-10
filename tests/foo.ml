@@ -63,7 +63,7 @@ let%node count ~i:() ~o:(y) =
   y = 0 ->> (y + 1) 
 
 let%node test ~i:(x) ~o:(y) =
-  y = x->> count () 
+  y = (0 ->> 32) ->> count () 
 
 (*
 let%node user ~i:(x) ~o:(y) =
