@@ -71,7 +71,7 @@ let rec printml_expression fmt exp =
 
 
 let printml_updates fmt il =
-  let aux fmt (s,e) =
+  let aux fmt { i_pattern = s ; i_expression = e} =
     match e with
     | x -> Format.fprintf fmt "%a := %a;\n"
              print_pattern s
@@ -108,7 +108,7 @@ let printml_step fmt node =
 
 
 let printml_inits fmt il =
-  let printml_init fmt (s,e) =
+  let printml_init fmt { i_pattern = s ; i_expression = e} =
     begin match e with
       | x -> Format.fprintf fmt "let %a = %a in\n"
                print_pattern s
@@ -118,10 +118,12 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "let %s %a =\n%a \n%a \n\n"
+  Format.fprintf fmt "let %s %a =\n inits : %a \n app : %a \n fby: %a \n%a \n\n"
     node.i_name
     print_pattern node.i_inputs
     printml_inits node.i_inits
+    printml_inits node.i_app_inits
+    printml_inits node.i_fby_inits 
     printml_step node
     (*
     printml_step node

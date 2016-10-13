@@ -5,9 +5,9 @@ open Parsing_ast
 open Error
 open Scheduler 
 
-let get_num =
+let get_num , reset , get =
   let cpt = ref 0 in
-  fun () -> incr cpt; !cpt
+  (fun () -> incr cpt; !cpt) , (fun () -> cpt := 0 ) , (fun () -> !cpt)
 
 
 
@@ -85,7 +85,7 @@ let rec pre_pattern p =
 let generate_fby_inits el =
   let generate_init e l =
     match e.expression.e_desc with
-    | Fby (v, e') -> (pre_pattern e.pattern, IRefDef (compile_expression v e.pattern))::l
+    | Fby (v, e') -> { i_pattern = pre_pattern e.pattern ; i_expression =  IRefDef (compile_expression v e.pattern)}::l
                      (*
       begin
       match v.e_desc with
@@ -102,13 +102,7 @@ let generate_app_inits el =
 let rec generate_init e p l =
   match e with
   | IApplication (i,num,el') ->
-    (p, IApplication (i,num, el'))::l
-  | IAlternative (e1,e2,e3) ->
-    let l1 = generate_init e1 p l in
-    let l2 = generate_init e2 p l1 in
-    generate_init e3 p l2
-  | IETuple el ->
-    List.fold_left (fun acc e -> generate_init e p l @ acc) [] el 
+    {i_pattern = p ; i_expression =  IApplication (i,num, el')}::l 
   | _ -> l
 in
 List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el
@@ -125,23 +119,26 @@ let generate_inits el inputs =
     | Value _
     | Variable _
     | Alternative _
-    | Application _ 
     | InfixOp _
     | PrefixOp _
     | When _
     | Whennot _
     | ETuple _
     | Merge _
-    | Unit -> (e.pattern, compile_expression e.expression e.pattern)::l                
+    | Application _
+    | Unit ->
+      { i_pattern = e.pattern ; i_expression = compile_expression e.expression e.pattern}::l
+    | Fby (e1,e2) ->
+      let e1' = compile_expression e1 e.pattern in
+      { i_pattern = e.pattern ; i_expression = e1' }::l  
     | _ -> l
   in
   let exps = List.map (fun e -> e.expression) el in 
   let id_deps = List.fold_left (fun acc e -> dep_of_init e acc) [] exps in
+  let id_deps = diff id_deps inputs in 
   let e_deps = List.map (fun i -> find_eq_from_id i el) id_deps in
   let e_deps = schedule_eqs e_deps inputs in 
    List.fold_left (fun acc e -> generate_init e acc) [] e_deps
-
-  
       
 let init_pre cnode =
   let rec gen_pre name exp l =
@@ -158,7 +155,7 @@ let init_pre cnode =
 let generate_updates cnode =
   let aux eq l =
     match eq.expression.e_desc with
-    | Fby (v,e') -> (pre_pattern eq.pattern , compile_expression e' eq.pattern)::l
+    | Fby (v,e') -> { i_pattern = pre_pattern eq.pattern ; i_expression = compile_expression e' eq.pattern}::l
     | _ -> l
   in
   List.fold_left (fun acc e -> aux e acc) [] cnode.equations
@@ -179,16 +176,22 @@ let rec to_list p =
 
 
 let compile_cnode node =
+  reset (); 
   let inputs = to_list node.inputs in 
   let i_eqs = List.map (compile_equation) node.equations in
-  let i_inits = generate_inits node.equations inputs in 
+
+  let i_inits = generate_inits node.equations inputs in
+  
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
+  let i_all_inits = i_inits@i_fby_inits@i_app_inits in 
   {
     i_name = get_ident (node.name) ;
     i_inputs = node.inputs;
     i_outputs = node.outputs;
-    i_inits = i_inits@i_fby_inits@i_app_inits;
+    i_inits;
+    i_app_inits;
+    i_fby_inits; 
     i_step_fun = {
       i_equations = i_eqs;
       i_updates = generate_updates node

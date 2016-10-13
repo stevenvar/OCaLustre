@@ -3,8 +3,8 @@ open Parsetree
 open Parsing_ast
 open Clocking_ast
 
-type app_inits = (pattern * imp_expr) list
-and init = pattern * imp_expr
+type app_inits = imp_equation list
+and init = imp_equation
 and imp_inits = init list
 and imp_expr =
   | IValue of constant
@@ -36,14 +36,14 @@ and
   | INeg
   | INegf
 
-type imp_equation =  {
+and imp_equation =  {
   i_pattern : pattern;
   i_expression : imp_expr;
 }
 
 type imp_step = {
   i_equations : imp_equation list;
-  i_updates : (pattern * imp_expr) list;
+  i_updates : imp_equation list;
 }
 
 type imp_node = {
@@ -51,5 +51,7 @@ type imp_node = {
   i_inputs : pattern;
   i_outputs : pattern;
   i_inits : imp_inits;
+  i_app_inits : imp_inits;
+  i_fby_inits : imp_inits; 
   i_step_fun : imp_step;
 }

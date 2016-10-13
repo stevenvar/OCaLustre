@@ -3,13 +3,15 @@ open Parsing_ast
 open Parsing_ocl
 open Error
 
-let new_name =
+let new_name , reset =
   let count = ref 0 in
-  fun () ->
+  ( fun () ->
     (incr count;
      let name = ("_aux_"^(string_of_int !count)) in
      name
     )
+  ),
+  ( fun () -> count := 0 ) 
 
 
 let new_eq_var e =
@@ -130,7 +132,7 @@ let normalize_eqs eqs =
 
 
 let normalize_node node =
-
+  reset (); 
   let (eqs1,eqs2) =  normalize_eqs node.equations in
   {
     name = node.name;

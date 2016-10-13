@@ -19,7 +19,7 @@ let rec get_dep_id e l  =
   | PrefixOp (op, e) ->
     get_dep_id e l
   | Value v -> l
-  | Fby (v,e) -> l (* not dependent on e since it appears at the next instant *)
+  | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
   | Arrow (v,e) -> l
   | When (e,i) -> get_dep_id e (get_dep_id i l)
   | Whennot (e,i) -> get_dep_id e (get_dep_id i l)
@@ -46,7 +46,7 @@ let rec contains e i =
 
 let rec find_eq_from_id i eqs =
   match eqs with
-  | [] -> failwith "no equation"
+  | [] -> failwith ("no equation : "^i)
   | h::t -> if contains h i then h else find_eq_from_id i t
 
 let rec get_ids p =
@@ -106,7 +106,9 @@ let rec remove_dups lst= match lst with
 
 let schedule_eqs eqs inputs =
   let g = mk_dep_graph eqs in
+
   let g = remove_inputs_dep inputs g in
+
   let ids_sorted = List.rev (toposort g) in
   let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
   remove_dups eqs_sorted
