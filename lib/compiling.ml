@@ -55,7 +55,7 @@ let rec compile_expression e p =
                   compile_expression e2 p,
                   compile_expression e3 p)
   | Unit -> IUnit
-  | Fby (v,e') -> IRef ("pre_"^(get_ident p))
+  | Fby (v,e') -> IRef ("st_"^(get_ident p))
   | When (e',i) ->
     IAlternative ((compile_expression i p),
                   (compile_expression e' p),
@@ -76,7 +76,7 @@ let rec compile_expression e p =
 
 let rec pre_pattern p =
   let new_desc = match p.p_desc with
-    | Ident i -> Ident ("pre_"^i)
+    | Ident i -> Ident ("st_"^i)
     | Tuple t -> Tuple (List.map pre_pattern t)
     | PUnit -> PUnit
   in
