@@ -20,11 +20,9 @@ let rec get_dep_id e l  =
     get_dep_id e l
   | Value v -> l
   | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
-  | Arrow (v,e) -> l
   | When (e,i) -> get_dep_id e (get_dep_id i l)
   | Whennot (e,i) -> get_dep_id e (get_dep_id i l)
   | Unit -> l
-  | Pre e -> get_dep_id e l
   | ETuple el -> List.fold_left (fun accu e -> get_dep_id e accu) l el
   | Merge (e1,e2,e3) ->
     let l = get_dep_id e1 l in
@@ -82,7 +80,8 @@ let dfs (graph : (ident * ident list) list) visited start_node =
     if List.mem node path    then raise (CycleFound path) else
     if List.mem node visited then visited else
       let new_path = node :: path in
-      let edges    = List.assoc node graph in
+      let edges    = try List.assoc node graph 
+      with Not_found -> print_dep_graph graph ;  failwith ("Not_found :"^node) in
       let visited  = List.fold_left (explore new_path) visited edges in
       node :: visited
   in explore [] visited start_node

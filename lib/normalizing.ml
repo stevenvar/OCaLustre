@@ -27,18 +27,6 @@ let get_ident e =
 
 let rec transform_exp exp =
   match exp.e_desc with
-  | Pre e ->
-    let e' = transform_exp e in
-    let id = get_ident e in
-    let magic_exp = { e_desc = Variable id ; e_loc = e.e_loc }  in
-        { exp with e_desc = Fby (magic_exp, e') }
-  | Arrow (e1,e2) ->
-    let e1' = transform_exp e1 in
-    let e2' = transform_exp e2 in
-    let var_true = { e_desc = Value (Bool true) ; e_loc = e1.e_loc }  in
-    let var_false = { e_desc = Value (Bool false) ; e_loc = e1.e_loc }  in
-    let tfe = { exp with e_desc = Fby (var_true, var_false) } in
-    { exp with e_desc = Alternative (tfe, e1', e2') }
   | Alternative (e1,e2,e3) ->
     let e1' = transform_exp e1 in
     let e2' = transform_exp e2 in
@@ -118,7 +106,6 @@ let rec normalize_exp l exp =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Merge (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
-  | _ -> assert false
 
 let normalize_eqs eqs =
   let normalize_eq eq =

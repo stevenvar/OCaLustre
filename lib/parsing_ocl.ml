@@ -19,6 +19,15 @@ let ( +/ ) e1 e2 = InfixOp ( Plus , e1 , e2 )
 let ( */ ) e1 e2 = InfixOp ( Times , e1 , e2)
 let ( -/ ) e1 e2 = InfixOp ( Minus, e1, e2)
 let ( // ) e1 e2 = InfixOp (Div, e1, e2)
+let ( +./ ) e1 e2 = InfixOp ( Plusf , e1 , e2 )
+let ( *./ ) e1 e2 = InfixOp ( Timesf , e1 , e2)
+let ( -./ ) e1 e2 = InfixOp ( Minusf, e1, e2)
+let ( /./ ) e1 e2 = InfixOp (Divf, e1, e2)
+let ( =/ ) e1 e2 = InfixOp ( Equals , e1 , e2 )
+let ( </ ) e1 e2 = InfixOp ( Inf , e1 , e2)
+let ( <=/ ) e1 e2 = InfixOp ( Infe, e1, e2)
+let ( >/ ) e1 e2 = InfixOp (Sup, e1, e2)
+let ( >=/ ) e1 e2 = InfixOp (Supe, e1, e2)
 
 let mk_not e1 = PrefixOp ( Not , e1)
 
@@ -63,11 +72,9 @@ let rec get_idents l e =
   | Value v -> l
   | Unit -> l
   | Fby (i , e') -> get_idents l e'
-  | Arrow (i, e') -> get_idents l e'
   | When (e',c) -> get_idents l e'
   | Whennot (e',c) -> get_idents l e'
   | ETuple (el) -> List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
-  | Pre (e) ->  get_idents l e
   | Merge (e1,e2,e3) ->
   let l = get_idents l e3 in
   let l = get_idents l e2 in
@@ -97,6 +104,22 @@ let rec mk_expr e =
   | [%expr [%e? e1] - [%e? e2] ] -> { e_desc = mk_expr e1 -/ mk_expr e2 ;
                                       e_loc = e.pexp_loc }
   | [%expr [%e? e1] / [%e? e2] ] -> { e_desc = mk_expr e1 // mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] +. [%e? e2] ] -> { e_desc = mk_expr e1 +./ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] *. [%e? e2] ] -> { e_desc = mk_expr e1 *./ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] -. [%e? e2] ] -> { e_desc = mk_expr e1 -./ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] /. [%e? e2] ] -> { e_desc = mk_expr e1 /./ mk_expr e2 ;
+                                       e_loc = e.pexp_loc }
+  | [%expr [%e? e1] > [%e? e2] ] -> { e_desc = mk_expr e1 >/ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] < [%e? e2] ] -> { e_desc = mk_expr e1 </ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] <= [%e? e2] ] -> { e_desc = mk_expr e1 <=/ mk_expr e2 ;
+                                      e_loc = e.pexp_loc }
+  | [%expr [%e? e1] >= [%e? e2] ] -> { e_desc = mk_expr e1 >=/ mk_expr e2 ;
                                       e_loc = e.pexp_loc }
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
@@ -130,16 +153,12 @@ let rec mk_expr e =
   | [%expr [%e? e1] ->> [%e? e2] ]  ->
     { e_desc = Fby (mk_expr e1 , mk_expr e2);
       e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] --> [%e? e2] ]  ->
-    { e_desc = Arrow (mk_expr e1 , mk_expr e2) ;
-      e_loc = e.pexp_loc  }
   | [%expr [%e? e1] @wh [%e? e2] ] ->
     { e_desc =  When (mk_expr e1 , mk_expr e2) ;
       e_loc = e.pexp_loc }
   | [%expr [%e? e1] @whnot [%e? e2] ] ->
     { e_desc =  Whennot (mk_expr e1 , mk_expr e2) ;
       e_loc = e.pexp_loc }
-  | [%expr pre [%e? e1]] -> { e_desc = Pre (mk_expr e1) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
     let app = Application(checkname_ident e1, mk_expr e2)
     in

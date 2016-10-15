@@ -35,6 +35,10 @@ let rec printml_expression fmt exp =
     | IDivf -> Format.fprintf fmt "/."
     | IPlusf -> Format.fprintf fmt "+."
     | ITimesf -> Format.fprintf fmt "*."
+    | IInf -> Format.fprintf fmt "<"
+    | IInfe -> Format.fprintf fmt "<="
+    | ISup -> Format.fprintf fmt ">"
+    | ISupe -> Format.fprintf fmt ">="
   in
   let rec printml_expressions fmt el =
     match el with

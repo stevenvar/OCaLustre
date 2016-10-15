@@ -9,10 +9,6 @@ let get_num , reset , get =
   let cpt = ref 0 in
   (fun () -> incr cpt; !cpt) , (fun () -> cpt := 0 ) , (fun () -> !cpt)
 
-
-
-
-
 let get_ident p =
   match p.p_desc with
   | Ident i -> i
@@ -37,6 +33,10 @@ let rec compile_expression e p =
     | Minusf -> IMinusf
     | Timesf -> ITimesf
     | Divf -> IDivf
+    | Inf -> IInf
+    | Infe -> IInfe
+    | Sup -> ISup
+    | Supe -> ISupe 
   in
   match e.e_desc with
   | Value v -> IValue v
@@ -71,8 +71,6 @@ let rec compile_expression e p =
     IAlternative (compile_expression e1 p,
                   compile_expression e2 p,
                   compile_expression e3 p)
-
-  | _ -> assert false
 
 let rec pre_pattern p =
   let new_desc = match p.p_desc with
@@ -131,7 +129,6 @@ let generate_inits el inputs =
     | Fby (e1,e2) ->
       let e1' = compile_expression e1 e.pattern in
       { i_pattern = e.pattern ; i_expression = e1' }::l  
-    | _ -> l
   in
   let exps = List.map (fun e -> e.expression) el in 
   let id_deps = List.fold_left (fun acc e -> dep_of_init e acc) [] exps in

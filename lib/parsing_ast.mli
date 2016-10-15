@@ -37,8 +37,6 @@ and exp_desc =
   | Whennot of expression * expression
   | ETuple of expression list
   (* | Current of expression *)
-  | Arrow of expression * expression
-  | Pre of expression
   | Merge of expression * expression * expression
   | Unit
 and inf_operator =
@@ -52,6 +50,10 @@ and inf_operator =
   | Minusf
   | Timesf
   | Divf
+  | Inf
+  | Sup
+  | Infe
+  | Supe
 
 and pre_operator =
   | Not

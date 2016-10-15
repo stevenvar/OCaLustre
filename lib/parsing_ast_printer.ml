@@ -44,8 +44,13 @@ let print_infop fmt op =
   | Diff -> Format.fprintf fmt "<>"
   | Plusf -> Format.fprintf fmt "+."
   | Timesf -> Format.fprintf fmt "*."
-  | Divf -> Format.fprintf fmt "/."
   | Minusf -> Format.fprintf fmt "-."
+  | Divf -> Format.fprintf fmt "/."
+  | Inf -> Format.fprintf fmt "<"
+  | Infe -> Format.fprintf fmt "<="
+  | Sup -> Format.fprintf fmt ">"
+  | Supe -> Format.fprintf fmt ">="
+                
 
 
 let rec print_expression fmt e =
@@ -80,9 +85,6 @@ let rec print_expression fmt e =
   | Fby (e1, e2) -> Format.fprintf fmt "(%a fby %a)"
                     print_expression e1
                     print_expression e2
-  | Arrow (e1, e2) -> Format.fprintf fmt "(%a --> %a)"
-                    print_expression e1
-                    print_expression e2
   | Unit -> Format.fprintf fmt "()"
   | When (e1,e2) -> Format.fprintf fmt "( %a when %a )"
                     print_expression e1
@@ -90,8 +92,6 @@ let rec print_expression fmt e =
   | Whennot (e1,e2) -> Format.fprintf fmt "( %a whennot %a )"
                                       print_expression e1
                                       print_expression e2
-  | Pre e -> Format.fprintf fmt "(pre %a)"
-               print_expression e
   | ETuple el -> Format.fprintf fmt "(%a)"
                    print_expression_list el
   | Merge (e1,e2,e3) ->

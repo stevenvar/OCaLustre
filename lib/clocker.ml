@@ -340,10 +340,6 @@ let rec typing_expr gamma =
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
       unify (t1,t2); t1
-    | Arrow (e1,e2) ->
-      let t1 = clock_rec e1 in
-      let t2 = clock_rec e2 in
-      unify (t1,t2) ; t1
     | Whennot (e1,e2) ->
     let carr =
     begin
@@ -393,7 +389,6 @@ let rec typing_expr gamma =
       unify(Arrow (t1, Arrow (t2, Arrow(t3, u))),t0);
 
       shorten_var u
-    | Pre e -> clock_rec e
 
   in
   clock_rec

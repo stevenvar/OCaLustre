@@ -30,6 +30,11 @@ and
   | IMinusf
   | IDivf
   | ITimesf
+  | IInf
+  | IInfe
+  | ISup
+  | ISupe
+    
 and
   imp_preop =
   | INot
