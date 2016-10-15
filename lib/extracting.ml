@@ -249,20 +249,20 @@ let tocaml_node inode =
     | PUnit ->
       [%stri let [%p Pat.var name] =
                fun () ->
-                 [%e tocaml_app_inits app_inits (tocaml_inits inits (tocaml_fby_inits fby_inits (tocaml_step inode))) ]
+                 [%e tocaml_inits inits (tocaml_app_inits app_inits (tocaml_fby_inits fby_inits (tocaml_step inode))) ]
       ]
     | Ident x  ->
       [%stri let [%p Pat.var name] =
                
                fun [%p pat_of_pattern inode.i_inputs] ->
-                                  [%e tocaml_app_inits app_inits (tocaml_inits inits (tocaml_fby_inits fby_inits (tocaml_step inode))) ]
-               
-       
+                 [%e tocaml_inits inits (tocaml_app_inits app_inits (tocaml_fby_inits fby_inits (tocaml_step inode))) ]                
+                     
       ]
     | Tuple t  ->
       [%stri let [%p Pat.var name] =
                fun [%p Pat.tuple (List.map pat_of_pattern t) ] ->
-                                  [%e tocaml_app_inits app_inits (tocaml_inits inits (tocaml_fby_inits fby_inits (tocaml_step inode))) ]
+                 [%e tocaml_inits inits (tocaml_app_inits app_inits (tocaml_fby_inits fby_inits (tocaml_step inode))) ]
+                                 
                 
                  
       ]
