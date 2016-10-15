@@ -59,10 +59,10 @@ let rec compile_expression e p =
   | When (e',i) ->
     IAlternative ((compile_expression i p),
                   (compile_expression e' p),
-                  (compile_expression e' p))
+                  IValue Nil)
   | Whennot (e',i) ->
     IAlternative ((compile_expression i p),
-                  (compile_expression e' p),
+                  IValue Nil,
                   (compile_expression e' p))
   | ETuple el ->
     let iel = List.map (fun e -> compile_expression e p) el in

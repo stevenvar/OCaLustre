@@ -385,14 +385,7 @@ let rec typing_expr gamma =
         with  Not_found -> new_carrier ()
       end in
       carr1.carr_value <- var;
-      let carr2 =
-      begin
-        try
-          List.assoc (get_ident e3) !carriers
-        with  Not_found -> new_carrier ()
-      end in
-      carr2.carr_value <- var;
-      let t0 = Arrow (Carrier carr1, Arrow (On (var,carr1), Arrow ( Onnot (var,carr2) ,var))) in
+      let t0 = Arrow (Carrier carr1, Arrow (On (var,carr1), Arrow ( Onnot (var,carr1) ,var))) in
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
       let t3 = clock_rec e3 in
