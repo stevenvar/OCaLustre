@@ -11,7 +11,7 @@ and equation = {
   pattern : pattern ;
   expression : expression;
 }
-and constant = Integer of int | Float of float | Bool of bool | Nil
+and constant = Integer of int | Float of float | Bool of bool | Enum of string | Nil
 and expression = {
   e_desc : exp_desc;
   e_loc : Location.t
@@ -38,6 +38,7 @@ and exp_desc =
   | ETuple of expression list
   (* | Current of expression *)
   | Merge of expression * expression * expression
+  | Call of Parsetree.expression 
   | Unit
 and inf_operator =
   | Diff

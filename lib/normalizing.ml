@@ -56,6 +56,8 @@ let rec transform_exp exp =
     { exp with e_desc = ETuple (el') }
   | _ -> exp
 
+
+
 let rec normalize_exp l exp =
   match exp.e_desc with
   | Alternative (e1,e2,e3) ->
@@ -66,10 +68,12 @@ let rec normalize_exp l exp =
     l3, { exp with e_desc =  exp' }
   | Application (i,e) ->
     let l',e' = normalize_exp l e in 
-    let exp' = { exp with e_desc = Application (i,e) } in
+    let exp' = { exp with e_desc = Application (i,e') } in
     let (eq_y,y) = new_eq_var exp' in
     let l' = eq_y::l' in
     l', y
+  | Call e ->
+    l, exp
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in
@@ -107,10 +111,59 @@ let rec normalize_exp l exp =
     let exp' = Merge (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
 
+let norm_exp l exp  =
+  match exp.e_desc with
+  | Alternative (e1,e2,e3) ->
+    let (l1,e1') = normalize_exp l e1 in
+    let (l2,e2') = normalize_exp l1 e2 in
+    let (l3,e3') = normalize_exp l2 e3 in
+    let exp' = Alternative (e1',e2',e3') in
+    l3, { exp with e_desc =  exp' }
+  | Application (i,e) ->
+    let l',e' = normalize_exp l e in 
+    let exp' = { exp with e_desc = Application (i,e') } in
+    l', exp'
+  | Call e ->
+    l, exp
+  | InfixOp (op,e1,e2) ->
+    let (l1,e1') = normalize_exp l e1 in
+    let (l2,e2') = normalize_exp l1 e2 in
+    let exp' = InfixOp (op,e1',e2') in
+    l2,{ exp with e_desc =  exp' }
+  | PrefixOp (op,e) ->
+    let (l',e') = normalize_exp l e in
+    let exp' = PrefixOp (op,e') in
+    l', { exp with e_desc = exp' }
+  | Value c -> l , exp
+  | Variable v -> l, exp
+  | Fby (c, e) ->
+    let (l',c') = normalize_exp l c in
+    let (l'',e') = normalize_exp l' e in 
+    let exp' = { exp with e_desc = Fby (c',e') } in
+    l'' , exp'
+  | When (e,i) ->
+    let (l',e') = normalize_exp l e in
+    l' , { exp with e_desc = When (e',i) }
+(*TODO*)
+  | Whennot (e,i) ->
+    let (l',e') = normalize_exp l e in
+    l' , { exp with e_desc = Whennot (e',i) }
+  | Unit -> l , exp
+  | ETuple el ->
+    let (l',el') = List.fold_right (fun e (_l,_e) ->
+        let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
+    l', { exp with e_desc = ETuple el' }
+  | Merge (e1,e2,e3) ->
+    let (l1,e1') = normalize_exp l e1 in
+    let (l2,e2') = normalize_exp l1 e2 in
+    let (l3,e3') = normalize_exp l2 e3 in
+    let exp' = Merge (e1',e2',e3') in
+    l3, { exp with e_desc =  exp' }
+
 let normalize_eqs eqs =
   let normalize_eq eq =
     let exp = transform_exp eq.expression in
-    let (new_eqs,new_exp) = normalize_exp [] exp in
+    let (new_eqs,new_exp) = norm_exp [] exp in
     { pattern = eq.pattern ; expression = new_exp} ,  new_eqs
   in
   let normalizeed_eqs = List.map normalize_eq eqs in

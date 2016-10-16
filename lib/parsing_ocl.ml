@@ -57,6 +57,7 @@ let checkname_tuple il =
 let rec get_idents l e =
   match e.e_desc with
   | Variable i -> i::l
+  | Call e -> l
   | Application (i,e) ->
     get_idents l e
   | Alternative (e1,e2,e3) ->
@@ -143,6 +144,15 @@ let rec mk_expr e =
                                 e_loc = e.pexp_loc }
       | _ -> assert false   (* only int/float ftm *)
     end
+  | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; loc} ,e);
+      pexp_loc ;
+      pexp_attributes } ->
+     begin match e with
+      | None -> { e_desc = Value (Enum s) ;
+                                e_loc = pexp_loc }
+      | _ -> assert false   (* only enum types *)
+    end
+     
   | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
     failwith "constraint"
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
@@ -159,10 +169,15 @@ let rec mk_expr e =
   | [%expr [%e? e1] @whnot [%e? e2] ] ->
     { e_desc =  Whennot (mk_expr e1 , mk_expr e2) ;
       e_loc = e.pexp_loc }
+  | [%expr call ([%e? e1]) ] ->
+    let app = Call (e1)
+    in
+    { e_desc = app ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] [%e? e2] ] ->
     let app = Application(checkname_ident e1, mk_expr e2)
     in
     { e_desc = app ; e_loc = e.pexp_loc }
+ 
   | _ ->
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc

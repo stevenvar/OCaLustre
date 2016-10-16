@@ -389,7 +389,15 @@ let rec typing_expr gamma =
       unify(Arrow (t1, Arrow (t2, Arrow(t3, u))),t0);
 
       shorten_var u
+    | Call e ->
+      let var = CVar (new_varclock ()) in
+      let var2 = CVar (new_varclock ()) in 
+      let t0 = Arrow (var, var2) in
+      let t =   CVar (new_varclock ()) in
+      let u = CVar (new_varclock ()) in
+      unify(t,t0);
 
+      shorten_var u
   in
   clock_rec
 

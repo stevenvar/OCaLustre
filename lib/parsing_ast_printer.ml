@@ -6,6 +6,7 @@ let print_value fmt v =
   | Bool b -> Format.fprintf fmt "%b" b
   | Float f -> Format.fprintf fmt "%f" f
   | Nil -> Format.fprintf fmt "nil"
+  | Enum s -> Format.fprintf fmt "%s" s
 
 let rec print_list f fmt l =
   match l with
@@ -72,6 +73,8 @@ let rec print_expression fmt e =
      Format.fprintf fmt "(%a (%a))"
                     print_ident i
                     print_expression e
+  | Call (e) ->
+     Format.fprintf fmt "(call (___))"
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
