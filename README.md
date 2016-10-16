@@ -33,12 +33,10 @@ with
        | if <expr> then <expr> else <expr>
        | <ident> <param> (* function application *)
        | <expr> <binop> <expr>
-       | <expr> --> <expr>
        | <value> ->> <expr>
        | <unop> <expr>
        | <value>
        | (<expr>,*)
-       | pre <expr>
        | <expr> @wh <ident>
        | <expr> @whnot <ident>
        | merge <ident> <expr> <expr>
@@ -193,8 +191,9 @@ ocamlc -dsource -ppx ocalustre tests/foo.ml
 
 ```ocaml
 
+
 let%node fibonacci ~i:() ~o:(f) =
-  f = 0 ->> ( 1 --> (pre f + f))
+  f = 0 ->> ((1 ->> f) + f)
 
 let _ =
   let fibonacci_step = fibonacci ()
@@ -204,6 +203,7 @@ let _ =
     let v = fibonacci_step () in
     Printf.printf "%d \n" v
   done
+
 ```
 
 Displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`  
