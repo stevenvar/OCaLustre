@@ -135,6 +135,7 @@ let occurs {c_index = n; c_value = _ } =
 
 
 let rec unify (tau1, tau2) =
+
   match (shorten_var tau1, shorten_var tau2) with
   | (CVar ({c_index = n ;c_value =CtUnknown} as tv1)),
     (CVar ({c_index = m ;c_value =CtUnknown}) as t2)
@@ -162,6 +163,8 @@ let rec unify (tau1, tau2) =
     unify (ct1, ct2)
   | Carrier c , Carrier d  ->
     unify (c.carr_value, d.carr_value)
+  | On (ct1,i1) , Carrier _ -> failwith "on carr"
+  | _ -> failwith "unknown" 
   | (t1,t2) -> raise (ClockClash (t1,t2))
 
 
@@ -232,12 +235,15 @@ let inst (Forall(gv,gc,ct)) =
     | Arrow (t1,t2) -> Arrow (ginstance t1, ginstance t2)
     | On (x,i) ->
       begin
-        try List.assoc i.carr_index carriers
+        try
+          let carr = List.assoc i.carr_index carriers
+              in On(ginstance x,i) 
         with _ -> failwith "not found" (* On(ginstance x,i) *)
       end
     | Onnot (x,i) ->
       begin
-        try List.assoc i.carr_index carriers
+        try let carr = List.assoc i.carr_index carriers in
+          Onnot (ginstance x,i)
         with _ -> failwith "not found" (* On(ginstance x,i) *)
       end
     | Carrier c ->
@@ -416,8 +422,10 @@ let cexp_of_exp { e_desc ; e_loc } ce_clock =
 
 let clocking_equation ({ pattern = p ; expression = e}) =
   let tau =
+   
     try typing_expr !typing_env e
     with ClockClash(t1,t2) ->
+     
       let vars = (vars_of_clock t1)@(vars_of_clock t2) in
       let carrs = (carriers_of_clock t1)@(carriers_of_clock t2) in
       Format.fprintf Format.std_formatter
@@ -426,6 +434,7 @@ let clocking_equation ({ pattern = p ; expression = e}) =
         print_clock_scheme  (Forall(vars,carrs,t2));
       print_newline ();
       raise (Failure "clocking") in
+   
   add_to_env p tau typing_env;
   let cp = cpatt_of_patt p (Clock_exp tau) in 
   let ce = { ce_desc = e.e_desc ; ce_loc = e.e_loc ; ce_clock = Clock_exp tau } in
