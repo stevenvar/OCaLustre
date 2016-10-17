@@ -20,7 +20,7 @@ open Extracting
 open Error
 
 let verbose = ref false
-let clocking = ref false 
+let clocking = ref false
 
 
 let typing_scheme_env = ref []
@@ -44,7 +44,7 @@ open Ast_clock_printer
 let lustre_mapper argv =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                  ("-i", Arg.Set clocking, "Prints clocks types");]
-                 
+
     in let usage_msg = "OCaLustre : "
     in Arg.parse speclist print_endline usage_msg;
   { default_mapper with
@@ -57,43 +57,43 @@ let lustre_mapper argv =
 
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
 
-            if !verbose then 
+            if !verbose then
             Format.fprintf Format.std_formatter
               " -- PARSED NODE -- \n %a" print_node _node;
 
             let _node = normalize_node _node in
 
-            
-            if !verbose then 
+
+            if !verbose then
             Format.fprintf Format.std_formatter
               " -- NORMALIZED NODE -- \n %a" print_node _node;
 
-            
+
             let _node = schedule _node in
 
-            
-            if !verbose then 
+
+            if !verbose then
             Format.fprintf Format.std_formatter
               " -- SCHEDULED NODE -- \n %a" print_node _node;
 
             let (new_env, _cnode) = (clock_node _node typing_scheme_env clocking);
             in
-            typing_scheme_env := new_env; 
+            typing_scheme_env := new_env;
 
-            if !verbose then 
+            if !verbose then
             Format.fprintf Format.std_formatter
               " -- CLOCKED NODE -- \n %a" print_cnode _cnode;
 
-           
+
             let _inode = compile_cnode _node in
 
-            if !verbose then 
+            if !verbose then
             Format.fprintf Format.std_formatter
               " -- COMPILED NODE -- \n %a" printml_node _inode;
 
-           
+
             tocaml_node _inode
-           
+
           | _ -> Error.syntax_error s.pstr_loc
         end
 
@@ -101,7 +101,7 @@ let lustre_mapper argv =
   }
 
 let _ =
-  
-    
-   
+
+
+
   register "ocalustre" lustre_mapper

@@ -58,6 +58,10 @@ let%node tictoc ~i:(c) ~o:(k) =
   m = (testo 38)  @whnot c;
   k = merge c n m
 *)
+
+let%node merger ~i:(ck, x, y) ~o:(z) =
+  z = merge ck x y 
+
 let%node count ~i:() ~o:(y) =
   y = 5 ->> (y + 1)
  (*           

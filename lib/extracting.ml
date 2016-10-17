@@ -194,7 +194,7 @@ let tocaml_app_inits inits acc =
 let tocaml_fby_inits inits acc =
   let aux { i_pattern = p ;  i_expression = e} acc =
     match e with
-    | IRefDef e ->  [%expr let [%p Pat.var (stringloc_of_pattern p)] =
+    | IRefDef e ->  [%expr let [%p pat_of_pattern p ] =
                              ref [%e tocaml_expression e ] in [%e acc] ]
     | _ -> assert false 
   in
@@ -210,7 +210,7 @@ let tocaml_inits inits acc =
                [%e Exp.apply
                    (Exp.ident (lid_of_ident i)) listexp ] in
 
-        let [%p Pat.var (stringloc_of_pattern p)] =
+        let [%p (pat_of_pattern p)] =
           [%e Exp.apply
               (Exp.ident (lid_of_ident ~suffix:"_step" (i^n))) listexp ]
         in 
@@ -218,7 +218,7 @@ let tocaml_inits inits acc =
         [%e acc] ]
 
     | _ ->
-      [%expr let [%p Pat.var (stringloc_of_pattern p)] =
+      [%expr let [%p pat_of_pattern p] =
                [%e tocaml_expression e] in [%e acc] ]
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
