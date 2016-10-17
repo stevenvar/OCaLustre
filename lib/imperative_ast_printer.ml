@@ -66,7 +66,12 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
-  | IApplication (i,_,e) -> Format.fprintf fmt "%s (%a)"
+  | IApplication (i,num,e) -> Format.fprintf fmt "%s%d_step (%a)"
+                              i
+                              num
+                             printml_expression e
+  | IApplication_init (i,e) ->
+     Format.fprintf fmt "%s (%a)"
                              i
                              printml_expression e
   | ICall e -> Format.fprintf fmt "(_____)" 

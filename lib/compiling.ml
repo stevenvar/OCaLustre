@@ -49,6 +49,7 @@ let rec compile_expression e p =
   | Variable s -> IVariable s
   | Application (i, e) ->
     let num = get_num () in
+    (* let name = i^(string_of_int num)^"_step" in *)
     IApplication (i, num, compile_expression e p)
   | Call e ->
     ICall e
@@ -105,10 +106,11 @@ let generate_fby_inits el =
   List.fold_left (fun acc e -> generate_init e acc) [] el
 
 let generate_app_inits el =
-let rec generate_init e p l =
+let rec generate_init e {p_desc ; p_loc} l =
   match e with
   | IApplication (i,num,el') ->
-    {i_pattern = p ; i_expression =  IApplication (i,num, el')}::l
+    let p_desc = Ident (i^(string_of_int num)^"_step") in 
+    {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,el')}::l
   | _ -> l
 in
 List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el
@@ -148,6 +150,7 @@ let dep_of_init e l =
 let rec get_dep e s el ins =
   match e with
   | IVariable v ->
+
     if List.mem v ins then s else
     let eq = (find_ieq_from_id v el).i_expression in
     let deps = get_dep eq s el ins in
@@ -157,7 +160,7 @@ let rec get_dep e s el ins =
     let s2 = get_dep e2 s1 el ins in
     let s3 = get_dep e3 s2 el ins in
     s3
-  | IApplication (_,_,e) ->
+  | IApplication (i,_,e) ->
     get_dep e s el ins
   | ICall _ -> s
   | IRef v -> s
@@ -181,6 +184,7 @@ let generate_inits (el : imp_equation list) inputs  =
   in
   let set_ids = List.fold_left (fun acc e -> generate_init e.i_expression acc) IdentSet.empty el in
   let ids = IdentSet.elements set_ids in
+ 
   let ids = diff ids inputs in
   let eqs = List.map (fun i -> find_ieq_from_id i el) ids in
   eqs

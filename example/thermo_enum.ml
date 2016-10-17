@@ -77,6 +77,7 @@ let buttons_state p m =
   | true , true, _, _ -> counter := 1; kind := Twice; OnOff
   | _ -> kind := Nothing; counter := 0 ; Default
 
+
 let%node update_prop ~i:(wtemp,ctemp) ~o:(prop) =
   new_prop = 0 ->> ( call (min 100 (max 0 (new_prop + offset)))); 
   delta = call (min 10 (max (-10) (ctemp-wtemp)));
@@ -88,6 +89,7 @@ let%node timer ~i:(number) ~o:(alarm) =
   time = 1 ->> if (time) = 10 then 1 else (time) + 1;
   alarm = (time < number) 
 
+ 
 
 let%node heat ~i:(w,c) ~o:(h) =
   prop = update_prop (w,c);
@@ -140,5 +142,3 @@ let _ =
     ); 
     Sys.sleep 500;
   done
-
-

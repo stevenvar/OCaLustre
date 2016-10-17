@@ -60,8 +60,10 @@ let rec tocaml_expression e =
   | IApplication (id, num, e) ->
     let e' = tocaml_expression e in
     let n = string_of_int num in 
-    [%expr [%e (Exp.ident (lid_of_ident ~suffix:"_step" (id^n)))] [%e e' ]]
-
+    [%expr [%e (Exp.ident (lid_of_ident (id^n^"_step")))] [%e e' ]]
+  | IApplication_init (id,e) ->
+    let e' = tocaml_expression e in
+    [%expr [%e (Exp.ident (lid_of_ident (id)))] [%e e' ]]
   | IAlternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
         [%expr [%e (tocaml_expression e1) ]]
@@ -202,19 +204,21 @@ let tocaml_fby_inits inits acc =
 let tocaml_inits inits acc =
   let aux {i_pattern = p ; i_expression = e}  acc =
     match e with 
-    | IApplication (i,num,el) ->
+   (* | IApplication (i,num,el) ->
       let listexp = [(Nolabel, [%expr [%e tocaml_expression el ]])] in
       let n = string_of_int num in
       [%expr let [%p Pat.var (stringloc_of_ident ~suffix:"_step" (i^n))] =
                [%e Exp.apply
                    (Exp.ident (lid_of_ident i)) listexp ] in
 
+(*
         let [%p (pat_of_pattern p)] =
           [%e Exp.apply
               (Exp.ident (lid_of_ident ~suffix:"_step" (i^n))) listexp ]
         in 
-
+*)
         [%e acc] ]
+   *)
 
     | _ ->
       [%expr let [%p pat_of_pattern p] =

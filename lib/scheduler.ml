@@ -39,8 +39,9 @@ let rec imp_get_dep_id e l  =
     let l' = imp_get_dep_id e1 l in
     let l'' = imp_get_dep_id e2 l' in
     imp_get_dep_id e3 l''
-  | IApplication (i,_,e) -> 
-      imp_get_dep_id e l
+  | IApplication (i,num,e) ->
+    let i = i^(string_of_int num)^"_step" in
+      imp_get_dep_id e (i::l)
   | ICall e ->
     l
   | IInfixOp (op, e1, e2) ->

@@ -11,6 +11,7 @@ and imp_expr =
   | IConstr of string
   | IVariable of ident
   | IApplication of ident * int * imp_expr
+  | IApplication_init of ident * imp_expr 
   | ICall of Parsetree.expression 
   | IRef of ident
   | IRefDef of imp_expr
