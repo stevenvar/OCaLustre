@@ -5,7 +5,7 @@ open Parsing_ast
 open Error
 open Scheduler
 
-module IdentSet = Set.Make( 
+module IdentSet = Set.Make(
   struct
     let compare = Pervasives.compare
     type t = ident
@@ -42,7 +42,7 @@ let rec compile_expression e p =
     | Inf -> IInf
     | Infe -> IInfe
     | Sup -> ISup
-    | Supe -> ISupe 
+    | Supe -> ISupe
   in
   match e.e_desc with
   | Value v -> IValue v
@@ -86,7 +86,7 @@ let rec pre_pattern p =
     | Tuple t -> Tuple (List.map pre_pattern t)
     | PUnit -> PUnit
   in
-  { p with p_desc = new_desc } 
+  { p with p_desc = new_desc }
 
 let generate_fby_inits el =
   let generate_init e l =
@@ -99,7 +99,7 @@ let generate_fby_inits el =
       | _ -> Error.syntax_error v.e_loc
       end
 *)
-    
+
     | _ -> l
   in
   List.fold_left (fun acc e -> generate_init e acc) [] el
@@ -108,7 +108,7 @@ let generate_app_inits el =
 let rec generate_init e p l =
   match e with
   | IApplication (i,num,el') ->
-    {i_pattern = p ; i_expression =  IApplication (i,num, el')}::l 
+    {i_pattern = p ; i_expression =  IApplication (i,num, el')}::l
   | _ -> l
 in
 List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el
@@ -125,30 +125,30 @@ let rec get_dep_eq e l el ins : equation list =
   | Alternative (e1,e2,e3) ->
     let l1 = get_dep_eq e1 l el ins in
     let l2 = get_dep_eq e2 l1 el ins in
-    let l3 = get_dep_eq e3 l2 el ins in 
+    let l3 = get_dep_eq e3 l2 el ins in
     l3
   | Application (i,e) ->
     get_dep_eq e l el ins
   | ETuple es ->
     let ids = List.fold_left (fun acc e -> get_dep_eq e acc el ins) l es in
     ids
-  | _ -> l  
+  | _ -> l
 *)
 
 (*
 let dep_of_init e l =
   let deps = match e.e_desc with
-    | Fby (e1,_) -> get_dep_id e1 l 
-    | Application (i,e)  -> get_dep_id e l 
+    | Fby (e1,_) -> get_dep_id e1 l
+    | Application (i,e)  -> get_dep_id e l
     | _ -> l
   in
-  deps 
+  deps
 *)
 
 let rec get_dep e s el ins =
   match e with
   | IVariable v ->
-    if List.mem v ins then s else 
+    if List.mem v ins then s else
     let eq = (find_ieq_from_id v el).i_expression in
     let deps = get_dep eq s el ins in
     IdentSet.add v deps
@@ -171,21 +171,20 @@ let rec get_dep e s el ins =
   | IETuple ee ->
     List.fold_left (fun acc e -> get_dep e acc el ins) s ee
   | _ -> s
-  
+
 let generate_inits (el : imp_equation list) inputs  =
   let rec generate_init e s =
     match e with
     | IRefDef e -> get_dep e s el inputs
-    | IApplication (_,_,e) -> get_dep e s el inputs
+    | IApplication (_,_,e') -> get_dep e' s el inputs
     | _ -> s
   in
   let set_ids = List.fold_left (fun acc e -> generate_init e.i_expression acc) IdentSet.empty el in
   let ids = IdentSet.elements set_ids in
-  let ids = diff ids inputs in 
+  let ids = diff ids inputs in
   let eqs = List.map (fun i -> find_ieq_from_id i el) ids in
   eqs
 
-      
 let init_pre cnode =
   let rec gen_pre name exp l =
     match exp.e_desc with
@@ -222,22 +221,20 @@ let rec to_list p =
 
 
 let compile_cnode node =
-  reset (); 
-  let inputs = to_list node.inputs in 
+  reset ();
+  let inputs = to_list node.inputs in
   let i_eqs = List.map (compile_equation) node.equations in
-
   let i_inits = generate_inits i_eqs inputs in
-  
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
-  let i_all_inits = schedule_ieqs (i_inits@i_fby_inits@i_app_inits) inputs in 
+  let i_all_inits = schedule_ieqs (i_inits@i_fby_inits@i_app_inits) inputs in
   {
     i_name = get_ident (node.name) ;
     i_inputs = node.inputs;
     i_outputs = node.outputs;
     i_inits =  (i_all_inits);
     i_app_inits = [];
-    i_fby_inits = []; 
+    i_fby_inits = [];
     i_step_fun = {
       i_equations = i_eqs;
       i_updates = generate_updates node

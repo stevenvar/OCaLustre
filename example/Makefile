@@ -9,7 +9,7 @@
 ##                                                                       ##
 ###########################################################################
 
-BASE = thermo_enum
+BASE = thermo
 PIC = 18f4620
 
 all: $(BASE).hex
@@ -18,7 +18,7 @@ $(BASE).hex: $(BASE).asm
 	gpasm -y $(BASE).asm
 
 $(BASE) $(BASE).asm: $(BASE).ml
-	ocapic $(PIC) -stack-size 3 -heap-size 11 -gc mark_and_compact -ppx ocalustre $$(ocapic -where)/default-config.asm $(BASE).ml
+	ocapic $(PIC) -stack-size 3 -heap-size 11 -gc mark_and_compact -ppx ocalustre -dsource  $$(ocapic -where)/default-config.asm $(BASE).ml
 
 
 simul1: $(BASE)
