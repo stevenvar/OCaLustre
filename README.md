@@ -17,6 +17,8 @@ let%node example ~i:(a,b) ~o:(c) =
   c = a + b
 ```
 
+A more complete description of a previous version of the prototype has been published in https://hal.archives-ouvertes.fr/hal-01292266/
+
 ## Complete syntax
 
 ```ocaml
