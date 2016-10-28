@@ -15,6 +15,7 @@ open Scheduler
 open Normalizing
 open Imperative_ast
 open Imperative_ast_printer
+    open Whyml_printer
 open Compiling
 open Extracting
 open Error
@@ -90,6 +91,9 @@ let lustre_mapper argv =
             if !verbose then
             Format.fprintf Format.std_formatter
               " -- COMPILED NODE -- \n %a" printml_node _inode;
+
+            Format.fprintf Format.std_formatter
+              " -- WHYML -- \n %a " printwhyml_node _inode; 
 
 
             tocaml_node _inode

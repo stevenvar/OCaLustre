@@ -62,7 +62,7 @@ let%node tictoc ~i:(c) ~o:(k) =
 let%node merger ~i:(ck, x, y) ~o:(z) =
   z = merge ck x y 
 
-let%node count ~i:() ~o:(y) =
+let%node test ~i:() ~o:(y) =
   y = 5 ->> (y + 1)
  (*           
 let%node caller ~i:(x) ~o:(y) =
