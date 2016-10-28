@@ -48,12 +48,18 @@ and imp_equation =  {
   i_expression : imp_expr;
 }
 
+
+and i_condition = imp_expr option
+
 type imp_step = {
   i_equations : imp_equation list;
   i_updates : imp_equation list;
 }
 
 type imp_node = {
+  i_pre : i_condition;
+  i_post : i_condition;
+  i_inv : i_condition; 
   i_name : ident;
   i_inputs : pattern;
   i_outputs : pattern;

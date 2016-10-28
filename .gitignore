@@ -3,6 +3,10 @@ _build/
 _tags
 *~
 a.out
+*.cmi
+*.cmo
+*.asm
+#*
 example/eeprom.data
 example/t.ml
 example/thermo

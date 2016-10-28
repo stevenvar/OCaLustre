@@ -223,6 +223,10 @@ let rec to_list p =
   | Ident x -> [x]
   | Tuple t -> List.fold_left (fun acc p -> to_list p @ acc) [] t
 
+let compile_condition c =
+  match c with
+  | Some x -> Some (compile_expression x { p_desc = PUnit ; p_loc = Location.none} )
+  | None -> None 
 
 let compile_cnode node =
   reset ();
@@ -233,6 +237,9 @@ let compile_cnode node =
   let i_app_inits = generate_app_inits i_eqs in
   let i_all_inits = schedule_ieqs (i_inits@i_fby_inits@i_app_inits) inputs in
   {
+    i_pre = compile_condition node.pre;
+    i_post = compile_condition node.post;
+    i_inv = compile_condition node.inv; 
     i_name = get_ident (node.name) ;
     i_inputs = node.inputs;
     i_outputs = node.outputs;

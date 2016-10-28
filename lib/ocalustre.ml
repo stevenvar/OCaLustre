@@ -22,6 +22,7 @@ open Error
 
 let verbose = ref false
 let clocking = ref false
+let why = ref false 
 
 
 let typing_scheme_env = ref []
@@ -44,6 +45,7 @@ open Ast_clock_printer
 
 let lustre_mapper argv =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
+                  ("-y", Arg.Set why, "Prints whyml node");
                  ("-i", Arg.Set clocking, "Prints clocks types");]
 
     in let usage_msg = "OCaLustre : "
@@ -92,8 +94,9 @@ let lustre_mapper argv =
             Format.fprintf Format.std_formatter
               " -- COMPILED NODE -- \n %a" printml_node _inode;
 
+            if !why then 
             Format.fprintf Format.std_formatter
-              " -- WHYML -- \n %a " printwhyml_node _inode; 
+              " -- WHYML -- \n\n%a\n\n\n" printwhyml_node _inode; 
 
 
             tocaml_node _inode

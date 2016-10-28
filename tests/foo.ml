@@ -62,8 +62,12 @@ let%node tictoc ~i:(c) ~o:(k) =
 let%node merger ~i:(ck, x, y) ~o:(z) =
   z = merge ck x y 
 
-let%node test ~i:() ~o:(y) =
-  y = 5 ->> (y + 1)
+                          
+
+let%node test ~i:(x) ~o:(z) =
+  pre (x >= 0); post (z >= x); inv (y >= 0);
+  y = 0 ->> (y + 1);
+  z = x + y
  (*           
 let%node caller ~i:(x) ~o:(y) =
   y = (1 ->> 2) ->> 3 ; 

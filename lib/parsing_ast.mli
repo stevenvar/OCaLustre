@@ -1,7 +1,11 @@
 
 
 type ident = string
+type condition = expression option 
 and node = {
+  pre : condition;
+  post : condition;
+  inv : condition; 
   name : pattern;
   inputs : pattern;
   outputs : pattern;
