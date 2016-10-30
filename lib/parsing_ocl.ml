@@ -230,6 +230,23 @@ let rec mk_equations eqs =
   | [%expr [%e? e1]; [%e? eq]] -> mk_equation e1 :: mk_equations eq
   | e -> [mk_equation e]
 
+let mk_pre b =
+  match b with
+  | [%expr pre [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
+  | _ -> None , b
+
+let mk_post b =
+  match b with
+  | [%expr post [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
+  | _ -> None , b 
+
+let mk_inv b =
+  match b with
+  | [%expr inv [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
+  | _ -> None , b 
+
+
+
 (* check that the I/O are tuples and returns a tuple of corresponding idents *)
 let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
   match pexp_desc with
@@ -263,8 +280,14 @@ let mk_node name body =
   let name = checkname_pattern name in
   let inputs, body = checkio (Labelled "i") body in
   let outputs, body = checkio (Labelled "o") body in
+  let pre,body = mk_pre body in
+  let post,body = mk_post body in
+  let inv,body = mk_inv body in 
   let equations = mk_equations body in
   {
+    pre;
+    post;
+    inv; 
     name;
     inputs;
     outputs;

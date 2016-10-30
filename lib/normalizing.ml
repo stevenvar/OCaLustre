@@ -175,6 +175,9 @@ let normalize_node node =
   reset (); 
   let (eqs1,eqs2) =  normalize_eqs node.equations in
   {
+    pre = node.pre;
+    post = node.post;
+    inv = node.inv; 
     name = node.name;
     inputs = node.inputs;
     outputs = node.outputs;

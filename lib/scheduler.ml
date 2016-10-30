@@ -176,6 +176,9 @@ let schedule node =
   try
   let eqs_sorted = schedule_eqs node.equations inputs in 
   {
+    pre = node.pre;
+    post = node.post;
+    inv = node.inv;
     name = node.name;
     inputs = node.inputs;
     outputs = node.outputs;
