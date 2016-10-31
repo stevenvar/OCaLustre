@@ -64,6 +64,13 @@ let read_temp () =
   while test_bit GO do () done;
   (read_reg ADRESH lsl 8) lor read_reg ADRES
 
+
+let print_temps (wtemp,temp) =
+   disp.moveto 1 1;
+   disp.print_string (str_of_temp wtemp);
+   disp.moveto 2 1;
+   disp.print_string (str_of_temp temp)
+     
 let counter = ref 0 
 let kind = ref Nothing 
 let buttons_state p m = 
@@ -118,7 +125,7 @@ let%node save_t ~i:(w) ~o:(save) =
   changed = false ->> (w <> (pre_w));
   save = if changed then call (save_temp w) else ()
 
-let%node main ~i:(plus,minus,ctemp) ~o:(wtemp, on, h) =
+let%node thermo ~i:(plus,minus,ctemp) ~o:(wtemp, on, h) =
   state = call ( buttons_state plus minus );
   on = thermo_on (state); 
   wtemp = if on then change_wtemp ( (call (load_temp ()) ),state) else 0; 
@@ -126,6 +133,21 @@ let%node main ~i:(plus,minus,ctemp) ~o:(wtemp, on, h) =
   save = save_t wtemp
 
 
+let%node main ~i:() ~o:() =
+  plus = call (test_bit plus_button);
+  minus = call (test_bit minus_button);
+  t = call (read_temp ());
+  (wtemp,on,heat) = thermo (plus,minus,t); 
+  p = call (print_temps (wtemp,t));
+  r = if heat then (call (set_bit output)) else (call (clear_bit output)) 
+
+let _ =
+  let main_step = main () in
+  while true do
+    main_step ();
+  done
+
+(*
 let _ =
   let main_step = main (false,false,0) in
   while true do
@@ -142,3 +164,4 @@ let _ =
     ); 
     Sys.sleep 500;
   done
+*)

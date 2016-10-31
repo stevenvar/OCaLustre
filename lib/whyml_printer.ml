@@ -53,7 +53,7 @@ let print_post fmt (p,outs) =
   | Some x -> Format.fprintf fmt "ensures { let %a = result in %a } \n" print_pattern outs printml_expression x         
   
 let printwhyml_step fmt node =
-  Format.fprintf fmt "let %s_step %a = \n%a%a%a%a%alet result = %a in \n%aresult \nin %s_step "
+  Format.fprintf fmt "let %s_step %a \n %a %a = \n%a%a%alet result = %a in \n%aresult \nin %s_step "
     node.i_name
     print_pattern node.i_inputs
     print_pre node.i_pre
