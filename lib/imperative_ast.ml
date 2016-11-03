@@ -11,8 +11,8 @@ and imp_expr =
   | IConstr of string
   | IVariable of ident
   | IApplication of ident * int * imp_expr
-  | IApplication_init of ident * imp_expr 
-  | ICall of Parsetree.expression 
+  | IApplication_init of ident * imp_expr
+  | ICall of Parsetree.expression
   | IRef of ident
   | IRefDef of imp_expr
   | IInfixOp of imp_infop * imp_expr * imp_expr
@@ -36,7 +36,9 @@ and
   | IInfe
   | ISup
   | ISupe
-    
+  | IOr
+  | IAnd
+
 and
   imp_preop =
   | INot
@@ -59,12 +61,12 @@ type imp_step = {
 type imp_node = {
   i_pre : i_condition;
   i_post : i_condition;
-  i_inv : i_condition; 
+  i_inv : i_condition;
   i_name : ident;
   i_inputs : pattern;
   i_outputs : pattern;
   i_inits : imp_inits;
   i_app_inits : imp_inits;
-  i_fby_inits : imp_inits; 
+  i_fby_inits : imp_inits;
   i_step_fun : imp_step;
 }

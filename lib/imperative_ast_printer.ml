@@ -39,6 +39,8 @@ let rec printml_expression fmt exp =
     | IInfe -> Format.fprintf fmt "<="
     | ISup -> Format.fprintf fmt ">"
     | ISupe -> Format.fprintf fmt ">="
+    | IOr -> Format.fprintf fmt "||"
+    | IAnd -> Format.fprintf fmt "&&"
   in
   let rec printml_expressions fmt el =
     match el with
@@ -53,7 +55,7 @@ let rec printml_expression fmt exp =
   | IValue c -> print_value fmt c
   | IVariable v ->  Format.fprintf fmt "%s" v
   | IRef v -> Format.fprintf fmt "!%s" v
-  | IRefDef e -> Format.fprintf fmt "ref %a" printml_expression e  
+  | IRefDef e -> Format.fprintf fmt "ref %a" printml_expression e
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
                              printml_expression e1
                              printml_infop op
@@ -74,7 +76,7 @@ let rec printml_expression fmt exp =
      Format.fprintf fmt "%s (%a)"
                              i
                              printml_expression e
-  | ICall e -> Format.fprintf fmt "(_____)" 
+  | ICall e -> Format.fprintf fmt "(_____)"
   | IConstr s -> Format.fprintf fmt "%s" s
   | IETuple el -> Format.fprintf fmt "(%a)"
                     printml_expressions el

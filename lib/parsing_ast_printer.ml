@@ -51,7 +51,9 @@ let print_infop fmt op =
   | Infe -> Format.fprintf fmt "<="
   | Sup -> Format.fprintf fmt ">"
   | Supe -> Format.fprintf fmt ">="
-                
+  | Bor -> Format.fprintf fmt "||"
+  | Band -> Format.fprintf fmt "&&"
+
 
 
 let rec print_expression fmt e =

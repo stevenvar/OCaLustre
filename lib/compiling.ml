@@ -43,6 +43,8 @@ let rec compile_expression e p =
     | Infe -> IInfe
     | Sup -> ISup
     | Supe -> ISupe
+    | Bor -> IOr
+    | Band -> IAnd
   in
   match e.e_desc with
   | Value v -> IValue v
@@ -109,7 +111,7 @@ let generate_app_inits el =
 let rec generate_init e {p_desc ; p_loc} l =
   match e with
   | IApplication (i,num,el') ->
-    let p_desc = Ident (i^(string_of_int num)^"_step") in 
+    let p_desc = Ident (i^(string_of_int num)^"_step") in
     {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,el')}::l
   | _ -> l
 in
@@ -184,7 +186,7 @@ let generate_inits (el : imp_equation list) inputs  =
   in
   let set_ids = List.fold_left (fun acc e -> generate_init e.i_expression acc) IdentSet.empty el in
   let ids = IdentSet.elements set_ids in
- 
+
   let ids = diff ids inputs in
   let eqs = List.map (fun i -> find_ieq_from_id i el) ids in
   eqs
@@ -226,7 +228,7 @@ let rec to_list p =
 let compile_condition c =
   match c with
   | Some x -> Some (compile_expression x { p_desc = PUnit ; p_loc = Location.none} )
-  | None -> None 
+  | None -> None
 
 let compile_cnode node =
   reset ();
@@ -239,7 +241,7 @@ let compile_cnode node =
   {
     i_pre = compile_condition node.pre;
     i_post = compile_condition node.post;
-    i_inv = compile_condition node.inv; 
+    i_inv = compile_condition node.inv;
     i_name = get_ident (node.name) ;
     i_inputs = node.inputs;
     i_outputs = node.outputs;

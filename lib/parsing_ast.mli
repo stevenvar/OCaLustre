@@ -1,11 +1,11 @@
 
 
 type ident = string
-type condition = expression option 
+type condition = expression option
 and node = {
   pre : condition;
   post : condition;
-  inv : condition; 
+  inv : condition;
   name : pattern;
   inputs : pattern;
   outputs : pattern;
@@ -42,7 +42,7 @@ and exp_desc =
   | ETuple of expression list
   (* | Current of expression *)
   | Merge of expression * expression * expression
-  | Call of Parsetree.expression 
+  | Call of Parsetree.expression
   | Unit
 and inf_operator =
   | Diff
@@ -59,6 +59,8 @@ and inf_operator =
   | Sup
   | Infe
   | Supe
+  | Bor
+  | Band
 
 and pre_operator =
   | Not

@@ -2,7 +2,7 @@ open Parsetree
 open Parsing_ast
 open Asttypes
 open Longident
-open Error 
+open Error
 
 
 (*
@@ -28,6 +28,8 @@ let ( </ ) e1 e2 = InfixOp ( Inf , e1 , e2)
 let ( <=/ ) e1 e2 = InfixOp ( Infe, e1, e2)
 let ( >/ ) e1 e2 = InfixOp (Sup, e1, e2)
 let ( >=/ ) e1 e2 = InfixOp (Supe, e1, e2)
+let ( &&/ ) e1 e2 = InfixOp (Band, e1, e2)
+let ( ||/ ) e1 e2 = InfixOp (Bor, e1, e2)
 
 let mk_not e1 = PrefixOp ( Not , e1)
 
@@ -121,7 +123,11 @@ let rec mk_expr e =
   | [%expr [%e? e1] <= [%e? e2] ] -> { e_desc = mk_expr e1 <=/ mk_expr e2 ;
                                       e_loc = e.pexp_loc }
   | [%expr [%e? e1] >= [%e? e2] ] -> { e_desc = mk_expr e1 >=/ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
+                                       e_loc = e.pexp_loc }
+  | [%expr [%e? e1] && [%e? e2] ] -> { e_desc = mk_expr e1 &&/ mk_expr e2 ;
+                                       e_loc = e.pexp_loc }
+  | [%expr [%e? e1] || [%e? e2] ] -> { e_desc = mk_expr e1 ||/ mk_expr e2 ;
+                                       e_loc = e.pexp_loc }
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
       e_loc = e.pexp_loc }
@@ -152,7 +158,7 @@ let rec mk_expr e =
                                 e_loc = pexp_loc }
       | _ -> assert false   (* only enum types *)
     end
-     
+
   | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
     failwith "constraint"
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
@@ -177,7 +183,7 @@ let rec mk_expr e =
     let app = Application(checkname_ident e1, mk_expr e2)
     in
     { e_desc = app ; e_loc = e.pexp_loc }
- 
+
   | _ ->
     Pprintast.expression Format.std_formatter e;
     Error.syntax_error e.pexp_loc
@@ -238,12 +244,12 @@ let mk_pre b =
 let mk_post b =
   match b with
   | [%expr post [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
-  | _ -> None , b 
+  | _ -> None , b
 
 let mk_inv b =
   match b with
   | [%expr inv [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
-  | _ -> None , b 
+  | _ -> None , b
 
 
 
@@ -282,12 +288,12 @@ let mk_node name body =
   let outputs, body = checkio (Labelled "o") body in
   let pre,body = mk_pre body in
   let post,body = mk_post body in
-  let inv,body = mk_inv body in 
+  let inv,body = mk_inv body in
   let equations = mk_equations body in
   {
     pre;
     post;
-    inv; 
+    inv;
     name;
     inputs;
     outputs;
