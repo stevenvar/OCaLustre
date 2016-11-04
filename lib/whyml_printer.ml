@@ -33,13 +33,12 @@ let print_assume fmt i =
 let printwhyml_inits fmt (il,eql,inv) =
   let printml_init fmt { i_pattern = s ; i_expression = e} =
     begin match e with
-      | x -> Format.fprintf fmt "let %a = %a in \n%a"
+      | x -> Format.fprintf fmt "let %a = %a in \n"
                print_pattern s
                printml_expression x
-               printml_equations eql
     end
   in
-  List.iter (fun i -> printml_init fmt i) il; print_inv fmt inv
+  List.iter (fun i -> printml_init fmt i) il;  printml_equations fmt eql ; print_inv fmt inv
 
 let print_pre fmt p =
   match p with

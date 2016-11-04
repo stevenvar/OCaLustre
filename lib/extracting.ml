@@ -57,9 +57,13 @@ let rec tocaml_expression e =
     [%expr [%e tocaml_expression e1 ] > [%e tocaml_expression e2 ]]
   | IInfixOp (ISupe,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] >= [%e tocaml_expression e2 ]]
+  | IInfixOp (IOr,e1,e2) ->
+    [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
+  | IInfixOp (IAnd,e1,e2) ->
+    [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
   | IApplication (id, num, e) ->
     let e' = tocaml_expression e in
-    let n = string_of_int num in 
+    let n = string_of_int num in
     [%expr [%e (Exp.ident (lid_of_ident (id^n^"_step")))] [%e e' ]]
   | IApplication_init (id,e) ->
     let e' = tocaml_expression e in
@@ -73,7 +77,7 @@ let rec tocaml_expression e =
     ]
   | IUnit -> [%expr ()]
   | IConstr _ -> [%expr ()]
-  | ICall e -> 
+  | ICall e ->
     [%expr [%e e ]]
 
 
@@ -172,8 +176,8 @@ let tocaml_eq_list el acc =
   List.fold_left (fun l e -> tocaml_eq e l) acc el
 
 let tocaml_app_inits inits acc =
-  let aux {i_pattern = p ; i_expression = e} acc = 
-    match e with 
+  let aux {i_pattern = p ; i_expression = e} acc =
+    match e with
     | IApplication (i,num,el) ->
       let listexp = [(Nolabel, [%expr [%e tocaml_expression el ]])] in
       let n = string_of_int num in
@@ -184,11 +188,11 @@ let tocaml_app_inits inits acc =
         let [%p Pat.var (stringloc_of_pattern p)] =
           [%e Exp.apply
                    (Exp.ident (lid_of_ident ~suffix:"_step" (i^n))) listexp ]
-          in 
+          in
 *)
         [%e acc] ]
 
-    | _ -> assert false 
+    | _ -> assert false
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
 
@@ -197,13 +201,13 @@ let tocaml_fby_inits inits acc =
     match e with
     | IRefDef e ->  [%expr let [%p pat_of_pattern p ] =
                              ref [%e tocaml_expression e ] in [%e acc] ]
-    | _ -> assert false 
+    | _ -> assert false
   in
   List.fold_left (fun acc i -> aux i acc) acc inits
 
 let tocaml_inits inits acc =
   let aux {i_pattern = p ; i_expression = e}  acc =
-    match e with 
+    match e with
    (* | IApplication (i,num,el) ->
       let listexp = [(Nolabel, [%expr [%e tocaml_expression el ]])] in
       let n = string_of_int num in
@@ -215,7 +219,7 @@ let tocaml_inits inits acc =
         let [%p (pat_of_pattern p)] =
           [%e Exp.apply
               (Exp.ident (lid_of_ident ~suffix:"_step" (i^n))) listexp ]
-        in 
+        in
 *)
         [%e acc] ]
    *)
