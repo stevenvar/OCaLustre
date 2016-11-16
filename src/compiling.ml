@@ -43,8 +43,7 @@ let rec compile_expression e p =
     | Infe -> IInfe
     | Sup -> ISup
     | Supe -> ISupe
-    | Bor -> IOr
-    | Band -> IAnd
+    | Bor -> IOr    | Band -> IAnd
   in
   match e.e_desc with
   | Value v -> IValue v

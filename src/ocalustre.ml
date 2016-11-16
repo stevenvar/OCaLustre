@@ -10,12 +10,13 @@ open Clocker
 open Clocking_ast
 
 open Clocking_ast_printer
+open Proof_compiling 
 (* open Scheduling *)
 open Scheduler
 open Normalizing
 open Imperative_ast
 open Imperative_ast_printer
-    open Whyml_printer
+open Proof_printer
 open Compiling
 open Extracting
 open Error
@@ -94,10 +95,12 @@ let lustre_mapper argv =
             Format.fprintf Format.std_formatter
               " -- COMPILED NODE -- \n %a" printml_node _inode;
 
-            if !why then 
+            if !why then
+              (
+                let _pnode = pcompile_cnode _node in 
             Format.fprintf Format.std_formatter
-              " -- WHYML -- \n\n%a\n\n\n" printwhyml_node _inode; 
-
+              " -- WHYML -- \n\n%a\n\n\n" whyml_node _pnode
+              );
 
             tocaml_node _inode
 
