@@ -43,21 +43,3 @@ and cpatt_desc =
   | CkIdent of ident
   | CkTuple of cpattern list
   | CkPUnit
-
-(*)
-and cexp_desc =
-  | CAlternative of cexpression * cexpression * cexpression
-  | CApplication of ident * cexpression
-  | CInfixOp of inf_operator * cexpression * cexpression
-  | CPrefixOp of pre_operator * cexpression
-  | CValue of constant
-  | CVariable of string
-  | CFby of constant * cexpression
-  | CArrow of cexpression * cexpression
-  | CWhen of cexpression * ident
-  | CWhennot of cexpression * ident
-  | CPre of cexpression
-  | CETuple of cexpression list
-  | CMerge of cexpression * cexpression * cexpression
-  | CUnit
-*)

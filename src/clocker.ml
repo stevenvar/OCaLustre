@@ -171,7 +171,7 @@ let rec unify (tau1, tau2) =
     unify (c.carr_value, d.carr_value)
   | On (ct1,i1) , Carrier _ -> failwith "on carr"
   | _ -> failwith "unknown" 
-  | (t1,t2) -> raise (ClockClash (t1,t2))
+
 
 
 let vars_of_clock tau =
@@ -230,7 +230,6 @@ let generalise_clock (gamma,tau) =
 
 let inst (Forall(gv,gc,ct)) =
   let unknowns = List.map (function n -> n, CVar (new_varclock ())) gv in
-  let carriers = List.map (function n -> n, Carrier (new_carrier ())) gc in
   let rec ginstance ct =
     match ct with
     | CVar { c_index = n ; c_value = CtUnknown } ->
@@ -241,19 +240,8 @@ let inst (Forall(gv,gc,ct)) =
     | CVar {c_index = _ ; c_value = t } -> ginstance t
     | CTuple tl -> CTuple (List.map ginstance tl)
     | Arrow (t1,t2) -> Arrow (ginstance t1, ginstance t2)
-    | On (x,i) ->
-      begin
-        try
-          let carr = List.assoc i.carr_index carriers
-              in On(ginstance x,i) 
-        with _ -> failwith "not found" (* On(ginstance x,i) *)
-      end
-    | Onnot (x,i) ->
-      begin
-        try let carr = List.assoc i.carr_index carriers in
-          Onnot (ginstance x,i)
-        with _ -> failwith "not found" (* On(ginstance x,i) *)
-      end
+    | On (x,i) -> On(ginstance x,i) 
+    | Onnot (x,i) -> Onnot (ginstance x,i)
     | Carrier c ->
       let carr = new_carrier () in
       carr.carr_value <- ginstance c.carr_value;
@@ -354,6 +342,7 @@ let rec typing_expr gamma =
     | PrefixOp (op, e1) -> clock_rec e1
     | Unit ->
       CVar (new_varclock ())
+    | Arrow (e1,e2) -> assert false 
     | Fby (e1,e2) ->
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in

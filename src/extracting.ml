@@ -287,9 +287,6 @@ let tocaml_step node =
 let tocaml_node inode =
   let name = stringloc_of_ident inode.i_name in
   let inits = List.rev inode.i_inits in
-  let app_inits = inode.i_app_inits in
-  let fby_inits = inode.i_fby_inits in
-
   match inode.i_inputs.p_desc with
   | PUnit ->
     [%stri let [%p Pat.var name] =

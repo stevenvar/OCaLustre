@@ -85,6 +85,16 @@ let rec normalize_exp l exp =
     l', { exp with e_desc = exp' }
   | Value c -> l , exp
   | Variable v -> l, exp
+  | Arrow (e1,e2) ->
+   (* let l',e1' = normalize_exp l e1 in
+      let l'', e2' = normalize_exp l e2 in *)
+    let t = { e_desc = Value (Bool true) ; e_loc = e1.e_loc} in
+    let f = { e_desc = Value (Bool false) ; e_loc = e1.e_loc} in
+    let tfbyf = { e_desc = Fby(t,f) ; e_loc = e1.e_loc } in 
+    let exp = {e_desc = Alternative (tfbyf,e1,e2) ; e_loc = e1.e_loc } in
+    let l',e' = normalize_exp l exp in
+    l',e'
+    
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in 
@@ -136,6 +146,13 @@ let norm_exp l exp  =
     l', { exp with e_desc = exp' }
   | Value c -> l , exp
   | Variable v -> l, exp
+  | Arrow (e1,e2) ->
+    let t = { e_desc = Value (Bool true) ; e_loc = e1.e_loc} in
+    let f = { e_desc = Value (Bool false) ; e_loc = e1.e_loc} in
+    let tfbyf = { e_desc = Fby(t,f) ; e_loc = e1.e_loc } in 
+    let exp = {e_desc = Alternative (tfbyf,e1,e2) ; e_loc = e1.e_loc } in
+    let l',e' = normalize_exp l exp in
+    l',e'
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in 

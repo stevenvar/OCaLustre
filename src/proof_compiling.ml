@@ -73,6 +73,7 @@ let rec compile_pre_expression e =
                   compile_pre_expression e2 ,
                   compile_pre_expression e3 )
   | Unit -> S_Unit
+  | Arrow (e1,e2) -> assert false 
   | Fby (e1,e2) -> compile_pre_expression e 
   | When (e',i) ->
     S_Alternative (compile_pre_expression i,
@@ -111,6 +112,7 @@ let rec compile_expression_step e p =
                   compile_expression_step e2 p,
                   compile_expression_step e3 p)
   | Unit -> S_Unit
+  | Arrow (e1,e2) -> assert false 
   | Fby (e1,e2) -> compile_pre_expression e2
   | When (e',i) ->
     S_Alternative (compile_expression_step i p,
@@ -208,7 +210,6 @@ let pcompile_cnode node =
   let s_eqs_step = List.map compile_equation_step node.equations in
   reset ();
   let s_eqs_init = List.map compile_equation_init node.equations in
-  let s_eqs_updates = generate_updates node.equations in
   let s_app_inits = generate_app_inits node.equations in
   {
     s_pre = compile_condition node.pre;

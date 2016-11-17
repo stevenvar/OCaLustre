@@ -42,6 +42,7 @@ and exp_desc =
   | Whennot of expression * expression
   | ETuple of expression list
   (* | Current of expression *)
+  | Arrow of expression * expression 
   | Merge of expression * expression * expression
   | Call of Parsetree.expression
   | Unit

@@ -67,6 +67,7 @@ let rec compile_expression e p =
                   compile_expression e2 p,
                   compile_expression e3 p)
   | Unit -> IUnit
+  | Arrow (e1,e2) -> assert false
   | Fby (v,e') -> IRef ("st_"^(get_ident p))
   | When (e',i) ->
     IAlternative ((compile_expression i p),

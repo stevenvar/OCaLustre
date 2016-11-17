@@ -74,7 +74,12 @@ let rec get_idents l e =
   | PrefixOp (op, e1) -> get_idents l e1
   | Value v -> l
   | Unit -> l
-  | Fby (i , e') -> get_idents l e'
+  | Fby (i , e') ->
+    let l = get_idents l i in
+    get_idents l e'
+  | Arrow (e1,e2) ->
+    let l = get_idents l e1 in
+    get_idents l e2
   | When (e',c) -> get_idents l e'
   | Whennot (e',c) -> get_idents l e'
   | ETuple (el) -> List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
@@ -170,6 +175,9 @@ let rec mk_expr e =
   | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
   | [%expr [%e? e1] ->> [%e? e2] ]  ->
     { e_desc = Fby (mk_expr e1 , mk_expr e2);
+      e_loc = e.pexp_loc  }
+  | [%expr [%e? e1] --> [%e? e2] ]  ->
+    { e_desc = Arrow (mk_expr e1 , mk_expr e2);
       e_loc = e.pexp_loc  }
   | [%expr [%e? e1] @whn [%e? e2] ] ->
     { e_desc =  When (mk_expr e1 , mk_expr e2) ;

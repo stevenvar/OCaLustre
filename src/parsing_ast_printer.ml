@@ -91,6 +91,9 @@ let rec print_expression fmt e =
                            print_expression e1
 
   | Value v -> print_value fmt v
+  | Arrow (e1,e2) -> Format.fprintf fmt "(%a -> %a)"
+                       print_expression e1
+                       print_expression e2
   | Fby (e1, e2) -> Format.fprintf fmt "(%a fby %a)"
                     print_expression e1
                     print_expression e2

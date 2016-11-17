@@ -22,6 +22,9 @@ let rec get_dep_id e l  =
   | PrefixOp (op, e) ->
     get_dep_id e l
   | Value v -> l
+  | Arrow (e1,e2) ->
+    let l = get_dep_id e1 l in
+    get_dep_id e2 l
   | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
   | When (e,i) -> get_dep_id e (get_dep_id i l)
   | Whennot (e,i) -> get_dep_id e (get_dep_id i l)
