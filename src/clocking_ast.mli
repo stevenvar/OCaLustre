@@ -9,6 +9,7 @@ and
   | CtUnknown
   | CVar of varclock
   | CTuple of ct list
+  | CTyped of ct * string 
   | Arrow of ct * ct
   | On of ct * carrier
   | Onnot of ct * carrier

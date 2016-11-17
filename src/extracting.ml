@@ -33,6 +33,8 @@ let rec tocaml_expression e =
     [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
   | IInfixOp (IEquals,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
+  | IInfixOp (IMod,e1,e2) ->
+    [%expr [%e tocaml_expression e1 ] mod [%e tocaml_expression e2 ]]
   | IInfixOp (IPlus,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
   | IInfixOp (IMinus,e1,e2) ->

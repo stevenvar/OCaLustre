@@ -128,6 +128,8 @@ let rec mk_expr e =
                                        e_loc = e.pexp_loc }
   | [%expr [%e? e1] || [%e? e2] ] -> { e_desc = mk_expr e1 ||/ mk_expr e2 ;
                                        e_loc = e.pexp_loc }
+  | [%expr [%e? e1] mod [%e? e2] ] -> { e_desc = InfixOp (Mod,mk_expr e1,mk_expr e2) ;
+                                       e_loc = e.pexp_loc }
   | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
     { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
       e_loc = e.pexp_loc }
@@ -202,7 +204,7 @@ let rec pat_of_pexp p =
     { p_desc = Tuple tl ;
       p_loc = p.pexp_loc ;
     }
-  | _ -> failwith "not an ident"
+  | _ -> failwith "not a good pattern"
 
 (* creates equation node in the AST *)
 let mk_equation eq =
@@ -261,12 +263,17 @@ let mk_inv b =
   | _ -> None , b
 
 
-let parse_patt p =
+let rec parse_patt p =
   match p.ppat_desc with
       | Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc }
       | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }
-      | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> checkname_pattern x) l) ; p_loc = p.ppat_loc }
-     
+      | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> parse_patt x) l) ; p_loc = p.ppat_loc }
+     | Ppat_constraint (p,t) ->
+        begin match t.ptyp_desc with
+          | Ptyp_constr ({ loc ; txt = lid},_) ->
+            { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc }
+          | _ -> Error.syntax_error p.ppat_loc 
+        end
       | _ -> Error.syntax_error p.ppat_loc
 
 (* check that the I/O are tuples and returns a tuple of corresponding idents *)
@@ -277,7 +284,7 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
       match p.ppat_desc with
       | Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc } , e
       | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }, e
-      | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> checkname_pattern x) l) ; p_loc = p.ppat_loc }, e
+      | Ppat_tuple l -> parse_patt p, e
       | Ppat_constraint (p,t) ->
         begin match t.ptyp_desc with
           | Ptyp_constr ({ loc ; txt = lid},_) ->

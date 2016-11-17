@@ -38,6 +38,7 @@ and
   | ISupe
   | IOr
   | IAnd
+  | IMod
 
 and
   imp_preop =

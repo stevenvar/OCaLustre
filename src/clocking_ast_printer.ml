@@ -22,6 +22,7 @@ let rec print_ct fmt = function
     Format.fprintf Format.std_formatter "%a" print_ct t
   | Arrow (t1,t2) -> Format.fprintf fmt "%a -> %a" print_ct t1 print_ct t2
   | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_ct) tl
+  | CTyped (t,s) -> Format.fprintf fmt "(%a:%s)" print_ct t s
   | On (x,i) ->  Format.fprintf fmt "%a on %d" print_ct x i.carr_index
   | Onnot (x,i) -> Format.fprintf fmt "%a on (not %d)" print_ct x i.carr_index
   | CtUnknown -> Format.fprintf fmt  "?"

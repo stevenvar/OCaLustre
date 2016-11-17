@@ -66,6 +66,7 @@ let rec print_clock fmt = function
   | CtUnknown -> Format.fprintf fmt  "?"
   | Carrier c ->
     Format.fprintf fmt "(%d : %a)" c.carr_index print_clock c.carr_value
+  | CTyped (c,s) -> Format.fprintf fmt "(%a:%s)" print_clock c s
 
 let rec add_pat_to_env i env =
   match i.p_desc with
@@ -106,7 +107,7 @@ let rec get_clock p env =
   | Tuple pl ->
     let tl = List.map (fun p -> List.assoc p.p_desc env) pl in
     CTuple tl
-  | Typed (p,s) -> get_clock p env 
+  | Typed (p',s) -> List.assoc p'.p_desc env
 
 
 let rec shorten_var t =
@@ -186,6 +187,7 @@ let vars_of_clock tau =
     | Onnot (x,i) -> vars vs x
     | Carrier c -> vars vs c.carr_value
     | CTuple [] -> assert false
+    | CTyped (c,t) -> vars vs c
     | CtUnknown -> raise (ClockingBug "vars_of_clock")
 
   in vars [] tau
@@ -202,6 +204,7 @@ let carriers_of_clock tau =
     | Onnot (x,i) -> i.carr_index::(vars vs x)
     | Carrier c -> c.carr_index :: vs
     | CTuple [] -> assert false
+    | CTyped (c,t) -> vars vs c
     | CtUnknown -> raise (ClockingBug "carriers_of_clock")
 
   in vars [] tau
@@ -255,6 +258,8 @@ let inst (Forall(gv,gc,ct)) =
       let carr = new_carrier () in
       carr.carr_value <- ginstance c.carr_value;
       Carrier carr
+    | CTyped (c,t) ->
+      ginstance c
     | CtUnknown -> raise (ClockingBug "inst")
 
   in ginstance ct
@@ -314,6 +319,7 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
     | Onnot (x,i) ->  Format.fprintf fmt "%a on (not %a)" print_rec x print_carr i
     | CtUnknown -> Format.fprintf fmt  "?"
     | Carrier c -> Format.fprintf fmt "(%a : %a)" print_carr c print_rec c.carr_value
+    | CTyped (c,s) -> Format.fprintf fmt "(%a:%s)" print_rec c s
   in  Format.fprintf Format.std_formatter "%a %a %a" print_forall names print_forall carr_names
     print_rec t
 
@@ -448,6 +454,15 @@ let clocking_equation ({ pattern = p ; expression = e}) =
   { cpattern = cp ; cexpression = ce } 
 
 
+
+  let rec remove_types p =
+    match p.p_desc with
+    | Ident x -> p
+    | Tuple pl -> { p with p_desc =  Tuple (List.map remove_types pl)}
+    | Typed (p',s) -> remove_types p'
+    | PUnit -> p
+
+
 let clock_node node tse clocking =
   typing_env := [];
   carriers := []; 
@@ -455,18 +470,21 @@ let clock_node node tse clocking =
   reset_varclocks ();
   reset_carrier ();
   add_pat_to_env node.inputs typing_env;
+  let inputs = remove_types node.inputs  in
+  let outputs = remove_types node.outputs in 
 
   let cequations = List.map (fun e -> clocking_equation e) node.equations in 
   
   let lin =
-    try get_clock node.inputs !typing_env
+    try get_clock inputs !typing_env
     with Not_found ->
-      print_pattern Format.std_formatter node.inputs;
+      print_env Format.std_formatter !typing_env; 
+      print_pattern Format.std_formatter inputs;
       failwith "lin"
   in
   let lout =
-    try get_clock node.outputs !typing_env
-    with Not_found -> print_pattern Format.std_formatter node.outputs;
+    try get_clock outputs !typing_env
+    with Not_found -> print_pattern Format.std_formatter outputs;
       failwith "lout"
   in
   let tt = Arrow (lin, lout) in

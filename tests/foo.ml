@@ -1,4 +1,4 @@
-let%node g ~i:x ~o:y =
+let%node g ~i:(x,(z:int)) ~o:(y:int) =
   (y:int) = x 
 
 let%node truc ~i:(x:int) ~o:r =

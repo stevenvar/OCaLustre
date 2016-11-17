@@ -45,6 +45,7 @@ let rec compile_expression e p =
     | Sup -> ISup
     | Supe -> ISupe
     | Bor -> IOr    | Band -> IAnd
+    | Mod -> IMod 
   in
   match e.e_desc with
   | Value v -> IValue v

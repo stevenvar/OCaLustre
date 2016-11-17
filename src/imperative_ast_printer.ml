@@ -42,6 +42,7 @@ let rec printml_expression fmt exp =
     | ISupe -> Format.fprintf fmt ">="
     | IOr -> Format.fprintf fmt "||"
     | IAnd -> Format.fprintf fmt "&&"
+    | IMod -> Format.fprintf fmt "mod"
   in
   let rec printml_expressions fmt el =
     match el with

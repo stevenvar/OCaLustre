@@ -56,6 +56,7 @@ let print_infop fmt op =
   | Supe -> Format.fprintf fmt ">="
   | Bor -> Format.fprintf fmt "||"
   | Band -> Format.fprintf fmt "&&"
+  | Mod -> Format.fprintf fmt "mod"
 
 
 

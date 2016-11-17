@@ -62,6 +62,7 @@ and inf_operator =
   | Supe
   | Bor
   | Band
+  | Mod 
 
 and pre_operator =
   | Not
