@@ -160,7 +160,7 @@ let rec mk_expr e =
     end
 
   | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
-    failwith "constraint"
+    mk_expr e 
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
      pexp_loc ;
      pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
@@ -212,12 +212,21 @@ let mk_equation eq =
       match p.pexp_desc with
     | Pexp_ident _ ->
       {
-        pattern= pat_of_pexp p ;
+        pattern= pat_of_pexp p;
         expression = mk_expr e
     }
     | Pexp_tuple tu ->
      { pattern=  pat_of_pexp p;
        expression = mk_expr e}
+    | Pexp_constraint (e',t) ->
+      let pat' =
+        begin match t.ptyp_desc with
+          | Ptyp_constr ({ loc ; txt = lid},_) ->
+            { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc } 
+          | _ -> Error.syntax_error p.pexp_loc
+        end
+      in 
+      { pattern = pat' ; expression = mk_expr e}  
     | _ -> Error.syntax_error eq.pexp_loc
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));

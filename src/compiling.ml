@@ -15,9 +15,10 @@ let get_num , reset , get =
   let cpt = ref 0 in
   (fun () -> incr cpt; !cpt) , (fun () -> cpt := 0 ) , (fun () -> !cpt)
 
-let get_ident p =
+let rec get_ident p =
   match p.p_desc with
   | Ident i -> i
+  | Typed (p,s) -> get_ident p
   | _ -> failwith "no tuple"
 
 let rec compile_expression e p =

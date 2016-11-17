@@ -20,10 +20,11 @@ let rec pre_pattern p =
   in
   { p with p_desc = new_desc }
 
-let get_ident p =
+let rec get_ident p =
   match p.p_desc with
   | Ident i -> i
-  | _ -> failwith "no tuple"
+  | Typed (p,t) -> get_ident p 
+  | _ -> Parsing_ast_printer.print_pattern Format.std_formatter p;  failwith "-> no tuple  "
 
 let compile_preop op =
   match op with

@@ -23,7 +23,7 @@ let new_eq_var e =
 let get_ident e =
   match e.e_desc with
   | Variable v -> v
-  | _ -> failwith "not an ident"
+  | _ -> Format.fprintf Format.std_formatter "%a" Parsing_ast_printer.print_expression e ; failwith "not an ident"
 
 let rec transform_exp exp =
   match exp.e_desc with
