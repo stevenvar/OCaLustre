@@ -133,7 +133,8 @@ let print_pre_inv fmt (p,inv,st) =
       whyml_expression x
       whyml_expression (prefix_expression y "pre_")
   | None, Some y ->
-    Format.fprintf fmt "requires { %a } \n"
+    Format.fprintf fmt "requires { let %a = st in %a } \n"
+      print_pattern st 
       whyml_expression (prefix_expression y "pre_")
   | _ -> ()
 
