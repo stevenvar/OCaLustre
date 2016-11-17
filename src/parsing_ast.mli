@@ -26,6 +26,7 @@ and pattern = {
 }
 and patt_desc =
   | Ident of ident
+  | Typed of pattern * string
   | Tuple of pattern list
   | PUnit
 

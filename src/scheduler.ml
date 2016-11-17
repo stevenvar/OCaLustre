@@ -63,12 +63,14 @@ let rec get_id p =
   | Ident i -> i
   | Tuple t -> failwith "tuple"
   | PUnit -> failwith "unit"
+  | Typed (p,t) -> get_id p 
 
 let rec contains e i =
   match e.pattern.p_desc with
   | Ident j -> i = j
   | Tuple t -> List.fold_left (fun acc p' ->  contains { pattern = p' ; expression = { e_desc = Unit ; e_loc = Location.none }} i || acc) false t
   | PUnit -> false
+  | Typed (p,t) -> contains { pattern = p ; expression = { e_desc = Unit ; e_loc = Location.none }} i
 
 
 let rec icontains e i =
@@ -76,6 +78,7 @@ let rec icontains e i =
   | Ident j -> i = j
   | Tuple t -> List.fold_left (fun acc p' ->  contains { pattern = p' ; expression = { e_desc = Unit ; e_loc = Location.none }} i || acc) false t
   | PUnit -> false
+  | Typed (p,s) -> contains { pattern = p ; expression = { e_desc = Unit ; e_loc = Location.none }} i
 
 let rec find_eq_from_id i eqs =
   match eqs with
@@ -96,6 +99,7 @@ let rec get_ids p =
     let ids = List.map get_ids t in
     List.flatten ids
   | PUnit -> []
+  | Typed (p,s) -> get_ids p
 
 let mk_dep_graph (eqs : equation list) =
   let eq_dep eq =

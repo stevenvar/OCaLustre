@@ -9,6 +9,7 @@ let rec print_pattern fmt p =
   | Ident i -> Format.fprintf fmt "%s" i
   | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
   | PUnit -> Format.fprintf fmt "()"
+  | Typed (p,s) -> Format.fprintf fmt "(%a:%s)" print_pattern p s
 
   let rec printml_tuple fmt l =
     match l with

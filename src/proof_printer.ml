@@ -112,6 +112,8 @@ let rec prefix_pattern p prefix =
   | Ident i -> {p_desc =  Ident (prefix^i) ; p_loc = Location.none}
   | Tuple pl -> {p_desc = Tuple (List.map (fun px -> prefix_pattern px prefix ) pl) ; p_loc = Location.none }
   | PUnit -> { p_desc = PUnit ; p_loc = Location.none }
+  | Typed (p,s) ->{ p_desc =  Typed (prefix_pattern p prefix, s) ;
+                    p_loc = Location.none }
   
 
 let print_pre fmt p =

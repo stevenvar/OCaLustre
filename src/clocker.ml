@@ -75,6 +75,7 @@ let rec add_pat_to_env i env =
   | PUnit -> let var = incr cpt; CVar { c_index = !cpt; c_value = CtUnknown } in
     env := (i.p_desc,var) :: !env ;
   | Tuple tl -> List.iter (fun i -> add_pat_to_env i env) tl
+  | Typed (p,s) -> add_pat_to_env p env
 
 let rec add_to_env i tau env =
   match i.p_desc with
@@ -82,11 +83,14 @@ let rec add_to_env i tau env =
     env := (i.p_desc,tau) :: !env ;
   | PUnit ->
     env := (i.p_desc,tau) :: !env ;
+  | Typed (p,s) ->
+    add_to_env p tau env 
   | Tuple il ->
     match tau with
     | CTuple tl -> let lit = List.combine il tl in
       List.iter (fun (i,t) -> (add_to_env i t env)) lit
     | _ -> failwith "not a tuple ..."
+    
 
 
 let print_env fmt gamma =
@@ -102,6 +106,7 @@ let rec get_clock p env =
   | Tuple pl ->
     let tl = List.map (fun p -> List.assoc p.p_desc env) pl in
     CTuple tl
+  | Typed (p,s) -> get_clock p env 
 
 
 let rec shorten_var t =
@@ -260,6 +265,7 @@ let rec string_of_pattern p =
   | Ident i -> [i]
   | Tuple pl -> List.fold_left (fun acc p -> (string_of_pattern p)@acc) [] pl
   | PUnit -> []
+  | Typed (p,s) -> string_of_pattern p 
 
 
 let carr_name n =
@@ -413,7 +419,8 @@ let rec cpatt_of_patt { p_desc ; p_loc } cp_clock =
   | Ident i -> CkIdent i 
   | Tuple t -> let ct = List.map (fun t -> cpatt_of_patt t cp_clock) t in
     CkTuple ct
-  | PUnit -> CkPUnit 
+  | PUnit -> CkPUnit
+  | Typed (p,s) -> (cpatt_of_patt p cp_clock).cp_desc
   in
   { cp_desc ; cp_loc = p_loc ; cp_clock}
 

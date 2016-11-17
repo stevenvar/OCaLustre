@@ -252,6 +252,13 @@ let mk_inv b =
   | _ -> None , b
 
 
+let parse_patt p =
+  match p.ppat_desc with
+      | Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc }
+      | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }
+      | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> checkname_pattern x) l) ; p_loc = p.ppat_loc }
+     
+      | _ -> Error.syntax_error p.ppat_loc
 
 (* check that the I/O are tuples and returns a tuple of corresponding idents *)
 let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
@@ -263,9 +270,10 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
       | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }, e
       | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> checkname_pattern x) l) ; p_loc = p.ppat_loc }, e
       | Ppat_constraint (p,t) ->
-        begin match p.ppat_desc with
-          | Ppat_var s ->{ p_desc = (Ident s.txt) ; p_loc = p.ppat_loc } , e
-          | _ -> Error.syntax_error p.ppat_loc
+        begin match t.ptyp_desc with
+          | Ptyp_constr ({ loc ; txt = lid},_) ->
+            { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc } , e 
+          | _ -> Error.syntax_error p.ppat_loc 
         end
       | _ -> Error.syntax_error p.ppat_loc
     else

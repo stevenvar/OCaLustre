@@ -23,6 +23,9 @@ let rec print_pattern fmt p =
   | Ident i -> Format.fprintf fmt "%s" i
   | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
   | PUnit -> Format.fprintf fmt "()"
+  | Typed (p,s) -> Format.fprintf fmt "(%a:%s)"
+                     print_pattern p
+                     s
 
 let print_io fmt l =
     Format.fprintf fmt "(%a)"

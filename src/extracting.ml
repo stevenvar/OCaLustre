@@ -102,13 +102,16 @@ let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
 
 
 let tocaml_updates node outs =
-  let aux { i_pattern = p; i_expression = e } acc =
+  let rec aux { i_pattern = p; i_expression = e } acc =
     match p.p_desc with
     | Ident i ->
       [%expr [%e Exp.ident (lid_of_ident i) ] := ([%e tocaml_expression e]) ;
         [%e acc ]]
     | Tuple t -> assert false
     | PUnit -> assert false
+    | Typed (p,s) -> aux {i_pattern=p; i_expression = e} acc 
+    
+      
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates
 
@@ -121,6 +124,7 @@ let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
     }
   | Tuple t -> failwith "no tuple !"
   | PUnit -> failwith "no unit"
+  | Typed (p,s) -> lident_of_pattern p 
 
 let rec lident_of_string s =
   {
@@ -142,6 +146,7 @@ let rec pexp_of_pat p =
   | PUnit ->   { pexp_desc = Pexp_construct (lident_of_string "()" ,None) ;
                  pexp_loc = p.p_loc ;
                  pexp_attributes = [] }
+  | Typed (p,s) -> pexp_of_pat p
 
 let tocaml_outputs node =
   let aux ol =
@@ -151,6 +156,7 @@ let tocaml_outputs node =
   | PUnit -> [%expr () ]
   | Ident x  -> [%expr [%e pexp_of_pat node.i_outputs ]]
   | Tuple t -> [%expr [%e Exp.tuple (aux t) ] ]
+  | Typed (p,s) ->  [%expr [%e pexp_of_pat node.i_outputs ]]
 
 let rec pat_of_pattern p =
   match p.p_desc with
@@ -165,6 +171,17 @@ let rec pat_of_pattern p =
   | PUnit -> { ppat_desc = Ppat_construct (lident_of_string "()" ,None);
                ppat_loc = p.p_loc ;
                ppat_attributes = [] }
+  | Typed (p,s) ->
+    let core_type = {
+       ptyp_desc = Ptyp_constr(lident_of_string s,[]);
+     ptyp_loc =  p.p_loc ;
+     ptyp_attributes = []; 
+    }
+    in
+    {
+      ppat_desc = Ppat_constraint (pat_of_pattern p, core_type) ;
+      ppat_loc = p.p_loc;
+      ppat_attributes = []}
 
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =
@@ -252,6 +269,11 @@ let tocaml_inputs node pname acc =
              fun [%p Pat.tuple (aux t) ] -> [%e acc]
       in
       [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
+  | Typed(p,s) ->
+    [%expr let [%p Pat.var pname] =
+             fun [%p pat_of_pattern inputs] -> [%e acc ]
+      in
+      [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
 
 let tocaml_step node =
   let pname = stringloc_of_ident ~suffix:"_step" node.i_name in
@@ -282,3 +304,10 @@ let tocaml_node inode =
              fun [%p Pat.tuple (List.map pat_of_pattern t) ] ->
                [%e tocaml_inits inits (tocaml_step inode) ]
     ]
+  | Typed (p,s) ->
+
+     [%stri let [%p Pat.var name] =
+             fun [%p pat_of_pattern inode.i_inputs] ->
+               [%e tocaml_inits inits (tocaml_step inode) ]
+    ]
+   

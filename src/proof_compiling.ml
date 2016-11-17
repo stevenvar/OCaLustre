@@ -16,6 +16,7 @@ let rec pre_pattern p =
     | Ident i -> Ident ("pre_"^i)
     | Tuple t -> Tuple (List.map pre_pattern t)
     | PUnit -> PUnit
+    | Typed (p,s) -> Typed (pre_pattern p,s)
   in
   { p with p_desc = new_desc }
 
@@ -135,6 +136,7 @@ let rec pre_pattern p =
     | Ident i -> Ident ("pre_"^i)
     | Tuple t -> Tuple (List.map pre_pattern t)
     | PUnit -> PUnit
+    | Typed (p,s) -> Typed(pre_pattern p, s) 
   in
   { p with p_desc = new_desc }
 
@@ -143,13 +145,15 @@ let rec s_exp_of_pattern p =
   match p.p_desc with
   | Ident i -> S_Variable i
   | Tuple pl -> S_ExpTuple (List.map s_exp_of_pattern pl)
-  | PUnit -> failwith "() is not a good pattern" 
+  | PUnit -> failwith "() is not a good pattern"
+  | Typed (p,s) -> s_exp_of_pattern p 
 
 let rec string_of_pattern p =
   match p.p_desc with
   | Ident i -> [i]
   | Tuple pl -> List.fold_left (fun acc p -> (string_of_pattern p)@acc) [] pl
   | PUnit -> []
+  | Typed (p,s) -> string_of_pattern p 
 
 let generate_updates el =
   let generate_update e l =
@@ -167,6 +171,7 @@ let rec to_list p =
   | PUnit -> []
   | Ident x -> [x]
   | Tuple t -> List.fold_left (fun acc p -> to_list p @ acc) [] t
+  | Typed (p,s) -> to_list p 
 
 let compile_equation_step e =
    let pat = e.pattern in

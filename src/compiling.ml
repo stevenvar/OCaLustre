@@ -83,10 +83,11 @@ let rec compile_expression e p =
                   compile_expression e3 p)
 
 let rec pre_pattern p =
-  let new_desc = match p.p_desc with
+  let rec new_desc = match p.p_desc with
     | Ident i -> Ident ("st_"^i)
     | Tuple t -> Tuple (List.map pre_pattern t)
     | PUnit -> PUnit
+    | Typed (p',s) -> (pre_pattern p').p_desc
   in
   { p with p_desc = new_desc }
 
@@ -223,6 +224,7 @@ let rec to_list p =
   | PUnit -> []
   | Ident x -> [x]
   | Tuple t -> List.fold_left (fun acc p -> to_list p @ acc) [] t
+  | Typed (p',s) -> to_list p'
 
 let compile_condition c =
   match c with
