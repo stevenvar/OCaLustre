@@ -36,6 +36,7 @@ and
   | S_Supe
   | S_Or
   | S_And
+  | S_Mod 
 
 and
   imp_preop =

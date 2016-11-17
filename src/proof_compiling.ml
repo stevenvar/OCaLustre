@@ -50,6 +50,7 @@ let compile_infop op =
   | Supe -> S_Supe
   | Bor -> S_Or
   | Band -> S_And
+  | Mod -> S_Mod 
 
 let rec compile_pre_expression e =
    match e.e_desc with

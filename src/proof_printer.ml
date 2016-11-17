@@ -31,6 +31,7 @@ let rec whyml_expression fmt exp =
     | S_Supe -> Format.fprintf fmt ">="
     | S_Or -> Format.fprintf fmt "||"
     | S_And -> Format.fprintf fmt "&&"
+    | S_Mod -> Format.fprintf fmt "mod" 
   in
   let rec whyml_expressions fmt el =
     match el with
