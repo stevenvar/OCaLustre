@@ -159,9 +159,7 @@ let imp_mk_dep_graph (eqs) =
 
 let schedule_eqs eqs inputs =
   let g = mk_dep_graph eqs in
- print_dep_graph g;
  let g = remove_inputs_dep inputs g in
-  print_dep_graph g;
   let ids_sorted = List.rev (toposort g) in
   let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
   remove_dups eqs_sorted
