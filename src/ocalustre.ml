@@ -23,7 +23,9 @@ open Error
 
 let verbose = ref false
 let clocking = ref false
-let why = ref false 
+let why = ref false
+
+let not_printed_wrapper = ref true 
 
 
 let typing_scheme_env = ref []
@@ -41,9 +43,6 @@ open Ast_clock_printer
     ...
 *)
 
-
-
-
 let lustre_mapper argv =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                   ("-y", Arg.Set why, "Prints whyml node");
@@ -57,28 +56,32 @@ let lustre_mapper argv =
       | Pstr_extension (({txt="node";_},PStr [s]),_) ->
         begin match s.pstr_desc with
           | Pstr_value (_,[v]) ->
-
+             if !why && !not_printed_wrapper then
+               (Format.fprintf Format.std_formatter
+                  "module Test
+       use import int.Int
+       use import ref.Ref
+       use import option.Option \n \n";
+                not_printed_wrapper := false);
 
             let _node = mk_node (v.pvb_pat) (v.pvb_expr) in
 
             if !verbose then
             Format.fprintf Format.std_formatter
-              " -- PARSED NODE -- \n %a" print_node _node;
+              " (* PARSED NODE *) \n %a" print_node _node;
 
             let _node = normalize_node _node in
 
 
             if !verbose then
             Format.fprintf Format.std_formatter
-              " -- NORMALIZED NODE -- \n %a" print_node _node;
-
+              " (* NORMALIZED NODE *) \n %a" print_node _node;
 
             let _node = schedule _node in
-
-
+            
             if !verbose then
             Format.fprintf Format.std_formatter
-              " -- SCHEDULED NODE -- \n %a" print_node _node;
+              " (* SCHEDULED NODE *) \n %a" print_node _node;
 
             let (new_env, _cnode) = (clock_node _node typing_scheme_env clocking);
             in
@@ -86,20 +89,18 @@ let lustre_mapper argv =
 
             if !verbose then
             Format.fprintf Format.std_formatter
-              " -- CLOCKED NODE -- \n %a" print_cnode _cnode;
-
+              " (* CLOCKED NODE *) \n %a" print_cnode _cnode;
 
             let _inode = compile_cnode _node in
 
             if !verbose then
             Format.fprintf Format.std_formatter
-              " -- COMPILED NODE -- \n %a" printml_node _inode;
+              " (* COMPILED NODE *) \n %a" printml_node _inode;
 
             if !why then
-              (
-                let _pnode = pcompile_cnode _node in 
+              (let _pnode = pcompile_cnode _node in 
             Format.fprintf Format.std_formatter
-              " -- WHYML -- \n\n%a\n\n\n" whyml_node _pnode
+              " (*  WHYML *) \n\n%a\n\n\n" whyml_node _pnode
               );
 
             tocaml_node _inode
@@ -111,7 +112,9 @@ let lustre_mapper argv =
   }
 
 let _ =
+ 
+  register "ocalustre" lustre_mapper;
 
-
-
-  register "ocalustre" lustre_mapper
+if !why then
+    Format.fprintf Format.std_formatter
+      "end \n \n ";
