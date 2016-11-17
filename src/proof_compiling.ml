@@ -198,7 +198,8 @@ List.fold_left (fun acc e -> generate_init e.expression e.pattern acc) [] el
 
 let pcompile_cnode node =
   reset ();
-  let s_eqs_step = List.map compile_equation_step node.equations in 
+  let s_eqs_step = List.map compile_equation_step node.equations in
+  reset ();
   let s_eqs_init = List.map compile_equation_init node.equations in
   let s_eqs_updates = generate_updates node.equations in
   let s_app_inits = generate_app_inits node.equations in
