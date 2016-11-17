@@ -90,7 +90,7 @@ let rec add_to_env i tau env =
     match tau with
     | CTuple tl -> let lit = List.combine il tl in
       List.iter (fun (i,t) -> (add_to_env i t env)) lit
-    | _ -> failwith "not a tuple ..."
+    | _ -> Format.fprintf Format.std_formatter "--> %a" print_clock tau ; failwith "not a tuple ..."
     
 
 

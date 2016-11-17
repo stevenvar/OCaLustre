@@ -204,6 +204,15 @@ let rec pat_of_pexp p =
     { p_desc = Tuple tl ;
       p_loc = p.pexp_loc ;
     }
+   | Pexp_constraint (e',t) ->
+      let pat' =
+        begin match t.ptyp_desc with
+          | Ptyp_constr ({ loc ; txt = lid},_) ->
+            { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc } 
+          | _ -> Error.syntax_error p.pexp_loc
+        end
+      in 
+      pat'
   | _ -> failwith "not a good pattern"
 
 (* creates equation node in the AST *)
@@ -221,14 +230,8 @@ let mk_equation eq =
      { pattern=  pat_of_pexp p;
        expression = mk_expr e}
     | Pexp_constraint (e',t) ->
-      let pat' =
-        begin match t.ptyp_desc with
-          | Ptyp_constr ({ loc ; txt = lid},_) ->
-            { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc } 
-          | _ -> Error.syntax_error p.pexp_loc
-        end
-      in 
-      { pattern = pat' ; expression = mk_expr e}  
+      
+      { pattern = pat_of_pexp p ; expression = mk_expr e}  
     | _ -> Error.syntax_error eq.pexp_loc
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
