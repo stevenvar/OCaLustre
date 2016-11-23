@@ -47,11 +47,11 @@ let rec whyml_expression fmt exp =
   | S_Variable v ->  Format.fprintf fmt "%s" v
   | S_Ref v -> Format.fprintf fmt "!%s" v
   | S_RefDef e -> Format.fprintf fmt "ref %a" whyml_expression e
-  | S_InfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
+  | S_InfixOp (op,e1,e2) -> Format.fprintf fmt "(%a %a %a)"
                              whyml_expression e1
                              whyml_infop op
                              whyml_expression e2
-  | S_PrefixOp (op,e) -> Format.fprintf fmt "%a%a"
+  | S_PrefixOp (op,e) -> Format.fprintf fmt "(%a%a)"
                           whyml_preop op
                           whyml_expression e
   | S_Alternative (e1,e2,e3) -> Format.fprintf fmt "if %a then %a else %a"
@@ -196,12 +196,12 @@ let whyml_app_inits fmt l =
 let get_patterns el =
   List.map (fun e -> e.s_pattern) el
 
-let concat_pattern p1 p2 =
+(*let concat_pattern p1 p2 =
   match p1.p_desc,p2.p_desc with
   | PUnit, _ -> p2
   | _ , PUnit -> p1
   | _,_ -> { p_desc = Tuple [p1;p2] ; p_loc = Location.none}
-
+*)
                          
 
 let whyml_fun_init fmt s_init =
@@ -216,11 +216,13 @@ let whyml_fun_init fmt s_init =
     match pats with
     | [x] -> x
     | _ -> { p_desc = Tuple pats ; p_loc = Location.none }  in
-   let tpats = concat_pattern tpats inputs in
+  let tpats = concat_pat tpats inputs in
+    let tpats = flatten_pat tpats in 
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt
     "let %s_init inputs = 
-     %a%a
+     %a
+     %a
      let %a = inputs in 
      %a
      (%a,%a)"
@@ -244,12 +246,15 @@ let whyml_fun_step fmt s_step =
     match pats with
     | [x] -> x
     | _ -> { p_desc = Tuple pats ; p_loc = Location.none }  in
-  let tpats = concat_pattern tpats inputs in
+  let tpats = flatten_pat tpats in 
+  let tpats = concat_pat tpats inputs in
+  let tpats = flatten_pat tpats in 
   let tpats_pre = prefix_pattern tpats "pre_" in
   let tpats_post = prefix_pattern tpats "post_" in 
   Format.fprintf fmt
     "let %s_step st inputs = \n 
-     %a%a
+     %a
+     %a
      let %a = inputs in 
      let %a = st in
       %a (%a,%a)"
@@ -268,7 +273,7 @@ let whyml_node fmt node =
     match pats with
     | [x] -> x
     | _ -> { p_desc = Tuple pats ; p_loc = Location.none }  in
-  let tpats = concat_pattern tpats node.s_inputs in
+  let tpats = concat_pat tpats node.s_inputs in
   let tpats_pre = prefix_pattern tpats "pre_" in
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt "

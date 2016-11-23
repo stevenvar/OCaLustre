@@ -204,6 +204,40 @@ in
 reset (); 
 List.fold_left (fun acc e -> generate_init e.expression e.pattern acc) [] el
 
+let rec pat_to_list p =
+  match p.p_desc with
+  | PUnit -> []
+  | Ident x -> [x]
+  | Tuple t -> List.flatten (List.map pat_to_list t)
+  | Typed (p,s) -> pat_to_list p
+
+let rec pat_of_list l =
+  let loc = Location.none in 
+  match l with
+  | [] -> { p_desc = PUnit ; p_loc = loc }
+  | [x] -> { p_desc = Ident x ; p_loc = loc } 
+  | x::xs ->
+    let lident = List.map (fun x -> [x]) l in
+    let tup = Tuple (List.map (pat_of_list) lident) in
+    { p_desc = tup ; p_loc = loc } 
+
+let rec concat_pat p q =
+  let p_desc = 
+    match p.p_desc , q.p_desc with
+    | Tuple tp , Tuple tq -> Tuple (tp@tq)
+    | Tuple tp , _ -> Tuple (tp@[q])
+    | _ , Tuple tq -> Tuple (p::tq)
+    | _ , _ -> Tuple ([p;q])
+  in
+  { p_desc ; p_loc = Location.none } 
+  
+
+let rec flatten_pat p =
+  match p.p_desc with
+  | Tuple (x::t) -> concat_pat x (flatten_pat {p with p_desc = Tuple t})
+  | Typed (p',t) -> { p with p_desc = Typed(flatten_pat p',t)} 
+    | _ -> p 
+    
 
 let pcompile_cnode node =
   reset ();
@@ -211,7 +245,7 @@ let pcompile_cnode node =
   reset ();
   let s_eqs_init = List.map compile_equation_init node.equations in
   let s_app_inits = generate_app_inits node.equations in
-  let s_pre =  compile_condition node.pre in
+  let s_pre = compile_condition node.pre in
   let s_post = compile_condition node.post in
   let s_inv = compile_condition node.inv in
   let s_inputs = node.inputs in
