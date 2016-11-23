@@ -53,11 +53,23 @@ and s_equation =  {
 and s_condition = s_expr option
 
 type s_init = {
-  s_init_equations : s_equation list;
+  si_name : ident; 
+  si_pre : s_condition;
+  si_post : s_condition;
+  si_inv : s_condition;
+  si_inputs : pattern;
+  si_outputs : pattern; 
+  si_equations : s_equation list;
 }
 
 type s_step = {
-  s_step_equations : s_equation list;
+  ss_name : ident;
+  ss_pre : s_condition;
+  ss_post : s_condition;
+  ss_inv : s_condition;
+  ss_inputs : pattern;
+  ss_outputs : pattern; 
+  ss_equations : s_equation list;
 }
 
 type s_node = {

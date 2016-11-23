@@ -154,7 +154,7 @@ let print_assume fmt (i,st) =
       print_pattern st
       whyml_expression (prefix_expression x "pre_")
 
-let print_inv fmt (i,st) =
+let print_assert fmt (i,st) =
   match i with
   | None -> ()
   | Some x ->
@@ -204,8 +204,14 @@ let concat_pattern p1 p2 =
 
                          
 
-let whyml_fun_init fmt (name,inputs,pre,post,inv,s_init,outputs) =
-  let pats = get_patterns s_init.s_init_equations in
+let whyml_fun_init fmt s_init =
+  let name = s_init.si_name in 
+  let pats = get_patterns s_init.si_equations in
+  let inputs = s_init.si_inputs in
+  let outputs = s_init.si_outputs in
+  let post = s_init.si_post in
+  let pre = s_init.si_pre in
+  let inv = s_init.si_inv in 
   let tpats =
     match pats with
     | [x] -> x
@@ -222,12 +228,18 @@ let whyml_fun_init fmt (name,inputs,pre,post,inv,s_init,outputs) =
   print_pre (pre,inputs) 
   print_post_inv (post,inv, tpats_post,outputs)
   print_pattern inputs
-  whyml_equations s_init.s_init_equations
+  whyml_equations s_init.si_equations
   print_pattern tpats
   print_pattern outputs
 
-let whyml_fun_step fmt (name,inputs,pre,post,inv,s_step,outputs) =
-  let pats = get_patterns s_step.s_step_equations in
+let whyml_fun_step fmt s_step =
+  let name = s_step.ss_name in
+  let inputs = s_step.ss_inputs in
+  let outputs = s_step.ss_outputs in
+  let post = s_step.ss_post in
+  let pre = s_step.ss_pre in
+  let inv = s_step.ss_inv in 
+  let pats = get_patterns s_step.ss_equations in
   let tpats =
     match pats with
     | [x] -> x
@@ -246,12 +258,12 @@ let whyml_fun_step fmt (name,inputs,pre,post,inv,s_step,outputs) =
   print_post_inv (post,inv,tpats_post,outputs)
   print_pattern inputs
   print_pattern tpats_pre 
-  whyml_equations s_step.s_step_equations
+  whyml_equations s_step.ss_equations
   print_pattern tpats
   print_pattern outputs
 
 let whyml_node fmt node =
-  let pats = get_patterns node.s_init_fun.s_init_equations in
+  let pats = get_patterns node.s_init_fun.si_equations in
    let tpats =
     match pats with
     | [x] -> x
@@ -261,56 +273,41 @@ let whyml_node fmt node =
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt "
 let %s () = 
-(* apps inits *)
- %a 
-(* instant 0 *)
- %a 
-in
-(* instant n *)
- %a 
-in
-(* switch between instant 0 and instant n >=0 *)
-let state = ref None in
-fun inputs %a ->
-  %a
-  let %a = inputs in 
-  match !state with 
-  | None -> let (s, result) = (%s_init %a ) in 
-            %a 
-            (state := Some s; result) 
-  | Some s' -> %a 
-               let (s, result) = (%s_step s' %a ) in
-               %a 
-               (state := Some s; result)
+ (* apps inits *)
+  %a 
+ (* instant 0 *)
+  %a 
+ in
+ (* instant n *)
+  %a 
+ in
+ (* switch between instant 0 and instant n >=0 *)
+ let state = ref None in
+  fun inputs %a ->
+   %a
+   let %a = inputs in 
+   match !state with 
+   | None -> let (s, result) = (%s_init %a ) in 
+             %a 
+             (state := Some s; result) 
+   | Some s' -> %a 
+             let (s, result) = (%s_step s' %a ) in
+             %a 
+             (state := Some s; result)
   end
 "
     node.s_name
     whyml_app_inits node.s_apps_init 
-  whyml_fun_init 
-      (node.s_name
-      ,node.s_inputs
-      ,node.s_pre
-      ,node.s_post
-      ,node.s_inv 
-      ,node.s_init_fun
-      ,node.s_outputs)
-  whyml_fun_step 
-      (node.s_name
-      ,node.s_inputs
-      ,node.s_pre
-      ,node.s_post
-      ,node.s_inv
-      ,node.s_step_fun
-      ,node.s_outputs)
-      
-      print_pre (node.s_pre,node.s_inputs)
-      print_post (node.s_post,node.s_outputs)
-      print_pattern node.s_inputs
-      node.s_name
-      print_pattern node.s_inputs
-      print_inv (node.s_inv,tpats_post)
-      print_assume (node.s_inv, tpats_pre)
-      node.s_name
-      print_pattern node.s_inputs
-      print_inv (node.s_inv,tpats_post)
-   
+    whyml_fun_init node.s_init_fun
+    whyml_fun_step node.s_step_fun
+    print_pre (node.s_pre,node.s_inputs)
+    print_post (node.s_post,node.s_outputs)
+    print_pattern node.s_inputs
+    node.s_name
+    print_pattern node.s_inputs
+    print_assert (node.s_inv,tpats_post)
+    print_assume (node.s_inv, tpats_pre)
+    node.s_name
+    print_pattern node.s_inputs
+    print_assert (node.s_inv,tpats_post)
+

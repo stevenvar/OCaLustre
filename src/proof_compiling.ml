@@ -211,6 +211,12 @@ let pcompile_cnode node =
   reset ();
   let s_eqs_init = List.map compile_equation_init node.equations in
   let s_app_inits = generate_app_inits node.equations in
+  let s_pre =  compile_condition node.pre in
+  let s_post = compile_condition node.post in
+  let s_inv = compile_condition node.inv in
+  let s_inputs = node.inputs in
+  let s_outputs = node.outputs in
+  let s_name = get_ident (node.name) in
   {
     s_pre = compile_condition node.pre;
     s_post = compile_condition node.post;
@@ -220,9 +226,21 @@ let pcompile_cnode node =
     s_outputs = node.outputs;
     s_apps_init = s_app_inits;
     s_init_fun = {
-      s_init_equations = s_eqs_init;
+      si_name = s_name;
+      si_pre = s_pre;
+      si_post = s_post;
+      si_inv = s_inv;
+      si_inputs = s_inputs;
+      si_outputs = s_outputs;
+      si_equations = s_eqs_init;
     };
     s_step_fun = {
-      s_step_equations = s_eqs_step;
+      ss_name = s_name;
+      ss_pre = s_pre;
+      ss_post = s_post;
+      ss_inv = s_inv;
+      ss_inputs = s_inputs;
+      ss_outputs = s_outputs;
+      ss_equations = s_eqs_step;
     }
   }
