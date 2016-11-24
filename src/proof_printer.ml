@@ -157,12 +157,11 @@ let print_pre_inv fmt (p,inv,st,ins) =
   | _ -> ()
 
 
-let print_assume fmt (i,st) =
+let print_assume fmt i =
   match i with
   | None -> ()
   | Some x ->
-     Format.fprintf fmt "assume { let %a = s' in %a };"
-      print_pattern st
+     Format.fprintf fmt "assume { %a };"
       whyml_expression (prefix_expression x "pre_")
 
 let print_assert fmt (i,st) =
@@ -302,8 +301,9 @@ let %s () =
    | None -> let (s, result) = (%s_init %a ) in 
              %a 
              (state := Some s; result) 
-   | Some s' -> %a 
+   | Some s' ->  
              let %a = s' in 
+             %a
              let (s, result) = (%s_step %a %a ) in
              %a 
              (state := Some s; result)
@@ -321,8 +321,8 @@ let %s () =
     node.s_name
     print_expanded_pattern node.s_inputs
     print_assert (node.s_inv,tpats_post)
-    print_assume (node.s_inv, tpats_pre)
-    print_pattern tpats_pre 
+    print_pattern tpats_pre
+     print_assume (node.s_inv)
     node.s_name
     print_expanded_pattern tpats_pre
     print_expanded_pattern node.s_inputs
