@@ -3,8 +3,20 @@ open Seq_proof_ast
 open Imperative_ast_printer
 open Parsing_ast_printer
 open Parsing_ast
-    open Proof_compiling 
+open Proof_compiling
+    
+let rec print_expanded_list f fmt l =
+  match l with
+  | [s] -> Format.fprintf fmt  "%a" f s
+  | h :: t -> Format.fprintf fmt  "%a " f h ; print_expanded_list f fmt t
+  | _ -> ()
 
+let rec print_expanded_pattern fmt p =
+  match p.p_desc with
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "%a" (print_expanded_list print_pattern) t
+  | PUnit -> Format.fprintf fmt "()"
+  | Typed (p,s) -> Format.fprintf fmt "(%a:%s)" print_pattern p s
 
 let rec whyml_expression fmt exp =
   let whyml_preop fmt op =
@@ -129,19 +141,18 @@ let print_pre fmt (p,ins) =
 let print_pre_inv fmt (p,inv,st,ins) =
   match p,inv with
   | Some x , None  ->
-    Format.fprintf fmt "requires { let %a = inputs in %a } \n"
-      print_pattern ins
+    Format.fprintf fmt "requires {  %a } \n"
+     
       whyml_expression x        
   | Some x , Some y ->
-    Format.fprintf fmt "requires { let %a = st in let %a = inputs in %a && %a } \n"
-      print_pattern st
-      print_pattern ins
+    Format.fprintf fmt "requires { %a && %a } \n"
+    
       whyml_expression x
       whyml_expression (prefix_expression y "pre_")
   | None, Some y ->
-    Format.fprintf fmt "requires { let %a = st in let %a = inputs in  %a } \n"
-      print_pattern st
-      print_pattern ins
+    Format.fprintf fmt "requires { %a } \n"
+     
+     
       whyml_expression (prefix_expression y "pre_")
   | _ -> ()
 
@@ -220,16 +231,15 @@ let whyml_fun_init fmt s_init =
     let tpats = flatten_pat tpats in 
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt
-    "let %s_init inputs = 
+    "let %s_init %a = 
      %a
      %a
-     let %a = inputs in 
      %a
      (%a,%a)"
-  name
+    name
+    print_expanded_pattern inputs
   print_pre (pre,inputs) 
   print_post_inv (post,inv, tpats_post,outputs)
-  print_pattern inputs
   whyml_equations s_init.si_equations
   print_pattern tpats
   print_pattern outputs
@@ -252,17 +262,15 @@ let whyml_fun_step fmt s_step =
   let tpats_pre = prefix_pattern tpats "pre_" in
   let tpats_post = prefix_pattern tpats "post_" in 
   Format.fprintf fmt
-    "let %s_step st inputs = \n 
+    "let %s_step %a %a = \n 
      %a
      %a
-     let %a = inputs in 
-     let %a = st in
       %a (%a,%a)"
     name
+    print_expanded_pattern tpats_pre
+    print_expanded_pattern inputs 
   print_pre_inv (pre,inv, tpats_pre,inputs)
   print_post_inv (post,inv,tpats_post,outputs)
-  print_pattern inputs
-  print_pattern tpats_pre 
   whyml_equations s_step.ss_equations
   print_pattern tpats
   print_pattern outputs
@@ -288,31 +296,35 @@ let %s () =
  in
  (* switch between instant 0 and instant n >=0 *)
  let state = ref None in
-  fun inputs %a ->
+  fun %a %a ->
    %a
-   let %a = inputs in 
    match !state with 
    | None -> let (s, result) = (%s_init %a ) in 
              %a 
              (state := Some s; result) 
    | Some s' -> %a 
-             let (s, result) = (%s_step s' %a ) in
+             let %a = s' in 
+             let (s, result) = (%s_step %a %a ) in
              %a 
              (state := Some s; result)
   end
 "
     node.s_name
-    whyml_app_inits node.s_apps_init 
+    
+    whyml_app_inits node.s_apps_init
     whyml_fun_init node.s_init_fun
     whyml_fun_step node.s_step_fun
+        print_expanded_pattern node.s_inputs
     print_pre (node.s_pre,node.s_inputs)
     print_post (node.s_post,node.s_outputs)
-    print_pattern node.s_inputs
+   
     node.s_name
-    print_pattern node.s_inputs
+    print_expanded_pattern node.s_inputs
     print_assert (node.s_inv,tpats_post)
     print_assume (node.s_inv, tpats_pre)
+    print_pattern tpats_pre 
     node.s_name
-    print_pattern node.s_inputs
+    print_expanded_pattern tpats_pre
+    print_expanded_pattern node.s_inputs
     print_assert (node.s_inv,tpats_post)
 
