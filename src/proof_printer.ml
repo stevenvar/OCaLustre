@@ -133,8 +133,7 @@ let print_pre fmt (p,ins) =
   match p with
   | None -> ()
   | Some x ->
-    Format.fprintf fmt "requires { let %a = inputs in  %a } \n"
-      print_pattern ins
+    Format.fprintf fmt "requires {  %a } \n"
       whyml_expression x         
 
 
