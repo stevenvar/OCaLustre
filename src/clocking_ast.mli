@@ -13,10 +13,11 @@ and
   | Arrow of ct * ct
   | On of ct * carrier
   | Onnot of ct * carrier
-  | Carrier of carrier
+  | Carrier of carrier * ct 
 and varclock = { c_index : int ; mutable c_value : ct }
-and scheme = Forall of int list * int list *  ct (* arrow ? *)
-and carrier = { carr_index : int ; mutable carr_value : ct }
+and scheme = Forall of int list * string list *  ct (* arrow ? *)
+(* and carrier = { carr_index : int ; mutable carr_value : ct } *)
+and carrier = string 
 
 and cnode = {
   cname : cpattern;

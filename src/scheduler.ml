@@ -26,7 +26,9 @@ let rec get_dep_id e l  =
     let l = get_dep_id e1 l in
     get_dep_id e2 l
   | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
-  | When (e,i) -> get_dep_id e (get_dep_id i l)
+  | When (e,i) ->
+    let l = get_dep_id i l in 
+    get_dep_id e l
   | Whennot (e,i) -> get_dep_id e (get_dep_id i l)
   | Unit -> l
   | ETuple el -> List.fold_left (fun accu e -> get_dep_id e accu) l el
@@ -114,11 +116,10 @@ let mk_dep_graph (eqs : equation list) =
 
 let rec print_dep_graph g =
   let print_one_dep fmt (e,dep) =
-    print_string "(";
-    print_ident fmt e;
-    print_string "-->[";
-    List.iter (fun s -> print_ident fmt s) dep;
-    print_endline "])"
+    Format.fprintf fmt
+      "\n %a --> "
+    print_ident e ;
+    List.iter (fun s -> print_ident fmt s) dep
   in
   match g with
   | [] -> ()
@@ -162,7 +163,7 @@ let imp_mk_dep_graph (eqs) =
 
 let schedule_eqs eqs inputs =
   let g = mk_dep_graph eqs in
- let g = remove_inputs_dep inputs g in
+  let g = remove_inputs_dep inputs g in
   let ids_sorted = List.rev (toposort g) in
   let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
   remove_dups eqs_sorted

@@ -23,11 +23,11 @@ let rec print_ct fmt = function
   | Arrow (t1,t2) -> Format.fprintf fmt "%a -> %a" print_ct t1 print_ct t2
   | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_ct) tl
   | CTyped (t,s) -> Format.fprintf fmt "(%a:%s)" print_ct t s
-  | On (x,i) ->  Format.fprintf fmt "%a on %d" print_ct x i.carr_index
-  | Onnot (x,i) -> Format.fprintf fmt "%a on (not %d)" print_ct x i.carr_index
+  | On (x,i) ->  Format.fprintf fmt "%a on %s" print_ct x i
+  | Onnot (x,i) -> Format.fprintf fmt "%a on (not %s)" print_ct x i
   | CtUnknown -> Format.fprintf fmt  "?"
-  | Carrier c ->
-    Format.fprintf fmt "(%d : %a)" c.carr_index print_ct c.carr_value
+  | Carrier (s,c) ->
+    Format.fprintf fmt "(%s : %a)" s print_ct c
 
 
 let rec print_clock fmt cl =

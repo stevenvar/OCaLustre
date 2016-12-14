@@ -91,17 +91,13 @@ let%node update_prop ~i:(wtemp,ctemp) ~o:(prop) =
   offset = call (min 10 (if delta < 0 then ( (-delta) * delta) else (delta * delta)) ); 
   prop = new_prop / 10
 
-
 let%node timer ~i:(number) ~o:(alarm) =
   time = 1 ->> if (time) = 10 then 1 else (time) + 1;
   alarm = (time < number) 
 
- 
-
 let%node heat ~i:(w,c) ~o:(h) =
   prop = update_prop (w,c);
   h = timer (prop)
-
 
 let%node change_wtemp ~i:(default,state) ~o:(w) = 
   w = default ->> ( 
@@ -113,13 +109,7 @@ let%node change_wtemp ~i:(default,state) ~o:(w) =
 
 let%node thermo_on ~i:(state) ~o:(on) = 
   on = true ->> (if state = OnOff then not (on) else (on))
-(*
-let%node heat (w,c) (h) = 
-h := false --> ( 
-if (c < w - 3) then false 
-else if (c > w + 3) then true
-else pre h )
-*)
+
 let%node save_t ~i:(w) ~o:(save) =
   pre_w = 0 ->> w; 
   changed = false ->> (w <> (pre_w));
@@ -131,7 +121,6 @@ let%node thermo ~i:(plus,minus,ctemp) ~o:(wtemp, on, h) =
   wtemp = if on then change_wtemp ( (call (load_temp ()) ),state) else 0; 
   h = if on then heat (wtemp, ctemp) else false;
   save = save_t wtemp
-
 
 let%node main ~i:() ~o:() =
   plus = call (test_bit plus_button);
@@ -146,22 +135,3 @@ let _ =
   while true do
     main_step ();
   done
-
-(*
-let _ =
-  let main_step = main (false,false,0) in
-  while true do
-    let plus = test_bit plus_button in
-    let minus = test_bit minus_button in
-    let t = read_temp () in 
-    let (wtemp, on,heat) = main_step (plus,minus,t) in
-    if on then (
-      disp.moveto 1 1;
-      disp.print_string (str_of_temp wtemp);
-      disp.moveto 2 1;
-      disp.print_string (str_of_temp t);
-      if heat then set_bit output else clear_bit output;
-    ); 
-    Sys.sleep 500;
-  done
-*)

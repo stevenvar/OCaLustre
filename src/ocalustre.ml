@@ -28,7 +28,7 @@ let why = ref false
 let not_printed_wrapper = ref true 
 
 
-let typing_scheme_env = ref []
+(* let typing_scheme_env = ref [] *)
 
 (*open Transform
 open Ast_imperative
@@ -83,14 +83,19 @@ let lustre_mapper argv =
             Format.fprintf Format.std_formatter
               " (* SCHEDULED NODE *) \n %a" print_node _node;
 
-            let (new_env, _cnode) = (clock_node _node typing_scheme_env clocking);
+            (* let (new_env, _cnode) = (clock_node _node typing_scheme_env clocking);
             in
             typing_scheme_env := new_env;
-
+            
             if !verbose then
             Format.fprintf Format.std_formatter
-              " (* CLOCKED NODE *) \n %a" print_cnode _cnode;
+              " (* CLOCKED NODE *) \n %a" print_cnode _cnode; 
+            *)
+             let ck_node = Clocking2.ck_node _node in
+            
+(* print_clock_scheme Format.std_formatter ck_node ; *)
 
+            
             let _inode = compile_cnode _node in
 
             if !verbose then
