@@ -63,7 +63,7 @@ type imp_node = {
   i_pre : i_condition;
   i_post : i_condition;
   i_inv : i_condition;
-  i_name : ident;
+  i_name : pattern;
   i_inputs : pattern;
   i_outputs : pattern;
   i_inits : imp_inits;

@@ -4,7 +4,7 @@ open Imperative_ast_printer
 open Parsing_ast_printer
 open Parsing_ast
 open Proof_compiling
-    
+
 let rec print_expanded_list f fmt l =
   match l with
   | [s] -> Format.fprintf fmt  "%a" f s
@@ -43,7 +43,7 @@ let rec whyml_expression fmt exp =
     | S_Supe -> Format.fprintf fmt ">="
     | S_Or -> Format.fprintf fmt "||"
     | S_And -> Format.fprintf fmt "&&"
-    | S_Mod -> Format.fprintf fmt "mod" 
+    | S_Mod -> Format.fprintf fmt "mod"
   in
   let rec whyml_expressions fmt el =
     match el with
@@ -91,7 +91,7 @@ let whyml_equations fmt el =
   List.iter (fun x -> whyml_equation fmt x) el
 
 
-let rec prefix_expression exp prefix = 
+let rec prefix_expression exp prefix =
  match exp with
   | S_Value c -> exp
   | S_Variable v -> S_Variable (prefix^v)
@@ -113,12 +113,12 @@ let rec prefix_expression exp prefix =
                              prefix_expression e prefix)
   | S_Application_init (i,e) ->
      S_Application_init (i, prefix_expression e prefix)
-  | S_Call e -> exp 
+  | S_Call e -> exp
   | S_Constr s -> exp
   | S_ExpTuple el -> S_ExpTuple (List.map (fun e -> prefix_expression e prefix) el)
-  
+
 let prefix_equation eq prefix =
-  { s_pattern = eq.s_pattern ; s_expression = prefix_expression eq.s_expression prefix } 
+  { s_pattern = eq.s_pattern ; s_expression = prefix_expression eq.s_expression prefix }
 
 let rec prefix_pattern p prefix =
   match p.p_desc with
@@ -127,31 +127,31 @@ let rec prefix_pattern p prefix =
   | PUnit -> { p_desc = PUnit ; p_loc = Location.none }
   | Typed (p,s) ->{ p_desc =  Typed (prefix_pattern p prefix, s) ;
                     p_loc = Location.none }
-  
+
 
 let print_pre fmt (p,ins) =
   match p with
   | None -> ()
   | Some x ->
     Format.fprintf fmt "requires {  %a } \n"
-      whyml_expression x         
+      whyml_expression x
 
 
 let print_pre_inv fmt (p,inv,st,ins) =
   match p,inv with
   | Some x , None  ->
     Format.fprintf fmt "requires {  %a } \n"
-     
-      whyml_expression x        
+
+      whyml_expression x
   | Some x , Some y ->
     Format.fprintf fmt "requires { %a && %a } \n"
-    
+
       whyml_expression x
       whyml_expression (prefix_expression y "pre_")
   | None, Some y ->
     Format.fprintf fmt "requires { %a } \n"
-     
-     
+
+
       whyml_expression (prefix_expression y "pre_")
   | _ -> ()
 
@@ -197,11 +197,11 @@ let print_post_inv fmt (p,i,st,outs) =
       print_pattern outs
       whyml_expression x
       whyml_expression (prefix_expression y "post_")
-  | _ -> () 
+  | _ -> ()
 
 let whyml_app_inits fmt l =
   whyml_equations fmt l
-  
+
 let get_patterns el =
   List.map (fun e -> e.s_pattern) el
 
@@ -211,32 +211,32 @@ let get_patterns el =
   | _ , PUnit -> p1
   | _,_ -> { p_desc = Tuple [p1;p2] ; p_loc = Location.none}
 *)
-                         
+
 
 let whyml_fun_init fmt s_init =
-  let name = s_init.si_name in 
+  let name = s_init.si_name in
   let pats = get_patterns s_init.si_equations in
   let inputs = s_init.si_inputs in
   let outputs = s_init.si_outputs in
   let post = s_init.si_post in
   let pre = s_init.si_pre in
-  let inv = s_init.si_inv in 
+  let inv = s_init.si_inv in
   let tpats =
     match pats with
     | [x] -> x
     | _ -> { p_desc = Tuple pats ; p_loc = Location.none }  in
   let tpats = concat_pat tpats inputs in
-    let tpats = flatten_pat tpats in 
+    let tpats = flatten_pat tpats in
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt
-    "let %s_init %a = 
+    "let %a_init %a =
      %a
      %a
      %a
      (%a,%a)"
-    name
+    print_pattern name
     print_expanded_pattern inputs
-  print_pre (pre,inputs) 
+  print_pre (pre,inputs)
   print_post_inv (post,inv, tpats_post,outputs)
   whyml_equations s_init.si_equations
   print_pattern tpats
@@ -248,25 +248,25 @@ let whyml_fun_step fmt s_step =
   let outputs = s_step.ss_outputs in
   let post = s_step.ss_post in
   let pre = s_step.ss_pre in
-  let inv = s_step.ss_inv in 
+  let inv = s_step.ss_inv in
   let pats = get_patterns s_step.ss_equations in
   let tpats =
     match pats with
     | [x] -> x
     | _ -> { p_desc = Tuple pats ; p_loc = Location.none }  in
-  let tpats = flatten_pat tpats in 
+  let tpats = flatten_pat tpats in
   let tpats = concat_pat tpats inputs in
-  let tpats = flatten_pat tpats in 
+  let tpats = flatten_pat tpats in
   let tpats_pre = prefix_pattern tpats "pre_" in
-  let tpats_post = prefix_pattern tpats "post_" in 
+  let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt
-    "let %s_step %a %a = \n 
+    "let %a_step %a %a = \n
      %a
      %a
       %a (%a,%a)"
-    name
+    print_pattern name
     print_expanded_pattern tpats_pre
-    print_expanded_pattern inputs 
+    print_expanded_pattern inputs
   print_pre_inv (pre,inv, tpats_pre,inputs)
   print_post_inv (post,inv,tpats_post,outputs)
   whyml_equations s_step.ss_equations
@@ -283,47 +283,46 @@ let whyml_node fmt node =
   let tpats_pre = prefix_pattern tpats "pre_" in
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt "
-let %s () = 
+let %a () =
  (* apps inits *)
-  %a 
+  %a
  (* instant 0 *)
-  %a 
+  %a
  in
  (* instant n *)
-  %a 
+  %a
  in
  (* switch between instant 0 and instant n >=0 *)
  let state = ref None in
   fun %a %a ->
    %a
-   match !state with 
-   | None -> let (s, result) = (%s_init %a ) in 
-             %a 
-             (state := Some s; result) 
-   | Some s' ->  
-             let %a = s' in 
+   match !state with
+   | None -> let (s, result) = (%a_init %a ) in
              %a
-             let (s, result) = (%s_step %a %a ) in
-             %a 
+             (state := Some s; result)
+   | Some s' ->
+             let %a = s' in
+             %a
+             let (s, result) = (%a_step %a %a ) in
+             %a
              (state := Some s; result)
   end
 "
-    node.s_name
-    
+    print_pattern node.s_name
+
     whyml_app_inits node.s_apps_init
     whyml_fun_init node.s_init_fun
     whyml_fun_step node.s_step_fun
         print_expanded_pattern node.s_inputs
     print_pre (node.s_pre,node.s_inputs)
     print_post (node.s_post,node.s_outputs)
-   
-    node.s_name
+
+    print_pattern node.s_name
     print_expanded_pattern node.s_inputs
     print_assert (node.s_inv,tpats_post)
     print_pattern tpats_pre
-     print_assume (node.s_inv)
-    node.s_name
+    print_assume (node.s_inv)
+    print_pattern node.s_name
     print_expanded_pattern tpats_pre
     print_expanded_pattern node.s_inputs
     print_assert (node.s_inv,tpats_post)
-

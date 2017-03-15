@@ -1,16 +1,16 @@
 open Parsing_ast
-    
+
 type clock =
   | CkUnknown
-  | CkVar of { index : int ; mutable value : clock } 
-  | CkFun of clock * clock 
-  | CkTuple of clock list 
+  | CkVar of { index : int ; mutable value : clock }
+  | CkFun of clock * clock
+  | CkTuple of clock list
   | CkOn of clock * clock
   | CkOnnot of clock * clock
   | CkCarrier of string * clock
 
 type ck_scheme =
-  Forall of int list * clock 
+  Forall of int list * clock
 
 type env =
     Env of (string * ck_scheme ) list
@@ -48,25 +48,25 @@ let rec print_clock fmt ck =
     match ck with
     | CkCarrier (s, _ ) -> s
     | _ ->  failwith "Not a carrier"
-  in 
+  in
   let rec print_tuple fmt cs =
     match cs with
     | [] -> ()
-    | [x] -> Format.fprintf fmt "%a" print_clock x 
+    | [x] -> Format.fprintf fmt "%a" print_clock x
     | x::xs -> Format.fprintf fmt "%a * %a"
                  print_clock x
                  print_tuple xs
-  in 
+  in
   match ck with
   | CkUnknown -> Format.fprintf fmt "?"
   | CkVar { index = i ; value = CkUnknown } ->
     Format.fprintf fmt "%d" i
   | CkVar { index = i ; value = v } ->
-    print_clock fmt v 
+    print_clock fmt v
   | CkFun (a,b) -> Format.fprintf fmt "%a -> %a"
                      print_clock a
                      print_clock b
-  | CkTuple cs -> print_tuple fmt cs 
+  | CkTuple cs -> print_tuple fmt cs
   | CkOn (a,b) -> Format.fprintf fmt "%a on %s"
                     print_clock a
                     (ck_name b)
@@ -82,7 +82,7 @@ let rec print_clock fmt ck =
 let print_clock_scheme fmt (Forall (cs,ck)) =
   Format.fprintf fmt "forall %a . %a"
     print_list (cs,",")
-    print_clock ck 
+    print_clock ck
 
 let rec cpatt_of_patt { p_desc ; p_loc } cp_clock =
   { cp_desc = p_desc ; cp_loc = p_loc ; cp_clock}

@@ -1,20 +1,20 @@
 open Parsing_ast
 open Clocking_ast2
 open Parsing_ast_printer
- 
+
 
 
 exception CannotUnify of clock * clock
 exception OccursCheckFailed of string * clock
 exception UnknownIdentifier of string
-exception InstantiationFail  
+exception InstantiationFail
 
 let typing_scheme_env = ref []
 let typing_env = ref []
 
 let rec free_vars c =
   match c with
-  | CkUnknown -> [] 
+  | CkUnknown -> []
   | CkVar a -> [a.index]
   | CkFun (a,b) -> (free_vars a) @ (free_vars b)
   | CkTuple cl -> List.fold_left (fun acc c -> (free_vars c @ acc)) [] cl
@@ -24,7 +24,7 @@ let rec free_vars c =
 
 let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
 
-let free_vars_in_scheme (Forall (sl, c) ) = diff (free_vars c) sl 
+let free_vars_in_scheme (Forall (sl, c) ) = diff (free_vars c) sl
 
 let free_vars_in_env (scs) =
   List.fold_left (fun acc (s,cs) -> free_vars cs @ acc) [] scs
@@ -43,7 +43,7 @@ let rec shorten ck =
 
 let rec unify (ck1,ck2) =
   let unify_binary (a,b) (x,y) =
-    unify (a,x) ;  unify (b,y) 
+    unify (a,x) ;  unify (b,y)
   in
   match (shorten ck1), (shorten ck2) with
   | CkFun (a,b) , CkFun (c,d) -> unify_binary (a,b) (c,d)
@@ -62,14 +62,14 @@ let rec unify (ck1,ck2) =
   | _ -> raise (CannotUnify (ck1,ck2) )
 
 let fresh_var =
-  let cpt = ref 0 in 
-  fun () -> incr cpt ; CkVar { index = !cpt ; value = CkUnknown } 
+  let cpt = ref 0 in
+  fun () -> incr cpt ; CkVar { index = !cpt ; value = CkUnknown }
 
 let extend_env (Env e) (s,ck) = Env ((s,ck)::e)
 
 let generalize env ck =
   let sl = diff (free_vars ck) (free_vars_in_env env) in
-  Forall (sl,ck) 
+  Forall (sl,ck)
 
 let instantiate (Forall (ls,ck)) =
   let uns = List.map (function n -> n, fresh_var ()) ls in
@@ -78,7 +78,7 @@ let instantiate (Forall (ls,ck)) =
     | CkVar { index = n ; value = CkUnknown } ->
       ( try List.assoc n uns
         with Not_found -> ct)
-    | CkVar { index = _ ; value = cc } -> ginstance cc 
+    | CkVar { index = _ ; value = cc } -> ginstance cc
     | CkTuple cl -> CkTuple (List.map ginstance cl)
     | CkFun (a,b) -> CkFun (ginstance a , ginstance b)
     | CkOn (a,b) -> CkOn (ginstance a, ginstance b)
@@ -92,7 +92,7 @@ let get_ident e =
   | Variable i -> i
   | _ -> failwith "This must be an ident"
 
-(* VOIR si ça marche mieux si on dit que carrier c'est une variable 
+(* VOIR si ça marche mieux si on dit que carrier c'est une variable
 (donc ajouter un champ carr_index aux ckVars *)
 (* returns a type for the expression *)
 let rec infer env e =
@@ -104,28 +104,28 @@ let rec infer env e =
   | Value v -> fresh_var ()
   | Variable n ->
     let sigma = lookup_env env n in
-    Format.fprintf Format.std_formatter "%s : %a " n print_clock sigma; 
+    (* Format.fprintf Format.std_formatter "%s : %a " n print_clock sigma; *)
     sigma
   | Application (f,e) ->(
       try
-        let ftau = List.assoc f !typing_scheme_env in 
-        let etau = infer env e in 
+        let ftau = List.assoc f !typing_scheme_env in
+        let etau = infer env e in
         let fxtau = fresh_var () in
         unify (ftau , CkFun (etau, fxtau));
         fxtau
-      with Not_found -> 
+      with Not_found ->
         raise (UnknownIdentifier f) )
   | When (e1,e2) ->
     let tau1 = infer env e1 in
     let tau2 = infer env e2 in
-    let var = fresh_var () in 
+    let var = fresh_var () in
     let tau_carr = fresh_var () in
-    let carr = CkCarrier (get_ident e2 , tau_carr) in 
+    let carr = CkCarrier (get_ident e2 , tau_carr) in
     let apptau = CkFun ( var , CkFun ( carr , CkOn (var, carr))) in
-    
+
     unify (tau_carr, tau1);
     unify (tau_carr, tau2);
-    let u = fresh_var () in 
+    let u = fresh_var () in
     unify (CkFun (tau1, CkFun (tau2, u)), apptau);
     shorten u
     (*
@@ -135,20 +135,20 @@ let rec infer env e =
     unify (tau1,tau2);
     Format.fprintf Format.std_formatter "After : tau1 = %a ; tau2 = %a @." print_clock tau1 print_clock tau2;
     let tau3 = CkCarrier (get_ident e2 , tau2) in
-    
+
     let t = CkOn (tau1, tau3) in
     shorten t
 *)
   | Whennot (e1,e2) ->
     let tau1 = infer env e1 in
     let tau2 = infer env e2 in
-    let var = fresh_var () in 
+    let var = fresh_var () in
     let tau_carr = fresh_var () in
-    let carr = CkCarrier (get_ident e2 , tau_carr) in 
+    let carr = CkCarrier (get_ident e2 , tau_carr) in
     let apptau = CkFun ( var , CkFun ( carr , CkOnnot (var, carr))) in
     unify (tau_carr, tau1);
     unify (tau_carr, tau2);
-    let u = fresh_var () in 
+    let u = fresh_var () in
     unify (CkFun (tau1, CkFun (tau2, u)), apptau);
     shorten u
   | InfixOp (op, e1,e2) ->
@@ -157,6 +157,9 @@ let rec infer env e =
     unify (t1,t2) ;
     shorten t2
   | Unit -> CkUnknown
+  | Pre e ->
+    let tau = infer env e in
+    shorten tau
   | Fby (e1,e2) ->
     let tau1 = infer env e1 in
     let tau2 = infer env e2 in
@@ -177,9 +180,9 @@ let rec infer env e =
     unify (t1,t2);
     shorten t1
   | Merge (ck,e1,e2) ->
-    let var = fresh_var () in 
-    let carr = fresh_var () in 
-    let carr_name = get_ident ck in 
+    let var = fresh_var () in
+    let carr = fresh_var () in
+    let carr_name = get_ident ck in
     let t0 = CkFun (CkCarrier (carr_name, var), CkFun (CkOn (var,carr), CkFun ( CkOnnot (var,carr) ,var))) in
     let tck = infer env ck in
     let t1 = infer env e1 in
@@ -187,13 +190,13 @@ let rec infer env e =
     let u = fresh_var ()  in
     unify(CkFun (tck, CkFun (t1, CkFun(t2, u))),t0);
     shorten var
-  | Call _ -> fresh_var () 
+  | Call _ -> fresh_var ()
 
 let rec get_name p =
   match p.p_desc with
   | Ident i -> i
   | PUnit -> failwith "unit"
-  | Typed (p,s) -> get_name p 
+  | Typed (p,s) -> get_name p
   | Tuple pt -> failwith "todo tuples"
 
 
@@ -209,20 +212,20 @@ let print_env fmt gamma =
 let rec add_pat_to_env i env =
   match i.p_desc with
   | Ident id ->
-    let var = fresh_var () in 
+    let var = fresh_var () in
     env := (id,var) :: !env ;
   | PUnit ->
-    let var = fresh_var () in 
+    let var = fresh_var () in
     env := ("()",var) :: !env ;
   | Tuple tl -> List.iter (fun i -> add_pat_to_env i env) tl
-  | Typed (p,s) -> add_pat_to_env p env 
- 
+  | Typed (p,s) -> add_pat_to_env p env
 
-                
+
+
 let ck_eq { pattern = p ; expression = e }  =
   let name =  get_name p in
-  Format.fprintf Format.std_formatter "%s = %a \n @."
-    name print_expression e;
+  (* Format.fprintf Format.std_formatter "%s = %a \n @." *)
+    (* name print_expression e; *)
   try
   let tau = infer !typing_env e in
   typing_env := (name,tau):: !typing_env ;
@@ -239,7 +242,7 @@ let rec clock_of_pat p env =
   | Ident i -> List.assoc i env
   | PUnit -> List.assoc "()" env
   | Tuple pl ->
-    let tl = List.map (fun p -> clock_of_pat p env) pl in 
+    let tl = List.map (fun p -> clock_of_pat p env) pl in
     CkTuple tl
   | Typed (p',s) -> clock_of_pat p' env
 
@@ -251,11 +254,10 @@ let ck_node n =
   let ins = clock_of_pat n.inputs !typing_env in
   let outs = clock_of_pat n.outputs !typing_env in
   let tnode = CkFun(ins,outs) in
-  let tscheme = generalize !typing_env tnode in 
-  print_env Format.std_formatter !typing_env;
-  Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern n.name print_clock_scheme tscheme;
+  let tscheme = generalize !typing_env tnode in
+  (* print_env Format.std_formatter !typing_env; *)
+  (* Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern n.name print_clock_scheme tscheme; *)
   { cname = cpatt_of_patt n.name tnode ;
     cinputs = cpatt_of_patt { p_desc = PUnit; p_loc = Location.none} CkUnknown;
     coutputs = cpatt_of_patt { p_desc = PUnit; p_loc = Location.none} CkUnknown;
     cequations }
-

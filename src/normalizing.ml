@@ -11,7 +11,7 @@ let new_name , reset =
      name
     )
   ),
-  ( fun () -> count := 0 ) 
+  ( fun () -> count := 0 )
 
 
 let new_eq_var e =
@@ -67,7 +67,7 @@ let rec normalize_exp l exp =
     let exp' = Alternative (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
   | Application (i,e) ->
-    let l',e' = normalize_exp l e in 
+    let l',e' = normalize_exp l e in
     let exp' = { exp with e_desc = Application (i,e') } in
     let (eq_y,y) = new_eq_var exp' in
     let l' = eq_y::l' in
@@ -86,18 +86,21 @@ let rec normalize_exp l exp =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Arrow (e1,e2) ->
-   (* let l',e1' = normalize_exp l e1 in
-      let l'', e2' = normalize_exp l e2 in *)
-    let t = { e_desc = Value (Bool true) ; e_loc = e1.e_loc} in
-    let f = { e_desc = Value (Bool false) ; e_loc = e1.e_loc} in
-    let tfbyf = { e_desc = Fby(t,f) ; e_loc = e1.e_loc } in 
-    let exp = {e_desc = Alternative (tfbyf,e1,e2) ; e_loc = e1.e_loc } in
-    let l',e' = normalize_exp l exp in
-    l',e'
-    
+    let l',e1' = normalize_exp l e1 in
+    let l'', e2' = normalize_exp l e2 in
+    l'', { exp with e_desc = Arrow(e1',e2') }
+   (*  let t = { e_desc = Value (Bool true) ; e_loc = e1.e_loc} in *)
+   (*  let f = { e_desc = Value (Bool false) ; e_loc = e1.e_loc} in *)
+   (*  let tfbyf = { e_desc = Fby(t,f) ; e_loc = e1.e_loc } in  *)
+   (*  let exp = {e_desc = Alternative (tfbyf,e1,e2) ; e_loc = e1.e_loc } in *)
+   (*  let l',e' = normalize_exp l exp in *)
+   (*  l',e' *)
+  | Pre e ->
+    let l',e' = normalize_exp l e in
+    l', { exp with e_desc = Pre e' }
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
-    let (l'',e') = normalize_exp l' e in 
+    let (l'',e') = normalize_exp l' e in
     let exp' = { exp with e_desc = Fby (c',e') } in
     let (eq_y,y) = new_eq_var exp' in
     let l''' = eq_y::l'' in
@@ -130,7 +133,7 @@ let norm_exp l exp  =
     let exp' = Alternative (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
   | Application (i,e) ->
-    let l',e' = normalize_exp l e in 
+    let l',e' = normalize_exp l e in
     let exp' = { exp with e_desc = Application (i,e') } in
     l', exp'
   | Call e ->
@@ -147,15 +150,21 @@ let norm_exp l exp  =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Arrow (e1,e2) ->
-    let t = { e_desc = Value (Bool true) ; e_loc = e1.e_loc} in
-    let f = { e_desc = Value (Bool false) ; e_loc = e1.e_loc} in
-    let tfbyf = { e_desc = Fby(t,f) ; e_loc = e1.e_loc } in 
-    let exp = {e_desc = Alternative (tfbyf,e1,e2) ; e_loc = e1.e_loc } in
-    let l',e' = normalize_exp l exp in
-    l',e'
+    let l',e1' = normalize_exp l e1 in
+    let l'', e2' = normalize_exp l e2 in
+    l'', { exp with e_desc = Arrow(e1',e2') }
+    (* let t = { e_desc = Value (Bool true) ; e_loc = e1.e_loc} in *)
+    (* let f = { e_desc = Value (Bool false) ; e_loc = e1.e_loc} in *)
+    (* let tfbyf = { e_desc = Fby(t,f) ; e_loc = e1.e_loc } in *)
+    (* let exp = {e_desc = Alternative (tfbyf,e1,e2) ; e_loc = e1.e_loc } in *)
+    (* let l',e' = normalize_exp l exp in *)
+  (* l',e' *)
+  | Pre e ->
+    let l',e' = normalize_exp l e in
+    l', { exp with e_desc = Pre e'}
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
-    let (l'',e') = normalize_exp l' e in 
+    let (l'',e') = normalize_exp l' e in
     let exp' = { exp with e_desc = Fby (c',e') } in
     l'' , exp'
   | When (e,i) ->
@@ -189,12 +198,12 @@ let normalize_eqs eqs =
 
 
 let normalize_node node =
-  reset (); 
+  reset ();
   let (eqs1,eqs2) =  normalize_eqs node.equations in
   {
     pre = node.pre;
     post = node.post;
-    inv = node.inv; 
+    inv = node.inv;
     name = node.name;
     inputs = node.inputs;
     outputs = node.outputs;

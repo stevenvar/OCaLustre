@@ -143,6 +143,8 @@ let rec mk_expr e =
       e_loc = e.pexp_loc }
   | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ;
                               e_loc = e.pexp_loc }
+  | [%expr pre [%e? e] ] -> { e_desc = Pre (mk_expr e) ;
+                              e_loc = e.pexp_loc }
   | [%expr ~- [%e? e] ] -> { e_desc = PrefixOp (Neg,(mk_expr e)) ;
                              e_loc = e.pexp_loc }
   | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ;
@@ -167,7 +169,7 @@ let rec mk_expr e =
     end
 
   | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
-    mk_expr e 
+    mk_expr e
   | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
      pexp_loc ;
      pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
@@ -216,10 +218,10 @@ let rec pat_of_pexp p =
       let pat' =
         begin match t.ptyp_desc with
           | Ptyp_constr ({ loc ; txt = lid},_) ->
-            { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc } 
+            { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc }
           | _ -> Error.syntax_error p.pexp_loc
         end
-      in 
+      in
       pat'
   | _ -> failwith "not a good pattern"
 
@@ -238,8 +240,8 @@ let mk_equation eq =
      { pattern=  pat_of_pexp p;
        expression = mk_expr e}
     | Pexp_constraint (e',t) ->
-      
-      { pattern = pat_of_pexp p ; expression = mk_expr e}  
+
+      { pattern = pat_of_pexp p ; expression = mk_expr e}
     | _ -> Error.syntax_error eq.pexp_loc
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
@@ -283,7 +285,7 @@ let rec parse_patt p =
         begin match t.ptyp_desc with
           | Ptyp_constr ({ loc ; txt = lid},_) ->
             { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc }
-          | _ -> Error.syntax_error p.ppat_loc 
+          | _ -> Error.syntax_error p.ppat_loc
         end
       | _ -> Error.syntax_error p.ppat_loc
 
@@ -299,8 +301,8 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
       | Ppat_constraint (p,t) ->
         begin match t.ptyp_desc with
           | Ptyp_constr ({ loc ; txt = lid},_) ->
-            { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc } , e 
-          | _ -> Error.syntax_error p.ppat_loc 
+            { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc } , e
+          | _ -> Error.syntax_error p.ppat_loc
         end
       | _ -> Error.syntax_error p.ppat_loc
     else

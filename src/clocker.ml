@@ -1,7 +1,7 @@
 open Parsing_ast
 open Parsing_ast_printer
 open Parsing_ocl
-open Clocking_ast 
+open Clocking_ast
 open Error
 
 exception ClockingBug of string
@@ -85,13 +85,13 @@ let rec add_to_env i tau env =
   | PUnit ->
     env := (i.p_desc,tau) :: !env ;
   | Typed (p,s) ->
-    add_to_env p tau env 
+    add_to_env p tau env
   | Tuple il ->
     match tau with
     | CTuple tl -> let lit = List.combine il tl in
       List.iter (fun (i,t) -> (add_to_env i t env)) lit
     | _ -> Format.fprintf Format.std_formatter "--> %a" print_clock tau ; failwith "not a tuple ..."
-    
+
 
 
 let print_env fmt gamma =
@@ -146,21 +146,21 @@ let rec unify (tau1, tau2) =
   | (CVar ({c_index = n ;c_value =CtUnknown} as tv1) as t1),
     (CVar ({c_index = m ;c_value =CtUnknown} as tv2) as t2)
     ->
-   
+
     if n <> m then (tv2.c_value <- t1 );
-   
+
   | t1, (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t2)
     -> if not (occurs tv t1) then tv.c_value <- t1
     else raise (ClockClash (t1,t2))
   | (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t1) , t2
     -> if not (occurs tv t2) then tv.c_value <- t2
     else raise (ClockClash (t1,t2))
-  | Arrow (t1,t2) , Arrow (t1', t2') -> 
-    
-     
-     unify (t2,t2') ;  unify (t1,t1') ; 
-    
-     
+  | Arrow (t1,t2) , Arrow (t1', t2') ->
+
+
+     unify (t2,t2') ;  unify (t1,t1') ;
+
+
   | CTuple ctl1 , CTuple ctl2 ->
     let ll = List.combine ctl1 ctl2 in
     List.iter unify ll
@@ -172,7 +172,7 @@ let rec unify (tau1, tau2) =
 
     unify (ct1, ct2)
   | Carrier (s1,c1) , Carrier (s2,c2)  ->
-    (* NE MARCHE PAS CAR ON NE VEUT PAS POUVOIR UNIFIER 
+    (* NE MARCHE PAS CAR ON NE VEUT PAS POUVOIR UNIFIER
        (a on c) et (a on d) *)
     (*    if c.carr_index = d.carr_index then *)
       unify (c1,c2)
@@ -248,7 +248,7 @@ let inst (Forall(gv,gc,ct)) =
     | CVar {c_index = _ ; c_value = t } -> ginstance t
     | CTuple tl -> CTuple (List.map ginstance tl)
     | Arrow (t1,t2) -> Arrow (ginstance t1, ginstance t2)
-    | On (x,i) -> On(ginstance x,i) 
+    | On (x,i) -> On(ginstance x,i)
     | Onnot (x,i) -> Onnot (ginstance x,i)
     | Carrier (s,c) ->
       Carrier  (s, ginstance c)
@@ -264,7 +264,7 @@ let rec string_of_pattern p =
   | Ident i -> [i]
   | Tuple pl -> List.fold_left (fun acc p -> (string_of_pattern p)@acc) [] pl
   | PUnit -> []
-  | Typed (p,s) -> string_of_pattern p 
+  | Typed (p,s) -> string_of_pattern p
 
 
 let carr_name n =
@@ -273,6 +273,7 @@ let carr_name n =
     let s = String.make 1 (char_of_int (96+r)) in
     if q = 0 then s else ((name_of q)^s)
   in "ck_"^(name_of n)
+
 
 let print_clock_scheme fmt (Forall(gv,gc,t)) =
   let names = let rec names_of = function
@@ -294,7 +295,7 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
     match l with
     |  [] -> ()
     |  _ -> Format.fprintf fmt "forall %a ." print_string_list l in
-  
+
   let rec print_rec fmt = function
     | CVar {c_index = n ; c_value = CtUnknown } ->
       let name = try List.assoc n tvar_names
@@ -332,12 +333,12 @@ let rec typing_expr gamma =
       unify (t2,t3); t3
     | Application (i,e2) ->
       let t1 = List.assoc i !typing_scheme_env in
-      let t2 = clock_rec e2 in 
+      let t2 = clock_rec e2 in
       let u = CVar (new_varclock ()) in
       let t1' = inst t1 in
 
       unify (Arrow (t2, u),t1');
-       Format.fprintf  Format.std_formatter " t1' = %a ; u = %a ; t2 = %a \n "print_clock t1' print_clock u  print_clock t2; 
+       Format.fprintf  Format.std_formatter " t1' = %a ; u = %a ; t2 = %a \n "print_clock t1' print_clock u  print_clock t2;
       shorten_var u
     | ETuple t -> CTuple (List.map clock_rec t)
     | InfixOp (op, e1,e2) ->
@@ -347,14 +348,14 @@ let rec typing_expr gamma =
     | PrefixOp (op, e1) -> clock_rec e1
     | Unit ->
       CVar (new_varclock ())
-    | Arrow (e1,e2) -> assert false 
+    | Arrow (e1,e2) -> assert false
     | Fby (e1,e2) ->
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
       unify (t1,t2); t1
     | Whennot (e1,e2) ->
-      let var = new_varclock () in 
-      let carr_name = get_ident e2 in 
+      let var = new_varclock () in
+      let carr_name = get_ident e2 in
       let carr_ct = CVar (new_varclock ()) in
       let t0 = Arrow (CVar var, Arrow (Carrier (carr_name,carr_ct), Onnot (CVar var,carr_name))) in
       let t1 = clock_rec e1 in
@@ -367,20 +368,20 @@ let rec typing_expr gamma =
     | When (e1,e2) ->
       let var = new_varclock () in
       let carr_name = get_ident e2 in
-      let carr_ct = CVar (new_varclock ()) in 
+      let carr_ct = CVar (new_varclock ()) in
       let t0 = Arrow (CVar var, Arrow (Carrier (carr_name, carr_ct), On (CVar var,carr_name))) in
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
       let u = CVar (new_varclock ()) in
       unify (t1,carr_ct);
-      unify (t2, carr_ct); 
+      unify (t2, carr_ct);
       unify (Arrow (t1, Arrow (t2,u)),t0);
       carriers := ((get_ident e2),carr_name) :: !carriers;
       shorten_var u
     | Merge (e1,e2,e3) ->
       let var = CVar (new_varclock ()) in
       let carr_name = get_ident e1 in
-      let carr_ct = CVar (new_varclock ()) in 
+      let carr_ct = CVar (new_varclock ()) in
       let t0 = Arrow (Carrier (carr_name, carr_ct), Arrow (On (var,carr_name), Arrow ( Onnot (var,carr_name) ,var))) in
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
@@ -391,7 +392,7 @@ let rec typing_expr gamma =
       shorten_var u
     | Call e ->
       let var = CVar (new_varclock ()) in
-      let var2 = CVar (new_varclock ()) in 
+      let var2 = CVar (new_varclock ()) in
       let t0 = Arrow (var, var2) in
       let t =   CVar (new_varclock ()) in
       let u = CVar (new_varclock ()) in
@@ -402,9 +403,9 @@ let rec typing_expr gamma =
   clock_rec
 
 let rec cpatt_of_patt { p_desc ; p_loc } cp_clock =
-  let cp_desc = 
+  let cp_desc =
   match p_desc with
-  | Ident i -> CkIdent i 
+  | Ident i -> CkIdent i
   | Tuple t -> let ct = List.map (fun t -> cpatt_of_patt t cp_clock) t in
     CkTuple ct
   | PUnit -> CkPUnit
@@ -417,10 +418,10 @@ let cexp_of_exp { e_desc ; e_loc } ce_clock =
 
 let clocking_equation ({ pattern = p ; expression = e}) =
   let tau =
-   
+
     try typing_expr !typing_env e
     with ClockClash(t1,t2) ->
-     
+
       (*let vars = (vars_of_clock t1)@(vars_of_clock t2) in
         let carrs = (carriers_of_clock t1)@(carriers_of_clock t2) in *)
       Format.fprintf Format.std_formatter
@@ -431,11 +432,11 @@ let clocking_equation ({ pattern = p ; expression = e}) =
         print_clock t2;
       print_newline ();
       raise (Failure "clocking") in
-   
+
   add_to_env p tau typing_env;
-  let cp = cpatt_of_patt p (Clock_exp tau) in 
+  let cp = cpatt_of_patt p (Clock_exp tau) in
   let ce = { ce_desc = e.e_desc ; ce_loc = e.e_loc ; ce_clock = Clock_exp tau } in
-  { cpattern = cp ; cexpression = ce } 
+  { cpattern = cp ; cexpression = ce }
 
 
 
@@ -449,20 +450,20 @@ let clocking_equation ({ pattern = p ; expression = e}) =
 
 let clock_node node tse clocking =
   typing_env := [];
-  carriers := []; 
+  carriers := [];
   typing_scheme_env := !tse;
   reset_varclocks ();
 
   add_pat_to_env node.inputs typing_env;
   let inputs = remove_types node.inputs  in
-  let outputs = remove_types node.outputs in 
+  let outputs = remove_types node.outputs in
 
-  let cequations = List.map (fun e -> clocking_equation e) node.equations in 
-  
+  let cequations = List.map (fun e -> clocking_equation e) node.equations in
+
   let lin =
     try get_clock inputs !typing_env
     with Not_found ->
-      print_env Format.std_formatter !typing_env; 
+      print_env Format.std_formatter !typing_env;
       print_pattern Format.std_formatter inputs;
       failwith "lin"
   in
@@ -473,9 +474,9 @@ let clock_node node tse clocking =
   in
   let tt = Arrow (lin, lout) in
   let ts = (generalise_clock (!typing_env,tt)) in
-  if !clocking then 
-  Format.fprintf Format.std_formatter "%a :: %a\n" print_pattern node.name print_clock_scheme ts;
+  if !clocking then
+  Format.fprintf Format.std_formatter "%s :: %a\n" node.name print_clock_scheme ts;
 
-  (List.hd (string_of_pattern node.name), ts)::!typing_scheme_env
+  List.hd (node.name, ts)::!typing_scheme_env
   ,
-  { cname = ( cpatt_of_patt node.name (Clock_scheme ts) ) ; cinputs = cpatt_of_patt node.inputs (Clock_exp lin) ; coutputs = cpatt_of_patt node.outputs (Clock_exp lout) ; cequations }
+  { cname = node.name  ; cinputs = cpatt_of_patt node.inputs (Clock_exp lin) ; coutputs = cpatt_of_patt node.outputs (Clock_exp lout) ; cequations }

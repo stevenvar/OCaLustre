@@ -41,8 +41,9 @@ and exp_desc =
   | When of expression * expression
   | Whennot of expression * expression
   | ETuple of expression list
+  | Pre of expression
   (* | Current of expression *)
-  | Arrow of expression * expression 
+  | Arrow of expression * expression
   | Merge of expression * expression * expression
   | Call of Parsetree.expression
   | Unit
@@ -63,7 +64,7 @@ and inf_operator =
   | Supe
   | Bor
   | Band
-  | Mod 
+  | Mod
 
 and pre_operator =
   | Not

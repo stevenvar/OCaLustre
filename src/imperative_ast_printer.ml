@@ -112,13 +112,13 @@ let rec printml_io fmt il =
    *)
 
 let printml_step fmt node =
-  Format.fprintf fmt "let %s_step (%a) = \n%a%a(%a) \n in %s_step "
-    node.i_name
+  Format.fprintf fmt "let %a_step (%a) = \n%a%a(%a) \n in %a_step "
+    print_pattern node.i_name
     print_pattern node.i_inputs
     printml_equations node.i_step_fun.i_equations
     printml_updates node.i_step_fun.i_updates
     print_pattern node.i_outputs
-    node.i_name
+    print_pattern node.i_name
 
 
 let printml_inits fmt il =
@@ -132,8 +132,8 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "let %s %a =\n %a \n%a \n\n"
-    node.i_name
+  Format.fprintf fmt "let %a %a =\n %a \n%a \n\n"
+    print_pattern node.i_name
     print_pattern node.i_inputs
     printml_inits node.i_inits
     printml_step node

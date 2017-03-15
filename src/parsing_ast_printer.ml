@@ -80,12 +80,13 @@ let rec print_expression fmt e =
                     print_ident i
                     print_expression e
   | Call (e) ->
-     Format.fprintf fmt "(call (___))"
+     Format.fprintf fmt "(call ...)"
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
       print_infop op
       print_expression e2
+  | Pre e -> Format.fprintf fmt "(pre %a)" print_expression e
   | PrefixOp (op, e1) -> Format.fprintf fmt "(%a %a)"
                            print_preop op
                            print_expression e1

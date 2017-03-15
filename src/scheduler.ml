@@ -12,7 +12,7 @@ let rec get_dep_id e l  =
     let l' = get_dep_id e1 l in
     let l'' = get_dep_id e2 l' in
     get_dep_id e3 l''
-  | Application (i,e) -> 
+  | Application (i,e) ->
       get_dep_id e l
   | Call e ->
     l
@@ -25,9 +25,10 @@ let rec get_dep_id e l  =
   | Arrow (e1,e2) ->
     let l = get_dep_id e1 l in
     get_dep_id e2 l
+  | Pre e ->  l
   | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
   | When (e,i) ->
-    let l = get_dep_id i l in 
+    let l = get_dep_id i l in
     get_dep_id e l
   | Whennot (e,i) -> get_dep_id e (get_dep_id i l)
   | Unit -> l
@@ -68,7 +69,7 @@ let rec get_id p =
   | Ident i -> i
   | Tuple t -> failwith "tuple"
   | PUnit -> failwith "unit"
-  | Typed (p,t) -> get_id p 
+  | Typed (p,t) -> get_id p
 
 let rec contains e i =
   match e.pattern.p_desc with
@@ -130,7 +131,7 @@ let dfs (graph : (ident * ident list) list) visited start_node =
     if List.mem node path    then raise (CycleFound path) else
     if List.mem node visited then visited else
       let new_path = node :: path in
-      let edges    = try List.assoc node graph 
+      let edges    = try List.assoc node graph
       with Not_found -> failwith ("Not found : "^node) in
       let visited  = List.fold_left (explore new_path) visited edges in
       node :: visited
@@ -172,7 +173,7 @@ let schedule_eqs eqs inputs =
 let schedule_ieqs ieqs inputs =
   let g = imp_mk_dep_graph ieqs in
   let g = remove_inputs_dep inputs g in
- 
+
   let ids_sorted = List.rev (toposort g) in
   let eqs_sorted= List.map (fun i -> find_ieq_from_id i ieqs) ids_sorted in
   remove_dups eqs_sorted
@@ -181,7 +182,7 @@ let schedule_ieqs ieqs inputs =
 let schedule node =
   let inputs = get_ids node.inputs  in
   try
-  let eqs_sorted = schedule_eqs node.equations inputs in 
+  let eqs_sorted = schedule_eqs node.equations inputs in
   {
     pre = node.pre;
     post = node.post;

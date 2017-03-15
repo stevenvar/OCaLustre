@@ -23,7 +23,7 @@ let rec pre_pattern p =
 let rec get_ident p =
   match p.p_desc with
   | Ident i -> i
-  | Typed (p,t) -> get_ident p 
+  | Typed (p,t) -> get_ident p
   | _ -> Parsing_ast_printer.print_pattern Format.std_formatter p;  failwith "-> no tuple  "
 
 let compile_preop op =
@@ -50,7 +50,7 @@ let compile_infop op =
   | Supe -> S_Supe
   | Bor -> S_Or
   | Band -> S_And
-  | Mod -> S_Mod 
+  | Mod -> S_Mod
 
 let rec compile_pre_expression e =
    match e.e_desc with
@@ -73,8 +73,8 @@ let rec compile_pre_expression e =
                   compile_pre_expression e2 ,
                   compile_pre_expression e3 )
   | Unit -> S_Unit
-  | Arrow (e1,e2) -> assert false 
-  | Fby (e1,e2) -> compile_pre_expression e 
+  | Arrow (e1,e2) -> assert false
+  | Fby (e1,e2) -> compile_pre_expression e
   | When (e',i) ->
     S_Alternative (compile_pre_expression i,
                   compile_pre_expression e',
@@ -112,7 +112,7 @@ let rec compile_expression_step e p =
                   compile_expression_step e2 p,
                   compile_expression_step e3 p)
   | Unit -> S_Unit
-  | Arrow (e1,e2) -> assert false 
+  | Arrow (e1,e2) -> assert false
   | Fby (e1,e2) -> compile_pre_expression e2
   | When (e',i) ->
     S_Alternative (compile_expression_step i p,
@@ -140,7 +140,7 @@ let rec pre_pattern p =
     | Ident i -> Ident ("pre_"^i)
     | Tuple t -> Tuple (List.map pre_pattern t)
     | PUnit -> PUnit
-    | Typed (p,s) -> Typed(pre_pattern p, s) 
+    | Typed (p,s) -> Typed(pre_pattern p, s)
   in
   { p with p_desc = new_desc }
 
@@ -150,20 +150,20 @@ let rec s_exp_of_pattern p =
   | Ident i -> S_Variable i
   | Tuple pl -> S_ExpTuple (List.map s_exp_of_pattern pl)
   | PUnit -> failwith "() is not a good pattern"
-  | Typed (p,s) -> s_exp_of_pattern p 
+  | Typed (p,s) -> s_exp_of_pattern p
 
 let rec string_of_pattern p =
   match p.p_desc with
   | Ident i -> [i]
   | Tuple pl -> List.fold_left (fun acc p -> (string_of_pattern p)@acc) [] pl
   | PUnit -> []
-  | Typed (p,s) -> string_of_pattern p 
+  | Typed (p,s) -> string_of_pattern p
 
 let generate_updates el =
   let generate_update e l =
     {s_pattern = pre_pattern e.pattern ;  s_expression = (s_exp_of_pattern e.pattern)}::l
   in
-  List.fold_left (fun acc e -> generate_update e acc) [] el 
+  List.fold_left (fun acc e -> generate_update e acc) [] el
 
 let compile_condition c =
   match c with
@@ -175,7 +175,7 @@ let rec to_list p =
   | PUnit -> []
   | Ident x -> [x]
   | Tuple t -> List.fold_left (fun acc p -> to_list p @ acc) [] t
-  | Typed (p,s) -> to_list p 
+  | Typed (p,s) -> to_list p
 
 let compile_equation_step e =
    let pat = e.pattern in
@@ -196,12 +196,12 @@ let generate_app_inits el =
 let rec generate_init e {p_desc ; p_loc} l =
   match e.e_desc with
   | Application (i,el') ->
-    let num = get_num () in 
+    let num = get_num () in
     let p_desc = Ident (i^(string_of_int num)^"_step") in
     {s_pattern = {p_desc ; p_loc} ; s_expression =  S_Application_init (i,S_Unit)}::l
   | _ -> l
 in
-reset (); 
+reset ();
 List.fold_left (fun acc e -> generate_init e.expression e.pattern acc) [] el
 
 let rec pat_to_list p =
@@ -212,32 +212,32 @@ let rec pat_to_list p =
   | Typed (p,s) -> pat_to_list p
 
 let rec pat_of_list l =
-  let loc = Location.none in 
+  let loc = Location.none in
   match l with
   | [] -> { p_desc = PUnit ; p_loc = loc }
-  | [x] -> { p_desc = Ident x ; p_loc = loc } 
+  | [x] -> { p_desc = Ident x ; p_loc = loc }
   | x::xs ->
     let lident = List.map (fun x -> [x]) l in
     let tup = Tuple (List.map (pat_of_list) lident) in
-    { p_desc = tup ; p_loc = loc } 
+    { p_desc = tup ; p_loc = loc }
 
 let rec concat_pat p q =
-  let p_desc = 
+  let p_desc =
     match p.p_desc , q.p_desc with
     | Tuple tp , Tuple tq -> Tuple (tp@tq)
     | Tuple tp , _ -> Tuple (tp@[q])
     | _ , Tuple tq -> Tuple (p::tq)
     | _ , _ -> Tuple ([p;q])
   in
-  { p_desc ; p_loc = Location.none } 
-  
+  { p_desc ; p_loc = Location.none }
+
 
 let rec flatten_pat p =
   match p.p_desc with
   | Tuple (x::t) -> concat_pat x (flatten_pat {p with p_desc = Tuple t})
-  | Typed (p',t) -> { p with p_desc = Typed(flatten_pat p',t)} 
-    | _ -> p 
-    
+  | Typed (p',t) -> { p with p_desc = Typed(flatten_pat p',t)}
+    | _ -> p
+
 
 let pcompile_cnode node =
   reset ();
@@ -250,12 +250,12 @@ let pcompile_cnode node =
   let s_inv = compile_condition node.inv in
   let s_inputs = node.inputs in
   let s_outputs = node.outputs in
-  let s_name = get_ident (node.name) in
+  let s_name = node.name in
   {
     s_pre = compile_condition node.pre;
     s_post = compile_condition node.post;
     s_inv = compile_condition node.inv;
-    s_name = get_ident (node.name) ;
+    s_name;
     s_inputs = node.inputs;
     s_outputs = node.outputs;
     s_apps_init = s_app_inits;

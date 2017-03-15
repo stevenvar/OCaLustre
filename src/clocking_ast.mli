@@ -9,18 +9,18 @@ and
   | CtUnknown
   | CVar of varclock
   | CTuple of ct list
-  | CTyped of ct * string 
+  | CTyped of ct * string
   | Arrow of ct * ct
   | On of ct * carrier
   | Onnot of ct * carrier
-  | Carrier of carrier * ct 
+  | Carrier of carrier * ct
 and varclock = { c_index : int ; mutable c_value : ct }
 and scheme = Forall of int list * string list *  ct (* arrow ? *)
 (* and carrier = { carr_index : int ; mutable carr_value : ct } *)
-and carrier = string 
+and carrier = string
 
 and cnode = {
-  cname : cpattern;
+  cname : string;
   cinputs : cpattern;
   coutputs : cpattern;
   cequations : cequation list;

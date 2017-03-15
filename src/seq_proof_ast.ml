@@ -36,7 +36,7 @@ and
   | S_Supe
   | S_Or
   | S_And
-  | S_Mod 
+  | S_Mod
 
 and
   imp_preop =
@@ -53,22 +53,22 @@ and s_equation =  {
 and s_condition = s_expr option
 
 type s_init = {
-  si_name : ident; 
+  si_name : pattern;
   si_pre : s_condition;
   si_post : s_condition;
   si_inv : s_condition;
   si_inputs : pattern;
-  si_outputs : pattern; 
+  si_outputs : pattern;
   si_equations : s_equation list;
 }
 
 type s_step = {
-  ss_name : ident;
+  ss_name : pattern;
   ss_pre : s_condition;
   ss_post : s_condition;
   ss_inv : s_condition;
   ss_inputs : pattern;
-  ss_outputs : pattern; 
+  ss_outputs : pattern;
   ss_equations : s_equation list;
 }
 
@@ -76,10 +76,10 @@ type s_node = {
   s_pre : s_condition;
   s_post : s_condition;
   s_inv : s_condition;
-  s_name : ident;
+  s_name : pattern;
   s_inputs : pattern;
   s_outputs : pattern;
   s_apps_init : app_inits;
-  s_init_fun : s_init; 
+  s_init_fun : s_init;
   s_step_fun : s_step;
 }

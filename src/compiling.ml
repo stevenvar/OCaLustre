@@ -45,7 +45,7 @@ let rec compile_expression e p =
     | Sup -> ISup
     | Supe -> ISupe
     | Bor -> IOr    | Band -> IAnd
-    | Mod -> IMod 
+    | Mod -> IMod
   in
   match e.e_desc with
   | Value v -> IValue v
@@ -246,7 +246,7 @@ let compile_cnode node =
     i_pre = compile_condition node.pre;
     i_post = compile_condition node.post;
     i_inv = compile_condition node.inv;
-    i_name = get_ident (node.name) ;
+    i_name = node.name ;
     i_inputs = node.inputs;
     i_outputs = node.outputs;
     i_inits =  (i_all_inits);

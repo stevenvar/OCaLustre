@@ -111,9 +111,10 @@ let tocaml_updates node outs =
         [%e acc ]]
     | Tuple t -> assert false
     | PUnit -> assert false
-    | Typed (p,s) -> aux {i_pattern=p; i_expression = e} acc 
-    
-      
+    | Typed (p,s) -> aux {i_pattern=p; i_expression = e} acc
+
+
+
   in
   List.fold_left (fun acc u -> aux u acc) outs node.i_step_fun.i_updates
 
@@ -126,7 +127,7 @@ let rec lident_of_pattern ?(prefix="") ?(suffix="") p =
     }
   | Tuple t -> failwith "no tuple !"
   | PUnit -> failwith "no unit"
-  | Typed (p,s) -> lident_of_pattern p 
+  | Typed (p,s) -> lident_of_pattern p
 
 let rec lident_of_string s =
   {
@@ -177,7 +178,7 @@ let rec pat_of_pattern p =
     let core_type = {
        ptyp_desc = Ptyp_constr(lident_of_string s,[]);
      ptyp_loc =  p.p_loc ;
-     ptyp_attributes = []; 
+     ptyp_attributes = [];
     }
     in
     {
@@ -309,4 +310,3 @@ let tocaml_node inode =
              fun [%p pat_of_pattern inode.i_inputs] ->
                [%e tocaml_inits inits (tocaml_step inode) ]
     ]
-   
