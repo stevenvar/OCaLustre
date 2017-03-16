@@ -54,10 +54,12 @@ type s_fun = {
   s_name : pattern;
   s_inputs : ident list;
   s_outputs : ident list;
+  s_state : ident list;
   s_eqs : s_equation list;
 }
 
 type s_node = {
+  s_name : pattern; 
   s_zero : s_fun;
   s_next : s_fun;
 }

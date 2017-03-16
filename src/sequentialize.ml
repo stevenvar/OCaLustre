@@ -101,7 +101,8 @@ let seq_eqs_next eqs =
     | Infe -> S_Infe
     | Sup -> S_Sup
     | Supe -> S_Supe
-    | Bor -> S_Or    | Band -> S_And
+    | Bor -> S_Or
+    | Band -> S_And
     | Mod -> S_Mod
   in
   let rec seq_exp e p =
@@ -155,23 +156,40 @@ let seq_eqs_next eqs =
   List.map (fun eq -> { s_pattern = eq.pattern;
                         s_expression = seq_exp eq.expression eq.pattern} ) eqs
 
+module IdentSet = Set.Make( 
+  struct
+    let compare = Pervasives.compare
+    type t = ident
+  end )
 
-
-let seq_zero name inputs outputs eqs =
+let mk_state n =
+  let s = IdentSet.empty in
+  let l = List.fold_left (fun acc x -> (list_of_pat x.pattern)@acc ) [] n.equations in
+  let s = List.fold_left (fun acc x -> IdentSet.add x acc ) s l in 
+  let s = List.fold_left (fun acc x -> IdentSet.add x acc ) s (list_of_pat n.outputs) in
+  let s = List.fold_left (fun acc x -> IdentSet.add x acc ) s (list_of_pat n.inputs) in
+  IdentSet.elements s
+  
+  
+let seq_zero name inputs outputs state eqs =
   { s_name = name;
     s_inputs = inputs;
     s_outputs = outputs;
+    s_state = state;
     s_eqs = seq_eqs_zero eqs }
 
-let seq_next name inputs outputs eqs =
+let seq_next name inputs outputs state eqs =
   { s_name = name;
     s_inputs = inputs;
     s_outputs = outputs;
+    s_state = state;
     s_eqs = seq_eqs_next eqs }
 
 let seq_node n =
   let inputs = list_of_pat n.inputs in
   let outputs = list_of_pat n.outputs in
+  let state = mk_state n in 
   let name = n.name in
-  { s_zero = seq_zero name inputs outputs n.equations;
-    s_next = seq_next name inputs outputs n.equations }
+  { s_name = name; 
+    s_zero = seq_zero name inputs outputs state n.equations;
+    s_next = seq_next name inputs outputs state n.equations }
