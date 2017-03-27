@@ -149,7 +149,7 @@ let rec pat_of_pattern p =
       ppat_attributes = []}  
 
 
-let tocaml_eq_list el s =
+let tocaml_eq_list el s = 
   let tocaml_eq e acc =
     let x = e.s_pattern in
     let sx = pat_of_pattern x in
