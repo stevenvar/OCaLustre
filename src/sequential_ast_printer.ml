@@ -3,6 +3,19 @@ open Parsing_ast_printer
 open Clocking_ast
 open Parsing_ast
 
+let rec print_pattern fmt p =
+  match p.p_desc with
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
+  | PUnit -> Format.fprintf fmt "()"
+  | Typed (p,s) -> Format.fprintf fmt "(%a:%s)" print_pattern p s
+
+let rec string_of_pattern p =
+  match p.p_desc with
+  | Ident i -> i
+  | _ -> assert false
+
+
 let rec print_s_ident_list fmt l =
   match l with
   | [] -> ()
@@ -54,7 +67,7 @@ let rec print_s_expression fmt (exp,name) =
     | [] -> ()
     | e::[] -> Format.fprintf fmt "%a"
                  print_s_expression (e,name)
-    | e::tl -> Format.fprintf fmt "%a,%a"
+    | e::tl -> Format.fprintf fmt "%a %a"
                  print_s_expression (e,name)
                  print_s_expressions tl
   in
@@ -75,16 +88,18 @@ let rec print_s_expression fmt (exp,name) =
                                  print_s_expression (e2,name)
                                  print_s_expression (e3,name)
   | S_Unit -> Format.fprintf fmt "()"
-  | S_Application (i,e) -> Format.fprintf fmt "%s(%a)"
+  | S_Application_init (i,e) -> Format.fprintf fmt "%s %a"
                              i
                              print_s_expression (e,name)
-  | S_Application_init (i,e) ->
-     Format.fprintf fmt "%s (%a)"
-                             i
-                             print_s_expression (e,name)
+  | S_Application (i,e) ->
+     Format.fprintf fmt "%s %a state.%a_%s_state"
+       i
+       print_s_expression (e,name)
+       print_pattern name
+       i
   | S_Call e -> Format.fprintf fmt "(...)"
   | S_Constr s -> Format.fprintf fmt "%s" s
-  | S_ETuple el -> Format.fprintf fmt "(%a)"
+  | S_ETuple el -> Format.fprintf fmt "%a"
                     print_s_expressions el
 
 let print_s_equations fmt (el,name) =
@@ -101,37 +116,114 @@ let rec print_s_inputs fmt ins =
   | [x] -> Format.fprintf fmt "%a"  print_ident x
   | x::xs -> Format.fprintf fmt "%a %a" print_ident x print_s_inputs xs
 
+let rec print_pres fmt (pres,name) =
+  match pres with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "%a_pre_%a" print_pattern name print_ident x
+  | x::xs -> Format.fprintf fmt "%a_pre_%a ; %a"
+               print_pattern name
+               print_ident x
+               print_pres (xs,name)
+
+let rec print_outs fmt (outs,name) =
+  match outs with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "%a_out_%a"
+             print_pattern name
+             print_ident x
+  | x::xs -> Format.fprintf fmt "%a_out_%a ; %a"
+               print_pattern name
+               print_ident x
+               print_outs (xs,name)
+
+
+let rec print_calls fmt (calls,name) =
+  match calls with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "%a_state" print_ident x
+  | x::xs -> Format.fprintf fmt "%a_state %a"
+               print_ident x
+               print_calls (xs,name)
+
+
+let rec print_calls_next fmt (calls,name) =
+  match calls with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "state.%a_%a_state <- %a_state"
+             print_pattern name
+             print_ident x
+             print_ident x
+
+  | x::xs -> Format.fprintf fmt "state.%a_%a_state <- %a_state;\n%a"
+               print_pattern name
+               print_ident x
+               print_ident x
+               print_calls_next (xs,name)
+
+
+let rec print_pres_next fmt (pres,name) =
+  match pres with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "state.%a_pre_%a <- %a;"
+             print_pattern name
+             print_ident x
+             print_ident x
+
+  | x::xs -> Format.fprintf fmt "state.%a_pre_%a <- %a;\n%a"
+               print_pattern name
+               print_ident x
+               print_ident x
+               print_pres_next (xs,name)
+
+let rec print_outs_next fmt (outs,name) =
+  match outs with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "state.%a_out_%a <- %a"
+             print_pattern name
+             print_ident x
+             print_ident x
+
+  | x::xs -> Format.fprintf fmt "state.%a_out_%a <- %a;\n%a"
+               print_pattern name
+               print_ident x
+               print_ident x
+               print_calls_next (xs,name)
+
+let print_s_state_next fmt (s,name) =
+  let name = string_of_pattern name in
+  let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
+  let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
+  let l = pres@outs in
+  let rec loop fmt l =
+    match l with
+    | [] -> ()
+    | [(x,y)] -> Format.fprintf fmt "state.%s <- %s " x y
+    | (x,y)::xs -> Format.fprintf fmt "state.%s <- %s ;\n%a"
+                     x
+                     y
+                     loop xs
+  in
+  loop fmt l
+
 let rec print_s_state fmt (s,name) =
-  match s with
-  | [] -> ()
-  | [x] -> Format.fprintf fmt "%a_%a = %a" print_pattern name print_ident x  print_ident x
-  | x::xs -> Format.fprintf fmt "%a_%a = %a ; %a"
-               print_pattern name
-               print_ident x
-               print_ident x
-               print_s_state (xs,name)
+  let name = string_of_pattern name in
+  let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
+  let calls = List.map (fun s -> (name^"_"^s^"_state",s^"_state")) s.calls in
+  let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
+  let l = pres@calls@outs in
+  let rec loop fmt l =
+    match l with
+    | [] -> ()
+    | [(x,y)] -> Format.fprintf fmt "%s = %s " x y
+    | (x,y)::xs -> Format.fprintf fmt "%s = %s ; %a"
+                     x
+                     y
+                   loop xs
+  in
+  loop fmt l
 
-let rec print_s_state_next fmt (s,name) =
-  match s with
-  | [] -> ()
-  | [x] -> Format.fprintf fmt "state.%a_%a <- %a" print_pattern name print_ident x print_ident x
-  | x::xs -> Format.fprintf fmt "state.%a_%a <- %a;\n%a"
-               print_pattern name
-               print_ident x
-               print_ident x
-               print_s_state_next (xs,name)
 
-let rec print_s_outputs fmt (outs,name) =
-  match outs with
-  | [] -> ()
-  | [x] -> Format.fprintf fmt "%a_%a = %a" print_pattern name print_ident x  print_ident x
-  | x::xs -> Format.fprintf fmt "%a_%a = %a ; %a"
-               print_pattern name
-               print_ident x
-               print_ident x
-               print_s_outputs (xs,name)
-
-let rec print_s_outputs_next fmt (outs,name) =
+let rec print_s_outs_next fmt (outs,name) =
   match outs with
   | [] -> ()
   | [x] -> Format.fprintf fmt "state.%a_%a <- %a" print_pattern name print_ident x print_ident x
@@ -139,7 +231,7 @@ let rec print_s_outputs_next fmt (outs,name) =
                print_pattern name
                print_ident x
                print_ident x
-               print_s_outputs_next (xs,name)
+               print_s_outs_next (xs,name)
 
 let print_s_zero fmt (f:s_fun) =
   Format.fprintf fmt "let %a_0 %a = \n%a{%a}\n"
@@ -147,7 +239,7 @@ let print_s_zero fmt (f:s_fun) =
     print_s_inputs f.s_inputs
     print_s_equations (f.s_eqs,f.s_name)
     print_s_state (f.s_state,f.s_name)
-    (* print_s_outputs (f.s_outputs,f.s_name) *)
+    (* print_s_outs (f.s_outs,f.s_name) *)
 
 let print_s_next fmt (f:s_fun) =
   Format.fprintf fmt "let %a_next %a state = \n%a%a\n"
@@ -155,47 +247,98 @@ let print_s_next fmt (f:s_fun) =
     print_s_inputs f.s_inputs
     print_s_equations (f.s_eqs,f.s_name)
     print_s_state_next (f.s_state,f.s_name)
-    (* print_s_outputs_next (f.s_outputs,f.s_name) *)
+    (* print_s_outs_next (f.s_outs,f.s_name) *)
 
 let rec print_alphas fmt n =
-  match n with
-  | 0 -> Format.fprintf fmt "'%c" (Char.chr (97+n)) 
-  | _ -> Format.fprintf fmt "'%c,%a" (Char.chr (97+n)) print_alphas (n-1)
+  let rec loop fmt (k,n) =
+    if k = n then Format.fprintf fmt "'%c" (Char.chr (97+k))
+    else Format.fprintf fmt "'%c,%a" (Char.chr (97+k)) loop (k+1,n)
+  in
+  loop fmt (0,n)
 
-let rec print_type_state fmt (n,s,name) =
-  match s with
+let rec print_type_pres fmt (n,pres,name) =
+  match pres with
   | [] -> ()
-  | [x] -> Format.fprintf fmt "mutable %a_%s :'%c"
+  | [x] -> Format.fprintf fmt "mutable %a_pre_%s :'%c"
              print_pattern name
              x
-             (Char.chr (97+n)) 
-  | h::t -> Format.fprintf fmt "mutable %a_%s :'%c ; %a"
+             (Char.chr (97+n))
+  | h::t -> Format.fprintf fmt "mutable %a_pre_%s :'%c ; %a"
               print_pattern name
               h
               (Char.chr (97+n))
-              print_type_state ((n-1),t,name)
+              print_type_pres ((n+1),t,name)
 
 
-let rec print_type_outputs fmt (n,outs,name) =
+let rec print_type_calls fmt (n,calls,name) =
+  match calls with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "mutable %a_%s_state :'%c;"
+             print_pattern name
+             x
+             (Char.chr (97+n))
+  | h::t -> Format.fprintf fmt "mutable %a_%s_state :'%c ; %a"
+              print_pattern name
+              h
+              (Char.chr (97+n))
+              print_type_calls ((n+1),t,name)
+
+let rec print_type_outs fmt (n,outs,name) =
   match outs with
   | [] -> ()
-  | [x] -> Format.fprintf fmt "mutable %a_%s :'%c"
+  | [x] -> Format.fprintf fmt "mutable %a_out_%s :'%c;"
              print_pattern name
              x
-             (Char.chr (97+n)) 
+             (Char.chr (97+n))
+  | h::t -> Format.fprintf fmt "mutable %a_out_%s :'%c ; %a"
+              print_pattern name
+              h
+              (Char.chr (97+n))
+              print_type_outs ((n+1),t,name)
+
+let print_type_state fmt (n,s,name) =
+  let name = string_of_pattern name in
+  let pres = List.map (fun s -> name^"_pre_"^s) s.pres in
+  let calls = List.map (fun s -> name^"_"^s^"_state") s.calls in
+  let outs = List.map (fun s -> name^"_out_"^s) s.outs in
+  let l = pres@calls@outs in
+  let rec print_type fmt (n,l) =
+    match l with
+    | [] -> ()
+    | [x] -> Format.fprintf fmt "mutable %s :'%c"
+               x
+               (Char.chr (97+n))
+    | h::t -> Format.fprintf fmt "mutable %s :'%c ; %a"
+                h
+                (Char.chr (97+n))
+                print_type ((n+1),t)
+  in
+  Format.fprintf fmt "%a"
+    print_type (n,l)
+
+
+let rec print_type_outs fmt (n,outs,name) =
+  match outs with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "mutable %a_%s :'%c ; "
+             print_pattern name
+             x
+             (Char.chr (97+n))
   | h::t -> Format.fprintf fmt "mutable %a_%s :'%c ; %a"
               print_pattern name
               h
               (Char.chr (97+n))
-              print_type_outputs ((n-1),t,name)
+              print_type_outs ((n-1),t,name)
 
 let print_type fmt node =
-  let n = List.length node.s_next.s_state - 1 in 
+  let n = 0 in
+  let state = node.s_next.s_state in
+  let total = List.length (state.pres @ state.calls @ state.outs) -1 in
   Format.fprintf fmt "type (%a) %a_state = {%a}"
-    print_alphas n
+    print_alphas total
     print_pattern node.s_name
     print_type_state (n,node.s_next.s_state,node.s_name)
-    (* print_type_outputs (n,node.s_next.s_outputs,node.s_name) *)
+    (* print_type_outs (n,node.s_next.s_outs,node.s_name) *)
 
 let print_s_node fmt node =
   Format.fprintf fmt "%a\n%a\n%a"

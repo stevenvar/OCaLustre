@@ -2,7 +2,10 @@
 
 let%node foo ~i:(a,b) ~o:(c,d) =
   c = 0 --> a;
-  d = 1 ->> b
+  d = 1 ->> (2 ->> b)
+
+let%node call ~i:(x) ~o:(y) =
+  y = foo (x,2)
 
 let _ =
   let step = foo (1,2) in

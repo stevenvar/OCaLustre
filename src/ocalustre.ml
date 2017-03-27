@@ -90,14 +90,13 @@ let lustre_mapper argv =
             Format.fprintf Format.std_formatter
               " (* CLOCKED NODE *) \n %a" print_cnode _cnode;
             *)
-             let ck_node = Clocking2.ck_node _node in
+            (*  let ck_node = Clocking2.ck_node _node in *)
 
 (* print_clock_scheme Format.std_formatter ck_node ; *)
 
              let _snode = seq_node _node in
              print_s_node (Format.std_formatter) _snode;
 
-             failwith "oops";
 
             (* let _inode = compile_cnode _node in *)
 
@@ -111,7 +110,11 @@ let lustre_mapper argv =
             (*   " (\*  WHYML *\) \n\n%a\n\n\n" whyml_node _pnode *)
             (*   ); *)
 
-            (* tocaml_node _inode *)
+             (* tocaml_node _inode *)
+
+            [%stri let f =
+             fun () -> ()
+            ]
 
           | _ -> Error.syntax_error s.pstr_loc
         end
