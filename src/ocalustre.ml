@@ -26,6 +26,7 @@ let why = ref false
 
 let not_printed_wrapper = ref true
 
+let outputs_env = ref [] 
 
 (* let typing_scheme_env = ref [] *)
 
@@ -94,7 +95,7 @@ let lustre_mapper argv =
 
 (* print_clock_scheme Format.std_formatter ck_node ; *)
 
-             let _snode = seq_node _node in
+             let _snode = seq_node _node outputs_env in
              print_s_node (Format.std_formatter) _snode;
 
 

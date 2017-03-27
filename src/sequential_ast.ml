@@ -19,6 +19,7 @@ and s_expr =
   | S_PrefixOp of s_preop * s_expr
   | S_Alternative of s_expr * s_expr * s_expr
   | S_ETuple of s_expr list
+  | S_List of s_expr list 
   | S_Unit
 and
   s_infop =

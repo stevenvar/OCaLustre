@@ -67,9 +67,17 @@ let rec print_s_expression fmt (exp,name) =
     | [] -> ()
     | e::[] -> Format.fprintf fmt "%a"
                  print_s_expression (e,name)
-    | e::tl -> Format.fprintf fmt "%a %a"
+    | e::tl -> Format.fprintf fmt "%a,%a"
                  print_s_expression (e,name)
                  print_s_expressions tl
+  in
+  let rec print_s_list fmt l =
+  match l with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "%a"  print_s_expression (x,name)
+  | h::t -> Format.fprintf fmt "%a %a"
+              print_s_expression (h,name)
+              print_s_list t
   in
   match exp with
   | S_Value c -> print_value fmt c
@@ -92,11 +100,13 @@ let rec print_s_expression fmt (exp,name) =
                              i
                              print_s_expression (e,name)
   | S_Application (i,e) ->
-     Format.fprintf fmt "%s %a state.%a_%s_state"
+     Format.fprintf fmt "%s_next %a state.%a_%s_state"
        i
        print_s_expression (e,name)
        print_pattern name
        i
+  | S_List el -> Format.fprintf fmt "%a"
+                   print_s_list el 
   | S_Call e -> Format.fprintf fmt "(...)"
   | S_Constr s -> Format.fprintf fmt "%s" s
   | S_ETuple el -> Format.fprintf fmt "%a"
@@ -112,7 +122,7 @@ let print_s_equations fmt (el,name) =
 
 let rec print_s_inputs fmt ins =
   match ins with
-  | [] -> ()
+  | [] -> Format.fprintf fmt "()"
   | [x] -> Format.fprintf fmt "%a"  print_ident x
   | x::xs -> Format.fprintf fmt "%a %a" print_ident x print_s_inputs xs
 

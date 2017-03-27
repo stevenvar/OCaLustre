@@ -1,14 +1,12 @@
+let%node toto ~i:() ~o:(x) =
+  y = x + 1 ;
+  x = 0 ->> y
 
-
-let%node foo ~i:(a,b) ~o:(c,d) =
-  c = 0 --> a;
-  d = 1 ->> (2 ->> b)
-
-let%node call ~i:(x) ~o:(y) =
-  y = foo (x,2)
+let%node call ~i:() ~o:(y) =
+  y = toto ()
 
 let _ =
-  let step = foo (1,2) in
+  let step = call () in
   for i = 0 to 10 do
-    step (1,2)
+    step ()
   done
