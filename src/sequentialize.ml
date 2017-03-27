@@ -254,7 +254,6 @@ let rec seq_eqs_next eqs name env =
   List.map (fun eq -> { s_pattern = eq.pattern;
                         s_expression = seq_exp eq.expression} ) eqs
 
-
     
 let call_state e l name =
   match e.e_desc with
