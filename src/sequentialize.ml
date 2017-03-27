@@ -1,6 +1,8 @@
 open Parsing_ast
 open Sequential_ast
 
+let nb = ref 0 
+
 let rec string_of_pattern p =
   match p.p_desc with
   | Ident i -> i
@@ -53,9 +55,10 @@ let seq_eqs_zero eqs env =
   | Value v -> S_Value v
   | Variable s -> S_Variable s
   | Application (i, e) ->
+    incr nb;
     (try
       let outputs = List.assoc i !env in
-      mk_outputs (i^"_state."^i) outputs
+      mk_outputs (i^(string_of_int !nb)^"_state."^i) outputs
     with Not_found -> failwith ("unknown node "^i))
     (* S_Application_init (i^"_0", seq_exp e) *)
   | Call e ->
@@ -124,7 +127,7 @@ let rec seq_exp_list e =
   | Value v -> S_Value v
   | Variable s -> S_Variable s
   | Application (i, e) ->
-    S_Application (i^"_next", seq_exp_list e)
+    S_Application (i^"_next", !nb, seq_exp_list e)
   | Call e ->
     S_Call e
   | InfixOp (op,e1,e2) ->
@@ -199,9 +202,10 @@ let rec seq_eqs_next eqs name env =
   | Value v -> S_Value v
   | Variable s -> S_Variable s
   | Application (i, e) ->
+    incr nb;
       (try
       let outputs = List.assoc i !env in
-      mk_outputs ("state."^name^"_"^i^"_state."^i) outputs
+      mk_outputs ("state."^name^"_"^i^(string_of_int !nb)^"_state."^i) outputs
     with Not_found -> failwith ("unknown node "^i))
   | Call e ->
     S_Call e
@@ -250,19 +254,24 @@ let rec seq_eqs_next eqs name env =
   List.map (fun eq -> { s_pattern = eq.pattern;
                         s_expression = seq_exp eq.expression} ) eqs
 
+
+    
 let call_state e l name =
   match e.e_desc with
-  | Application (i, e) ->
-    { s_pattern = Parsing_ocl.mk_pattern (i^"_state");
-      s_expression = S_Application_init (i^"_0", seq_exp_list e)}
+  | Application (i,e) ->
+        incr nb;
+    { s_pattern = Parsing_ocl.mk_pattern (i^(string_of_int !nb)^"_state");
+      s_expression = S_Application_init (i,!nb, seq_exp_list e)}
     ::l
   | _ -> l
 
+
 let call_state_next e l name =
   match e.e_desc with
-  | Application (i, e) ->
+  | Application (i,e) ->
+    incr nb;
     { s_pattern = Parsing_ocl.mk_pattern "_";
-      s_expression = S_Application (i, seq_exp_list e)}
+      s_expression = S_Application (i,!nb, seq_exp_list e)}
     ::l
   | _ -> l
 
@@ -270,7 +279,8 @@ let call_state_next e l name =
 let state_eq e ({pres;calls;outs} as s) =
   match e.e_desc with
   | Application (i, e) ->
-    { s with calls = i::calls }
+    incr nb;
+    { s with calls = (i^string_of_int !nb)::calls }
   | Pre e' ->
     begin
       match e'.e_desc with
@@ -302,10 +312,12 @@ let mk_state n =
 
 
 let seq_zero name inputs outputs state env eqs =
-  let sname = string_of_pattern name in 
+  nb := 0; 
+  let sname = string_of_pattern name in
   let call_init =
     List.fold_left
       (fun acc eq -> call_state eq.expression acc sname) [] eqs in
+  nb := 0; 
   { s_name = name;
     s_inputs = inputs;
     s_outputs = outputs;
@@ -313,10 +325,12 @@ let seq_zero name inputs outputs state env eqs =
     s_eqs = call_init @ (seq_eqs_zero eqs env) }
 
 let seq_next name inputs outputs state env eqs =
-  let sname = string_of_pattern name in 
+  nb := 0; 
+  let sname = string_of_pattern name in
   let call_init =
     List.fold_left
       (fun acc eq -> call_state_next eq.expression acc sname) [] eqs in
+  nb := 0; 
   { s_name = name;
     s_inputs = inputs;
     s_outputs = outputs;
@@ -326,10 +340,12 @@ let seq_next name inputs outputs state env eqs =
 let seq_node n env =
   let inputs = list_of_pat n.inputs in
   let outputs = list_of_pat n.outputs in
+  nb := 0; 
   let state = mk_state n in
   let name = n.name in
   let sname = string_of_pattern name in 
   env := (sname,outputs)::!env;
+  nb := 0; 
   { s_name = name;
     s_zero = seq_zero name inputs outputs state env n.equations;
     s_next = seq_next name inputs outputs state env n.equations }

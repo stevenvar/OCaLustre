@@ -1,12 +1,7 @@
-let%node toto ~i:() ~o:(x) =
+let%node toto ~i:(k,m) ~o:(x) =
+  (a,b) = (1,2);
   y = x + 1 ;
-  x = 0 ->> y
+  x = k ->> y
 
-let%node call ~i:() ~o:(y) =
-  y = toto ()
-
-let _ =
-  let step = call () in
-  for i = 0 to 10 do
-    step ()
-  done
+(* let%node tata ~i:() ~o:(u) = *)
+(*   (u,v) = toto (1,2)  *)

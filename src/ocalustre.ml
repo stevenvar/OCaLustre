@@ -111,11 +111,8 @@ let lustre_mapper argv =
             (*   " (\*  WHYML *\) \n\n%a\n\n\n" whyml_node _pnode *)
             (*   ); *)
 
-             (* tocaml_node _inode *)
+             tocaml_node _snode
 
-            [%stri let f =
-             fun () -> ()
-            ]
 
           | _ -> Error.syntax_error s.pstr_loc
         end

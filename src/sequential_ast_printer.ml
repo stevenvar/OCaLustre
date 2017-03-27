@@ -33,7 +33,9 @@ let rec print_s_pattern fmt p =
     match l with
     | [] -> ()
     | [x] -> Format.fprintf fmt "%a"  print_s_pattern x
-    | h::t -> Format.fprintf fmt "%a,"  print_s_pattern h; print_s_tuple fmt t
+    | h::t -> Format.fprintf fmt "%a,%a"
+                print_s_pattern h
+                print_s_tuple t
 
 let rec print_s_expression fmt (exp,name) =
   let print_s_preop fmt op =
@@ -73,7 +75,7 @@ let rec print_s_expression fmt (exp,name) =
   in
   let rec print_s_list fmt l =
   match l with
-  | [] -> ()
+  | [] -> Format.fprintf fmt "()"
   | [x] -> Format.fprintf fmt "%a"  print_s_expression (x,name)
   | h::t -> Format.fprintf fmt "%a %a"
               print_s_expression (h,name)
@@ -96,15 +98,16 @@ let rec print_s_expression fmt (exp,name) =
                                  print_s_expression (e2,name)
                                  print_s_expression (e3,name)
   | S_Unit -> Format.fprintf fmt "()"
-  | S_Application_init (i,e) -> Format.fprintf fmt "%s %a"
+  | S_Application_init (i,n,e) -> Format.fprintf fmt "%s_0 %a"
                              i
                              print_s_expression (e,name)
-  | S_Application (i,e) ->
-     Format.fprintf fmt "%s_next %a state.%a_%s_state"
+  | S_Application (i,n,e) ->
+     Format.fprintf fmt "%s_next %a state.%a_%s%d_state"
        i
        print_s_expression (e,name)
        print_pattern name
        i
+       n
   | S_List el -> Format.fprintf fmt "%a"
                    print_s_list el 
   | S_Call e -> Format.fprintf fmt "(...)"
@@ -351,7 +354,7 @@ let print_type fmt node =
     (* print_type_outs (n,node.s_next.s_outs,node.s_name) *)
 
 let print_s_node fmt node =
-  Format.fprintf fmt "%a\n%a\n%a"
+  Format.fprintf fmt "%a\n%a\n%a\n\n"
     print_type node
     print_s_zero node.s_zero
     print_s_next node.s_next
