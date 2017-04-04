@@ -21,7 +21,10 @@ let rec mk_outputs name outs =
     | [] -> []
     | x::xs -> S_Variable (name^"_out_"^x) :: loop xs
   in
-  S_ETuple (loop outs)
+  match outs with
+  | [] -> failwith "a node must have an output"
+  | [x] -> S_Variable (name^"_out_"^x)
+  | _ -> S_ETuple (loop outs)
 
 let seq_eqs_zero eqs env =
   let seq_preop op =
@@ -127,7 +130,7 @@ let rec seq_exp_list e name =
   | Value v -> S_Value v
   | Variable s -> S_Variable s
   | Application (i, e) ->
-    S_Application (i^"_next", !nb, seq_exp_list e name)
+    S_Application (i^"_next", !nb, [seq_exp_list e name])
   | Call e ->
     S_Call e
   | InfixOp (op,e1,e2) ->
@@ -145,13 +148,13 @@ let rec seq_exp_list e name =
   | Pre e' ->
     begin
       match e'.e_desc with
-      | Variable n -> S_Ref ("pre_"^n)
+      | Variable n -> S_Ref (name^"_pre_"^n)
       | _ -> assert false
     end
   | Fby (e,e') ->
     begin
       match e'.e_desc with
-      | Variable n -> S_Ref ("pre_"^n)
+      | Variable n -> S_Ref (name^"_pre_"^n)
       | _ -> assert false
     end
   | When (e',i) ->
@@ -214,7 +217,7 @@ let rec seq_eqs_next eqs name env =
              seq_exp e1,
              seq_exp e2)
   | PrefixOp (op, e) ->
-    S_PrefixOp (seq_preop op, seq_exp_list e)
+    S_PrefixOp (seq_preop op, seq_exp_list e name)
   | Alternative (e1,e2,e3) ->
     S_Alternative (seq_exp e1,
                   seq_exp e2,
@@ -225,14 +228,14 @@ let rec seq_eqs_next eqs name env =
     begin
       match e'.e_desc with
       | Value v -> S_Value v
-      | Variable n -> S_Ref ("pre_"^n)
+      | Variable n -> S_Ref (name^"_pre_"^n)
       | _ -> assert false
     end
   | Fby (e,e') ->
     begin
       match e'.e_desc with
       | Value v -> S_Value v
-      | Variable n -> S_Ref ("pre_"^n)
+      | Variable n -> S_Ref (name^"_pre_"^n)
       | _ -> assert false
     end
   | When (e',i) ->
@@ -255,12 +258,12 @@ let rec seq_eqs_next eqs name env =
                         s_expression = seq_exp eq.expression} ) eqs
 
 
-let call_state e l name =
+let call_state_zero e l name =
   match e.e_desc with
-  | Application (i,e) ->
-        incr nb;
+  | Application (i,el) ->
+    incr nb;
     { s_pattern = Parsing_ocl.mk_pattern (i^(string_of_int !nb)^"_state");
-      s_expression = S_Application_init (i,!nb, seq_exp_list e)}
+      s_expression = S_Application_init (i,!nb, [seq_exp_list e name])}
     ::l
   | _ -> l
 
@@ -270,7 +273,7 @@ let call_state_next e l name =
   | Application (i,e) ->
     incr nb;
     { s_pattern = Parsing_ocl.mk_pattern "_";
-      s_expression = S_Application (i,!nb, seq_exp_list e)}
+      s_expression = S_Application (i,!nb, [seq_exp_list e name])}
     ::l
   | _ -> l
 
@@ -296,7 +299,6 @@ let state_eq e ({pres;calls;outs} as s) =
     end
   | _ -> s
 
-
 module IdentSet = Set.Make(
   struct
     let compare = Pervasives.compare
@@ -321,7 +323,7 @@ let seq_zero name inputs outputs state env eqs =
   let sname = string_of_pattern name in
   let call_init =
     List.fold_left
-      (fun acc eq -> call_state eq.expression acc sname) [] eqs in
+      (fun acc eq -> call_state_zero eq.expression acc sname) [] eqs in
   nb := 0;
   { s_name = name;
     s_inputs = inputs;
@@ -344,7 +346,7 @@ let seq_next name inputs outputs state env eqs =
 
 let prefix_state s { pres; calls; outs} =
   { pres = List.map (fun x -> s^"_pre_"^x) pres;
-    calls = List.map (fun x -> s^"_state_"^x) calls;
+    calls = List.map (fun x -> s^"_"^x^"_state") calls;
     outs = List.map (fun x -> s^"_out_"^x) outs;
   }
 

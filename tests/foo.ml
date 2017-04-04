@@ -1,7 +1,6 @@
 let%node toto ~i:(k,m) ~o:(x) =
-  (a,b) = (1,2);
-  y = x + 1 ;
-  x = k ->> y
+  x = k ->> m
 
-(* let%node tata ~i:() ~o:(u) = *)
-(*   (u,v) = toto (1,2)  *)
+let%node tata ~i:() ~o:(u,v) =
+  u = toto (1,2);
+  v = 3

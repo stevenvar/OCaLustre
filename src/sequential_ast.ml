@@ -10,8 +10,8 @@ and s_expr =
   | S_Value of constant
   | S_Constr of string
   | S_Variable of ident
-  | S_Application of ident * int * s_expr
-  | S_Application_init of ident * int * s_expr
+  | S_Application of ident * int * s_expr list
+  | S_Application_init of ident * int * s_expr list
   | S_Call of Parsetree.expression
   | S_Ref of ident
   | S_RefDef of s_expr

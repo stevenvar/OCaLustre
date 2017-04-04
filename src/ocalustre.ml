@@ -39,6 +39,7 @@ let create_node mapper str =
         let _norm_node = normalize_node _node in
         let _sched_node = schedule _norm_node in
         let _seq_node = seq_node _sched_node outputs_env in
+        print_s_node Format.std_formatter _seq_node;
         tocaml_node _seq_node
       | _ -> Error.syntax_error s.pstr_loc
     end

@@ -38,6 +38,13 @@ let rec print_s_tuple fmt l =
               print_s_tuple t
 
 let rec print_s_expression fmt (exp,name) =
+  let rec print_expression_list fmt el =
+    match el with
+    | [] -> ()
+    | e::t -> Format.fprintf fmt "%a %a"
+                print_s_expression (e,name)
+                print_expression_list t
+  in
   let print_s_preop fmt op =
     match op with
     | S_Not -> Format.fprintf fmt "not "
@@ -98,16 +105,16 @@ let rec print_s_expression fmt (exp,name) =
                                   print_s_expression (e2,name)
                                   print_s_expression (e3,name)
   | S_Unit -> Format.fprintf fmt "()"
-  | S_Application_init (i,n,e) -> Format.fprintf fmt "%s_0 %a"
-                                    i
-                                    print_s_expression (e,name)
-  | S_Application (i,n,e) ->
-    Format.fprintf fmt "%s_next %a state.%a_%s%d_state"
+  | S_Application_init (i,n,el) -> Format.fprintf fmt "%s_0 %a"
+                                     i
+                                    print_expression_list el
+  | S_Application (i,n,el) ->
+    Format.fprintf fmt "%s_next state.%a_%s%d_state %a"
       i
-      print_s_expression (e,name)
       print_pattern name
       i
       n
+      print_expression_list el
   | S_List el -> Format.fprintf fmt "%a"
                    print_s_list el
   | S_Call e -> Format.fprintf fmt "(...)"

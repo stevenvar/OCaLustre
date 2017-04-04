@@ -3,6 +3,7 @@ open Asttypes
 open Longident
 open Parsing_ast
 open Sequential_ast
+open Sequential_ast_printer
 open Ast_helper
 open Sequentialize
 
@@ -23,10 +24,18 @@ let rec tocaml_expression e =
     Exp.construct {txt= Lident "true" ; loc = Location.none } None
   | S_Value (Bool false) ->
     Exp.construct {txt= Lident "false" ; loc = Location.none } None
-  | S_ETuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
-  | S_List l -> [%expr () ]
+  | S_ETuple t ->
+    (* let pat = { p_desc = PUnit; *)
+    (*             p_loc = Location.none;} in *)
+    (* List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) t; *)
+    Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | S_Variable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
-  | S_Ref i -> [%expr ![%e Exp.ident (lid_of_ident i) ]  ]
+  | S_Ref i ->
+    { pexp_desc = Pexp_field ([%expr state ],
+                              lid_of_ident i);
+      pexp_loc = Location.none;
+      pexp_attributes = [];
+    }
   | S_RefDef e -> [%expr ref [%e tocaml_expression e ] ]
   | S_PrefixOp (S_Not, e) -> [%expr not [%e tocaml_expression e ] ]
   | S_PrefixOp (S_Neg, e) -> [%expr ~- [%e tocaml_expression e ] ]
@@ -65,13 +74,21 @@ let rec tocaml_expression e =
     [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
   | S_InfixOp (S_And,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
-  | S_Application (id, num, e) ->
-    let e' = tocaml_expression e in
+  | S_List e -> [%expr () ]
+  | S_Application (id, num, el) ->
+    let el' = List.map tocaml_expression el in
+    let pat = { p_desc = PUnit;
+                p_loc = Location.none;} in
+    List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el;
     let n = string_of_int num in
-    [%expr [%e (Exp.ident (lid_of_ident (id^n^"_step")))] [%e e' ]]
-  | S_Application_init (id,num,e) ->
-    let e' = tocaml_expression e in
-    [%expr [%e (Exp.ident (lid_of_ident (id)))] [%e e' ]]
+    let l = List.map (fun e -> Nolabel,e) el' in
+    { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident (id^"_next")),l);
+      pexp_loc = Location.none;
+      pexp_attributes = [];
+    }
+  | S_Application_init (id,num,el) ->
+    let el' = List.map tocaml_expression el in
+    [%expr [%e (Exp.ident (lid_of_ident (id^"_0")))] () ]
   | S_Alternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
         [%expr [%e (tocaml_expression e1) ]]
