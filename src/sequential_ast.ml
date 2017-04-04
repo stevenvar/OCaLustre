@@ -19,7 +19,7 @@ and s_expr =
   | S_PrefixOp of s_preop * s_expr
   | S_Alternative of s_expr * s_expr * s_expr
   | S_ETuple of s_expr list
-  | S_List of s_expr list 
+  | S_List of s_expr list
   | S_Unit
 and
   s_infop =
@@ -64,8 +64,15 @@ type s_fun = {
   s_eqs : s_equation list;
 }
 
+type s_typ = {
+  s_num : int;
+  s_name : pattern;
+  s_attr : ident list;
+}
+
 type s_node = {
   s_name : pattern;
+  s_type : s_typ;
   s_zero : s_fun;
   s_next : s_fun;
 }

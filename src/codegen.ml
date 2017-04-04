@@ -12,7 +12,7 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
     loc = Location.none
   }
 
-
+(* creates OCaml's AST Exp from s_expression *)
 let rec tocaml_expression e =
   match e with
   | S_Value (Nil) -> [%expr Obj.magic () ]
@@ -95,12 +95,11 @@ let stringloc_of_string s =
     txt = s;
     loc = Location.none;
   }
-let tocaml_type s_node = ()
 
 let pat_of_string s =
   { ppat_desc = Ppat_var (stringloc_of_string s);
-            ppat_loc = Location.none;
-            ppat_attributes = [] }
+    ppat_loc = Location.none;
+    ppat_attributes = [] }
 
 let rec pat_of_list l =
   match l with
@@ -138,18 +137,18 @@ let rec pat_of_pattern p =
                ppat_attributes = [] }
   | Typed (p,s) ->
     let core_type = {
-       ptyp_desc = Ptyp_constr(lident_of_string s,[]);
-     ptyp_loc =  p.p_loc ;
-     ptyp_attributes = [];
+      ptyp_desc = Ptyp_constr(lident_of_string s,[]);
+      ptyp_loc =  p.p_loc ;
+      ptyp_attributes = [];
     }
     in
     {
       ppat_desc = Ppat_constraint (pat_of_pattern p, core_type) ;
       ppat_loc = p.p_loc;
-      ppat_attributes = []}  
+      ppat_attributes = []}
 
 
-let tocaml_eq_list el s = 
+let tocaml_eq_list el s =
   let tocaml_eq e acc =
     let x = e.s_pattern in
     let sx = pat_of_pattern x in
@@ -158,14 +157,80 @@ let tocaml_eq_list el s =
   in
   List.fold_left (fun l e -> tocaml_eq e l) s el
 
+let rec tocaml_type_record l =
+  let rec loop (l,n) =
+    match l with
+    |  [] -> []
+    | h::t ->
+      { pld_name = stringloc_of_string h ;
+        pld_mutable = Mutable;
+        pld_type =
+          { ptyp_desc = Ptyp_var (String.make 1 (Char.chr (97+n)));
+            ptyp_loc = Location.none;
+            ptyp_attributes = [];
+          };
+        pld_attributes = [];
+        pld_loc = Location.none;
+      }::(loop (t,n+1))
+  in
+  loop (l,0)
+
+
+let tocaml_type_params m =
+  let rec loop n =
+    if n = m then []
+    else
+      let ty =
+        { ptyp_desc = Ptyp_var (String.make 1 (Char.chr (97+n)));
+          ptyp_loc = Location.none;
+          ptyp_attributes = [];
+        } in
+      (ty, Invariant)::loop (n+1)
+  in
+  loop 0
+
+let tocaml_type (s_t:s_typ) =
+  let name = string_of_pattern s_t.s_name in
+  let name = name^"_state" in
+  let ty =    { ptype_name = stringloc_of_string name;
+                ptype_params = tocaml_type_params s_t.s_num;
+                ptype_cstrs = [];
+                ptype_kind = Ptype_record (tocaml_type_record s_t.s_attr);
+                ptype_private = Public;
+                ptype_manifest = None;
+                ptype_attributes = [];
+                ptype_loc = Location.none;
+              }
+  in
+  { pstr_desc = Pstr_type (Recursive, [ty]);
+    pstr_loc = Location.none
+  }
+
 
 let rec fun_of_list l s =
-  match l with 
+  match l with
   | [] -> s
   | h::t ->
     [%expr fun [%p pat_of_string h] -> [%e fun_of_list t s ] ]
 
 
+(* create state of fun _next *)
+let rec tocaml_state_next s name =
+  let name = string_of_pattern name in
+  let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
+  let calls = List.map (fun s -> (name^"_"^s^"_state",s^"_state")) s.calls in
+  let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
+  let l = pres@calls@outs in
+  List.fold_left (fun acc (x,y) ->
+      [%expr [%e { pexp_desc = Pexp_setfield ([%expr state],
+                                   lident_of_string x,
+                                   Exp.ident (lident_of_string y));
+        pexp_loc = Location.none;
+        pexp_attributes = [];
+      } ] ; [%e acc ] ]
+    ) [%expr ()] l
+
+(* create state of fun _0 *)
 let rec tocaml_state_zero s name =
   let name = string_of_pattern name in
   let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
@@ -178,10 +243,11 @@ let rec tocaml_state_zero s name =
     | (x,y)::t -> (lident_of_string x, Exp.ident (lid_of_ident y)) :: loop t
   in
   { pexp_desc = Pexp_record (loop l,None);
-    pexp_loc = Location.none ; 
+    pexp_loc = Location.none ;
     pexp_attributes = []
   }
 
+(* create function _0 *)
 let tocaml_s_zero (f:s_fun) =
   let name = stringloc_of_string ((string_of_pattern f.s_name)^"_0") in
   let ins = f.s_inputs in
@@ -192,9 +258,19 @@ let tocaml_s_zero (f:s_fun) =
       [%e fun_of_list ins (tocaml_eq_list eqs st)]
   ]
 
+(* create function _next *)
+let tocaml_s_next (f:s_fun) =
+  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_next") in
+  let ins = "state"::f.s_inputs in
+  let eqs = List.rev f.s_eqs in
+  let st = tocaml_state_next f.s_state f.s_name in
+  [%stri
+    let [%p Pat.var name ] =
+      [%e fun_of_list ins (tocaml_eq_list eqs st)]
+  ]
+
 let tocaml_node s_node =
-  let typ = tocaml_type s_node in
+  let typ = tocaml_type s_node.s_type in
   let f0 = tocaml_s_zero s_node.s_zero in
-  f0
-
-
+  let fn = tocaml_s_next s_node.s_next in
+  [typ;f0;fn]
