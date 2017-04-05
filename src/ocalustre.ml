@@ -58,7 +58,7 @@ let lustre_mapper argv =
 
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
-                  ("-y", Arg.Set why, "Prints whyml node");
+                  ("-y", Arg.Set why, "Prints whyml code");
                   ("-i", Arg.Set clocking, "Prints clocks types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;

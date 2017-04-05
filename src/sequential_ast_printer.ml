@@ -105,16 +105,16 @@ let rec print_s_expression fmt (exp,name) =
                                   print_s_expression (e2,name)
                                   print_s_expression (e3,name)
   | S_Unit -> Format.fprintf fmt "()"
-  | S_Application_init (i,n,el) -> Format.fprintf fmt "%s_0 %a"
+  | S_Application_init (i,n,el) -> Format.fprintf fmt "%s %a"
                                      i
                                     print_expression_list el
   | S_Application (i,n,el) ->
-    Format.fprintf fmt "%s_next state.%a_%s%d_state %a"
+    Format.fprintf fmt "%s %a"
       i
-      print_pattern name
-      i
-      n
       print_expression_list el
+  | S_Field (e,s) -> Format.fprintf fmt "%a.%s"
+                       print_s_expression (e,name)
+                       s
   | S_List el -> Format.fprintf fmt "%a"
                    print_s_list el
   | S_Call e -> Format.fprintf fmt "(...)"
@@ -139,9 +139,8 @@ let rec print_s_inputs fmt ins =
 let rec print_pres fmt (pres,name) =
   match pres with
   | [] -> ()
-  | [x] -> Format.fprintf fmt "%a_pre_%a" print_pattern name print_ident x
-  | x::xs -> Format.fprintf fmt "%a_pre_%a ; %a"
-               print_pattern name
+  | [x] -> Format.fprintf fmt "pre_%a" print_ident x
+  | x::xs -> Format.fprintf fmt "pre_%a ; %a"
                print_ident x
                print_pres (xs,name)
 
@@ -184,13 +183,11 @@ let rec print_calls_next fmt (calls,name) =
 let rec print_pres_next fmt (pres,name) =
   match pres with
   | [] -> ()
-  | [x] -> Format.fprintf fmt "state.%a_pre_%a <- %a;"
-             print_pattern name
+  | [x] -> Format.fprintf fmt "pre_%a <- %a;"
              print_ident x
              print_ident x
 
-  | x::xs -> Format.fprintf fmt "state.%a_pre_%a <- %a;\n%a"
-               print_pattern name
+  | x::xs -> Format.fprintf fmt "pre_%a <- %a;\n%a"
                print_ident x
                print_ident x
                print_pres_next (xs,name)
@@ -265,7 +262,7 @@ let print_s_zero fmt (f:s_fun) =
 (* print_s_outs (f.s_outs,f.s_name) *)
 
 let print_s_next fmt (f:s_fun) =
-  Format.fprintf fmt "let %a_next %a state = \n%a%a\n"
+  Format.fprintf fmt "let %a_next state %a = \n%a%a\n"
     print_s_pattern f.s_name
     print_s_inputs f.s_inputs
     print_s_equations (f.s_eqs,f.s_name)

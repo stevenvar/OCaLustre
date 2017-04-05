@@ -82,13 +82,21 @@ let rec tocaml_expression e =
     List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el;
     let n = string_of_int num in
     let l = List.map (fun e -> Nolabel,e) el' in
-    { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident (id^"_next")),l);
+    { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
       pexp_attributes = [];
     }
   | S_Application_init (id,num,el) ->
     let el' = List.map tocaml_expression el in
-    [%expr [%e (Exp.ident (lid_of_ident (id^"_0")))] () ]
+    let pat = { p_desc = PUnit;
+                p_loc = Location.none;} in
+    List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el;
+    let n = string_of_int num in
+    let l = List.map (fun e -> Nolabel,e) el' in
+    { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
+      pexp_loc = Location.none;
+      pexp_attributes = [];
+    }
   | S_Alternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
         [%expr [%e (tocaml_expression e1) ]]
@@ -96,6 +104,11 @@ let rec tocaml_expression e =
         (Some ( [%expr  [%e tocaml_expression e3 ] ] ))
     ]
     ]
+  | S_Field (e,s) ->
+    [%expr [%e Exp.field
+        (tocaml_expression e)
+        (lid_of_ident s)
+    ]]
   | S_Unit -> [%expr ()]
   | S_Constr _ -> [%expr ()]
   | S_Call e ->
@@ -235,9 +248,8 @@ let rec fun_of_list l s =
 let rec tocaml_state_next s name =
   let name = string_of_pattern name in
   let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
-  let calls = List.map (fun s -> (name^"_"^s^"_state",s^"_state")) s.calls in
   let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
-  let l = pres@calls@outs in
+  let l = pres@outs in
   List.fold_left (fun acc (x,y) ->
       [%expr [%e { pexp_desc = Pexp_setfield ([%expr state],
                                    lident_of_string x,
@@ -270,21 +282,31 @@ let tocaml_s_zero (f:s_fun) =
   let ins = f.s_inputs in
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_zero f.s_state f.s_name in
-  [%stri
-    let [%p Pat.var name ] =
-      [%e fun_of_list ins (tocaml_eq_list eqs st)]
-  ]
+   match ins with
+  | [] -> [%stri
+    let [%p Pat.var name] = fun () ->
+      [%e tocaml_eq_list eqs st ] ]
+  | _ ->
+    [%stri
+      let [%p Pat.var name ] =
+        [%e fun_of_list ins (tocaml_eq_list eqs st)]
+    ]
 
 (* create function _next *)
 let tocaml_s_next (f:s_fun) =
   let name = stringloc_of_string ((string_of_pattern f.s_name)^"_next") in
-  let ins = "state"::f.s_inputs in
+  let ins = f.s_inputs in
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_next f.s_state f.s_name in
-  [%stri
-    let [%p Pat.var name ] =
-      [%e fun_of_list ins (tocaml_eq_list eqs st)]
-  ]
+  match ins with
+  | [] -> [%stri
+    let [%p Pat.var name] = fun state -> fun () ->
+      [%e tocaml_eq_list eqs st ] ]
+  | _ ->
+    [%stri
+      let [%p Pat.var name ] = fun state ->
+        [%e fun_of_list ins (tocaml_eq_list eqs st)]
+    ]
 
 let tocaml_node s_node =
   let typ = tocaml_type s_node.s_type in

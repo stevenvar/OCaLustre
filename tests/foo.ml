@@ -1,6 +1,14 @@
-let%node toto ~i:(k,m) ~o:(x) =
-  x = k ->> m
+let%node f ~i:() ~o:(x) =
+  v = 4 ->> (5 ->> (6 ->> x));
+  x = 1 ->> (2 ->> (3 ->> v))
 
-let%node tata ~i:() ~o:(u,v) =
-  u = toto (1,2);
-  v = 3
+let%node g ~i:() ~o:(u) =
+  u = f ()
+
+let _ =
+  let s = g_0 () in
+  print_int s.g_out_u;
+  for i = 0 to 100 do
+    g_next s ();
+    print_int s.g_out_u;
+  done
