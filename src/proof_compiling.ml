@@ -86,13 +86,15 @@ let rec compile_pre_expression e =
   | ETuple el ->
     let iel = List.map (fun e -> compile_pre_expression e) el in
     S_ExpTuple (iel)
+  | Pre e -> assert false
   | Merge (e1,e2,e3) ->
     S_Alternative (compile_pre_expression e1,
                   compile_pre_expression e2,
                    compile_pre_expression e3)
 
 let rec compile_expression_step e p =
-   match e.e_desc with
+  match e.e_desc with
+  | Pre _ -> assert false
   | Value v -> S_Value v
   | Variable s -> S_Variable s
   | Application (i, e) ->

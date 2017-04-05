@@ -1,14 +1,19 @@
-let%node f ~i:() ~o:(x) =
-  v = 4 ->> (5 ->> (6 ->> x));
-  x = 1 ->> (2 ->> (3 ->> v))
+let%node f ~i:(a) ~o:(x) =
+  v = x + 1;
+  x = a ->> v
 
 let%node g ~i:() ~o:(u) =
-  u = f ()
+  u = f 10
+
+
+let g_out u =
+  print_int u;
+  print_newline ()
 
 let _ =
   let s = g_0 () in
-  print_int s.g_out_u;
-  for i = 0 to 100 do
+  g_out (s.g_out_u);
+  for i = 0 to 10 do
     g_next s ();
-    print_int s.g_out_u;
+    g_out (s.g_out_u);
   done

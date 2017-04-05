@@ -72,6 +72,7 @@ let rec get_idents l e =
     let l = get_idents l e1 in
     l
   | PrefixOp (op, e1) -> get_idents l e1
+  | Pre e -> get_idents l e
   | Value v -> l
   | Unit -> l
   | Fby (i , e') ->
@@ -203,7 +204,7 @@ let rec mk_expr e =
 let id_of_lid lid =
   match lid with
   | Lident li -> li
-  | _ -> failwith "not a lident"
+  | _ -> raise @@ Invalid_argument "id_of_lid"
 
 let rec pat_of_pexp p =
   match p.pexp_desc with
@@ -223,7 +224,7 @@ let rec pat_of_pexp p =
         end
       in
       pat'
-  | _ -> failwith "not a good pattern"
+  | _ -> raise @@ Invalid_argument "pat_of_expr"
 
 (* creates equation node in the AST *)
 let mk_equation eq =
