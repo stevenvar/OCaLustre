@@ -21,7 +21,5 @@ Executable "ocalustre"
   CompiledObject: best
 
 Test "test_foo"
-  TestTools:      ocalustre	
+  TestTools:      ocalustre
   Command:        ocamlbuild -use-ocamlfind -I src -cflags '-ppx $ocalustre -dsource' tests/foo.byte
-
-

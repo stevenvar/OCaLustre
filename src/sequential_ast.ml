@@ -10,17 +10,17 @@ and s_expr =
   | S_Value of constant
   | S_Constr of string
   | S_Variable of ident
-  | S_Application of ident * int * s_expr list
-  | S_Application_init of ident * int * s_expr list
+  | S_Application of ident * int * s_expression list
+  | S_Application_init of ident * int * s_expression list
   | S_Call of Parsetree.expression
   | S_Ref of ident
-  | S_RefDef of s_expr
-  | S_InfixOp of s_infop * s_expr * s_expr
-  | S_PrefixOp of s_preop * s_expr
-  | S_Alternative of s_expr * s_expr * s_expr
-  | S_ETuple of s_expr list
-  | S_Field of s_expr * ident
-  | S_List of s_expr list
+  | S_RefDef of s_expression
+  | S_InfixOp of s_infop * s_expression * s_expression
+  | S_PrefixOp of s_preop * s_expression
+  | S_Alternative of s_expression * s_expression * s_expression
+  | S_ETuple of s_expression list
+  | S_Field of s_expression * ident
+  | S_List of s_expression list
   | S_Unit
 and
   s_infop =
@@ -47,9 +47,15 @@ and
   | S_Neg
   | S_Negf
 
+and s_expression = {
+  s_e_desc : s_expr;
+  s_e_loc : Location.t
+}
+
+
 and s_equation =  {
   s_pattern : pattern;
-  s_expression : s_expr;
+  s_expression : s_expression;
 }
 
 type s_state = {

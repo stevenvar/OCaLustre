@@ -15,11 +15,12 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
 
 (* creates OCaml's AST Exp from s_expression *)
 let rec tocaml_expression e =
-  match e with
+  match e.s_e_desc with
   | S_Value (Nil) -> [%expr Obj.magic () ]
   | S_Value (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
   | S_Value (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
   | S_Value (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
+  | S_Value (String str) -> Exp.constant (Pconst_string (str,None))
   | S_Value (Bool true) ->
     Exp.construct {txt= Lident "true" ; loc = Location.none } None
   | S_Value (Bool false) ->
@@ -79,7 +80,6 @@ let rec tocaml_expression e =
     let el' = List.map tocaml_expression el in
     let pat = { p_desc = PUnit;
                 p_loc = Location.none;} in
-    List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el;
     let n = string_of_int num in
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
@@ -90,7 +90,7 @@ let rec tocaml_expression e =
     let el' = List.map tocaml_expression el in
     let pat = { p_desc = PUnit;
                 p_loc = Location.none;} in
-    List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el;
+    (* List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el; *)
     let n = string_of_int num in
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);

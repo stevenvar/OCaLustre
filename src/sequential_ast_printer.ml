@@ -88,7 +88,7 @@ let rec print_s_expression fmt (exp,name) =
                 print_s_expression (h,name)
                 print_s_list t
   in
-  match exp with
+  match exp.s_e_desc with
   | S_Value c -> print_value fmt c
   | S_Variable v ->  Format.fprintf fmt "%s" v
   | S_Ref s -> Format.fprintf fmt "state.%a_%s" print_pattern name s
@@ -121,6 +121,7 @@ let rec print_s_expression fmt (exp,name) =
   | S_Constr s -> Format.fprintf fmt "%s" s
   | S_ETuple el -> Format.fprintf fmt "%a"
                      print_s_expressions el
+
 
 let print_s_equations fmt (el,name) =
   let print_s_equation fmt (e,name) =
@@ -354,7 +355,7 @@ let print_type fmt node =
   let n = 0 in
   let state = node.s_next.s_state in
   let total = List.length (state.pres @ state.calls @ state.outs) -1 in
-  Format.fprintf fmt "type (%a) %a_state = {%a}"
+  Format.fprintf fmt "\ntype (%a) %a_state = {%a}"
     print_alphas total
     print_pattern node.s_name
     print_type_state (n,node.s_next.s_state,node.s_name)

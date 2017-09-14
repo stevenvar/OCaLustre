@@ -5,6 +5,7 @@ let print_value fmt v =
   | Integer i -> Format.fprintf fmt "%d" i
   | Bool b -> Format.fprintf fmt "%b" b
   | Float f -> Format.fprintf fmt "%f" f
+  | String str -> Format.fprintf fmt "\"%s\"" str
   | Nil -> Format.fprintf fmt "nil"
   | Enum s -> Format.fprintf fmt "%s" s
 

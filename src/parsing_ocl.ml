@@ -158,6 +158,8 @@ let rec mk_expr e =
                                   e_loc = e.pexp_loc }
       | Pconst_float (f,s) -> { e_desc = Value (Float (float_of_string f)) ;
                                 e_loc = e.pexp_loc }
+      | Pconst_string (str,s) -> { e_desc = Value (String str);
+                                   e_loc = e.pexp_loc }
       | _ -> assert false   (* only int/float ftm *)
     end
   | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; loc} ,e);
