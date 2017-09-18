@@ -241,7 +241,6 @@ let seq_eqs_zero eqs sname env =
           let seq = { s_pattern = eq.pattern ;
                   s_expression = seq_exp eq.expression }
           in
-          Format.printf "-->%d<--" !nb;
           (* let s = !nb in *)
           let eq =
             { s_pattern = Parsing_ocl.mk_pattern (i^(string_of_int !nb)^"_state");
