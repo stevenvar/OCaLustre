@@ -9,8 +9,8 @@ let%node plus ~i:(a,b) ~o:(c,d) =
   c = a + b;
   d = a - b
 
-let%node v ~i:(a,b) ~o:(c) =
-  (c,d) = (1,2) ->> (3,4)
+let%node v ~i:(a,b) ~o:(c,d) =
+  (c,d) = ekekek(1,2)
 
 let _ =
   let s = v_init 1 2  in

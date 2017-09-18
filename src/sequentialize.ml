@@ -429,7 +429,7 @@ let seq_zero name inputs outputs state env eqs =
     s_inputs = inputs;
     s_outputs = outputs;
     s_state = state;
-    s_eqs = eqs }
+    s_eqs = eqs}
 
 (* Create step function  *)
 
@@ -439,7 +439,7 @@ let seq_next name inputs outputs state env eqs =
   (*   List.fold_left *)
   (*     (fun acc eq -> call_state_next eq.expression acc sname) [] eqs in *)
   (* nb := 0; *)
-  (* let eqs = eqs@(update_all_fby eqs) in *)
+  let eqs = eqs@(update_all_fby eqs) in
   let eqs = seq_eqs_next eqs sname env in
   let eqs = explode_equations eqs in
   nb := 0;
