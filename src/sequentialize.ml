@@ -442,7 +442,6 @@ let seq_next name inputs outputs state env eqs =
   (* nb := 0; *)
   let eqs = eqs@(update_all_fby eqs) in
   let eqs = seq_eqs_next eqs sname env in
-  Sequential_ast_printer.print_s_equations Format.std_formatter (eqs,Parsing_ocl.mk_pattern "prout");
   let eqs = explode_equations eqs in
   nb := 0;
   { s_name = name;
