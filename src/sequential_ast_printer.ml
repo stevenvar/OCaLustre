@@ -209,7 +209,7 @@ let rec print_outs_next fmt (outs,name) =
 
 let print_s_state_next fmt (s,name) =
   let name = string_of_pattern name in
-  let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
+  let pres = List.map (fun s -> (name^"_pre_"^s,"pre_"^s)) s.pres in
   let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
   let l = pres@outs in
   let rec loop fmt l =

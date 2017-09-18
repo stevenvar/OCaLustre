@@ -48,8 +48,7 @@ let rec imp_get_dep_id e l  =
   | IApplication (i,num,e) ->
     let i = i^(string_of_int num)^"_step" in
       imp_get_dep_id e (i::l)
-  | ICall e ->
-    l
+  | ICall e -> l
   | IInfixOp (op, e1, e2) ->
     let l = imp_get_dep_id e1 l in
     imp_get_dep_id e2 l
@@ -74,17 +73,29 @@ let rec get_id p =
 let rec contains e i =
   match e.pattern.p_desc with
   | Ident j -> i = j
-  | Tuple t -> List.fold_left (fun acc p' ->  contains { pattern = p' ; expression = { e_desc = Unit ; e_loc = Location.none }} i || acc) false t
+  | Tuple t ->
+    List.fold_left (fun acc p' ->
+        contains { pattern = p' ;
+                   expression = { e_desc = Unit ;
+                                  e_loc = Location.none }}
+          i || acc) false t
   | PUnit -> false
-  | Typed (p,t) -> contains { pattern = p ; expression = { e_desc = Unit ; e_loc = Location.none }} i
+  | Typed (p,t) ->
+    contains { pattern = p ;
+               expression = { e_desc = Unit ;
+                              e_loc = Location.none }} i
 
 
 let rec icontains e i =
   match e.i_pattern.p_desc with
   | Ident j -> i = j
-  | Tuple t -> List.fold_left (fun acc p' ->  contains { pattern = p' ; expression = { e_desc = Unit ; e_loc = Location.none }} i || acc) false t
+  | Tuple t -> List.fold_left
+                 (fun acc p' -> contains { pattern = p' ;
+                                           expression = { e_desc = Unit ;
+                                                          e_loc = Location.none }} i || acc) false t
   | PUnit -> false
-  | Typed (p,s) -> contains { pattern = p ; expression = { e_desc = Unit ; e_loc = Location.none }} i
+  | Typed (p,s) -> contains { pattern = p ; expression = { e_desc = Unit ;
+                                                           e_loc = Location.none }} i
 
 let rec find_eq_from_id i eqs =
   match eqs with

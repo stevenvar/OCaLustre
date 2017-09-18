@@ -5,19 +5,17 @@
 (* let%node g ~i:() ~o:(u) = *)
 (*   u = f 32 *)
 
-let%node plus ~i:(a,b) ~o:(y,z) =
-  y = (a+b);
-  z = (a-b)
+let%node plus ~i:(a,b) ~o:(c,d) =
+  c = a + b;
+  d = a - b
 
-let%node v ~i:(x,y,z) ~o:(k,l,m,r) =
-  (k,r) = plus (x,x);
-  l = y;
-  m = z
+let%node v ~i:(a,b) ~o:(c) =
+  (c,d) = (1,2) ->> (3,4)
 
 let _ =
-  let s = v_0 1 2.5 "OU" in
+  let s = v_init 1 2  in
+  print_int s.v_out_c;
   for i = 0 to 10 do
-    v_next s 1 2.5 "OU";
-    print_int s.v_out_k;
-    print_int s.v_out_r;
+    v_step s 1 2;
+    print_int s.v_out_c;
   done

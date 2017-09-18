@@ -38,8 +38,8 @@ let create_node mapper str =
       | Pstr_value (_,[v]) ->
         let _node = mk_node v.pvb_pat v.pvb_expr in
         let _norm_node = normalize_node _node in
-        print_node Format.std_formatter _norm_node;
         let _sched_node = schedule _norm_node in
+        print_node Format.std_formatter _sched_node;
         let _seq_node = seq_node _sched_node outputs_env in
         print_s_node Format.std_formatter _seq_node;
         if !alloc then

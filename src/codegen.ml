@@ -244,10 +244,10 @@ let rec fun_of_list l s =
     [%expr fun [%p pat_of_string h] -> [%e fun_of_list t s ] ]
 
 
-(* create state of fun _next *)
+(* create state of fun _step *)
 let rec tocaml_state_next s name =
   let name = string_of_pattern name in
-  let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
+  let pres = List.map (fun s -> (name^"_pre_"^s,"pre_"^s)) s.pres in
   let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
   let l = pres@outs in
   List.fold_left (fun acc (x,y) ->
@@ -259,10 +259,10 @@ let rec tocaml_state_next s name =
       } ] ; [%e acc ] ]
     ) [%expr ()] l
 
-(* create state of fun _0 *)
+(* create state of fun _init *)
 let rec tocaml_state_zero s name =
   let name = string_of_pattern name in
-  let pres = List.map (fun s -> (name^"_pre_"^s,s)) s.pres in
+  let pres = List.map (fun s -> (name^"_pre_"^s,"pre_"^s)) s.pres in
   let calls = List.map (fun s -> (name^"_"^s^"_state",s^"_state")) s.calls in
   let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
   let l = pres@calls@outs in
@@ -278,7 +278,7 @@ let rec tocaml_state_zero s name =
 
 (* create function _0 *)
 let tocaml_s_zero (f:s_fun) =
-  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_0") in
+  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_init") in
   let ins = f.s_inputs in
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_zero f.s_state f.s_name in
@@ -294,7 +294,7 @@ let tocaml_s_zero (f:s_fun) =
 
 (* create function _next *)
 let tocaml_s_next (f:s_fun) =
-  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_next") in
+  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_step") in
   let ins = f.s_inputs in
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_next f.s_state f.s_name in
