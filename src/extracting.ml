@@ -7,6 +7,11 @@ open Clocking_ast
 open Compiling
 open Ast_helper
 
+let str_of_pattern p =
+  match p.p_desc with
+  | Ident v -> v
+  | _ -> failwith "not a variable"
+
 let lid_of_ident ?(prefix="") ?(suffix="") i =
   {
     txt = Lident (prefix^i^suffix);
@@ -16,6 +21,7 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
 
 let rec tocaml_expression e =
   match e with
+  | IValue (String s) -> [%expr s ]
   | IValue (Nil) -> [%expr Obj.magic () ]
   | IValue (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
   | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
@@ -261,32 +267,32 @@ let tocaml_inputs node pname acc =
     [%expr let [%p Pat.var pname ] =
              fun () -> [%e acc ]
       in
-      [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name) ]]
+      [%e Exp.ident (lid_of_ident ~suffix:"_step" (str_of_pattern node.i_name)) ]]
   | Ident x  ->
     [%expr let [%p Pat.var pname] =
              fun [%p pat_of_pattern inputs] -> [%e acc ]
       in
-      [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
+      [%e Exp.ident (lid_of_ident ~suffix:"_step" (str_of_pattern node.i_name))]]
   | Tuple t ->
     [%expr let [%p Pat.var pname] =
              fun [%p Pat.tuple (aux t) ] -> [%e acc]
       in
-      [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
+      [%e Exp.ident (lid_of_ident ~suffix:"_step" (str_of_pattern node.i_name))]]
   | Typed(p,s) ->
     [%expr let [%p Pat.var pname] =
              fun [%p pat_of_pattern inputs] -> [%e acc ]
       in
-      [%e Exp.ident (lid_of_ident ~suffix:"_step" node.i_name)]]
+      [%e Exp.ident (lid_of_ident ~suffix:"_step" (str_of_pattern node.i_name))]]
 
 let tocaml_step node =
-  let pname = stringloc_of_ident ~suffix:"_step" node.i_name in
+  let pname = stringloc_of_ident ~suffix:"_step" (str_of_pattern node.i_name) in
   let outs = tocaml_outputs node in
   let ups = tocaml_updates node outs in
   let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in
   tocaml_inputs node pname eqs
 
 let tocaml_node inode =
-  let name = stringloc_of_ident inode.i_name in
+  let name = stringloc_of_ident (str_of_pattern inode.i_name) in
   let inits = List.rev inode.i_inits in
   match inode.i_inputs.p_desc with
   | PUnit ->

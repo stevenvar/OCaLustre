@@ -19,7 +19,7 @@ let rec get_ident p =
   match p.p_desc with
   | Ident i -> i
   | Typed (p,s) -> get_ident p
-  | _ -> failwith "no tuple"
+  | _ -> Error.print_error p.p_loc "Not an ident"
 
 let rec compile_expression e p =
   let compile_preop op =
@@ -242,6 +242,7 @@ let compile_cnode node =
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
   let i_all_inits = schedule_ieqs (i_inits@i_fby_inits@i_app_inits) inputs in
+  let i_all_inits = (i_inits@i_fby_inits@i_app_inits) in
   {
     i_pre = compile_condition node.pre;
     i_post = compile_condition node.post;

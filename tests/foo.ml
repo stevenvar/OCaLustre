@@ -9,12 +9,16 @@ let%node plus ~i:(a,b) ~o:(c,d) =
   c = a + b;
   d = a - b
 
-let%node v ~i:(a,b) ~o:(c,d) =
-  (c,d) = ekekek(1,2)
+let%node v ~i:(a,b) ~o:(c) =
+  (* (c,d) = plus(1,2); *)
+  (* (e,f) = (4->>5,8->>9); *)
+  c = 8 ->> 9
 
 let _ =
-  let s = v_init 1 2  in
+  (* INIT *)
+  let s = v_init 1 2 in
   print_int s.v_out_c;
+  (* STEP *)
   for i = 0 to 10 do
     v_step s 1 2;
     print_int s.v_out_c;

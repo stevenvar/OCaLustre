@@ -15,6 +15,7 @@ open Proof_printer
 open Sequentialize
 open Codegen
 open Error
+open Compiling
 
 let verbose = ref false
 let clocking = ref false
@@ -39,12 +40,13 @@ let create_node mapper str =
         let _node = mk_node v.pvb_pat v.pvb_expr in
         let _norm_node = normalize_node _node in
         let _sched_node = schedule _norm_node in
-        print_node Format.std_formatter _sched_node;
-        let _seq_node = seq_node _sched_node outputs_env in
-        print_s_node Format.std_formatter _seq_node;
+        (* print_node Format.std_formatter _sched_node; *)
         if !alloc then
-          failwith "todo : put back code gen"
+          let _inode = compile_cnode _sched_node in
+          [Extracting.tocaml_node _inode]
         else
+          let _seq_node = seq_node _sched_node outputs_env in
+          (* print_s_node Format.std_formatter _seq_node; *)
           tocaml_node _seq_node
       | _ -> Error.syntax_error s.pstr_loc
     end
@@ -64,7 +66,7 @@ let lustre_mapper argv =
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                   ("-y", Arg.Set why, "Prints whyml code");
-                  ("-m", Arg.Set alloc, "Generates allocating code");
+                  ("-f", Arg.Set alloc, "Generates functional code (closures)");
                   ("-i", Arg.Set clocking, "Prints clocks types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;
