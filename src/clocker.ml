@@ -146,9 +146,7 @@ let rec unify (tau1, tau2) =
   | (CVar ({c_index = n ;c_value =CtUnknown} as tv1) as t1),
     (CVar ({c_index = m ;c_value =CtUnknown} as tv2) as t2)
     ->
-
     if n <> m then (tv2.c_value <- t1 );
-
   | t1, (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t2)
     -> if not (occurs tv t1) then tv.c_value <- t1
     else raise (ClockClash (t1,t2))
@@ -156,20 +154,14 @@ let rec unify (tau1, tau2) =
     -> if not (occurs tv t2) then tv.c_value <- t2
     else raise (ClockClash (t1,t2))
   | Arrow (t1,t2) , Arrow (t1', t2') ->
-
-
      unify (t2,t2') ;  unify (t1,t1') ;
-
-
   | CTuple ctl1 , CTuple ctl2 ->
     let ll = List.combine ctl1 ctl2 in
     List.iter unify ll
   | On (ct1,i1) , On (ct2, i2) when i1 = i2 ->
     (* unify (Carrier i1, Carrier i2); *)
       unify (ct1, ct2)
-
   | Onnot (ct1,i1) , Onnot (ct2, i2) when i1 = i2 ->
-
     unify (ct1, ct2)
   | Carrier (s1,c1) , Carrier (s2,c2)  ->
     (* NE MARCHE PAS CAR ON NE VEUT PAS POUVOIR UNIFIER
@@ -255,7 +247,6 @@ let inst (Forall(gv,gc,ct)) =
     | CTyped (c,t) ->
       ginstance c
     | CtUnknown -> raise (ClockingBug "inst")
-
   in ginstance ct
 
 
@@ -266,6 +257,10 @@ let rec string_of_pattern p =
   | PUnit -> []
   | Typed (p,s) -> string_of_pattern p
 
+let rec string_of_pat p =
+  match p.p_desc with
+  | Ident i -> i
+  | _ -> failwith "not a variable"
 
 let carr_name n =
   let rec name_of n =
@@ -399,6 +394,7 @@ let rec typing_expr gamma =
       unify(t,t0);
 
       shorten_var u
+    | Pre e -> failwith "pre"
   in
   clock_rec
 
@@ -475,8 +471,8 @@ let clock_node node tse clocking =
   let tt = Arrow (lin, lout) in
   let ts = (generalise_clock (!typing_env,tt)) in
   if !clocking then
-  Format.fprintf Format.std_formatter "%s :: %a\n" node.name print_clock_scheme ts;
+  Format.fprintf Format.std_formatter "%s :: %a\n" (string_of_pat node.name) print_clock_scheme ts;
 
-  List.hd (node.name, ts)::!typing_scheme_env
+  (string_of_pat node.name, ts)::!typing_scheme_env
   ,
   { cname = node.name  ; cinputs = cpatt_of_patt node.inputs (Clock_exp lin) ; coutputs = cpatt_of_patt node.outputs (Clock_exp lout) ; cequations }

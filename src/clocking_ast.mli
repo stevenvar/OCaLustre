@@ -20,7 +20,7 @@ and scheme = Forall of int list * string list *  ct (* arrow ? *)
 and carrier = string
 
 and cnode = {
-  cname : string;
+  cname : pattern;
   cinputs : cpattern;
   coutputs : cpattern;
   cequations : cequation list;
