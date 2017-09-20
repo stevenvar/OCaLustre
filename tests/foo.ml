@@ -12,7 +12,7 @@ let%node plus ~i:(a,b) ~o:(c,d) =
 let%node v ~i:(a,b) ~o:(c) =
   (* (c,d) = plus(1,2); *)
   (* (e,f) = (4->>5,8->>9); *)
-  c = 8 ->> 9
+  c = 1.5 ->> 2.5
 
 let%node k ~i:(a,b,c) ~o:(d,e) =
   e = a + b;
