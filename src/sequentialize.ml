@@ -377,14 +377,14 @@ let state_eq e ({pres;calls;outs} as s) =
   | Pre e' ->
     begin
       match e'.e_desc with
-      | Value v -> s
+      (* | Value v -> s *)
       | Variable n -> { s with pres = n::pres }
       | _ -> assert false
     end
   | Fby (_,e') ->
     begin
       match e'.e_desc with
-      | Value v -> s
+      (* | Value v -> s *)
       | _ -> {s with pres = (string_of_pattern e.pattern)::pres }
       (* assert false *)
     end

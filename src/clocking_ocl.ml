@@ -130,7 +130,6 @@ let gen_instance (Forall(gv,tau)) =
 let clock_expr gamma e =
   let rec clock_rec e =
     match e.e_desc with
-    (* | Value _ -> Number *)
     | Value _ -> Var (new_varclock ())
     | Variable n ->
       (* get the clock scheme of n in the env *)
