@@ -14,12 +14,17 @@ let%node v ~i:(a,b) ~o:(c) =
   (* (e,f) = (4->>5,8->>9); *)
   c = 8 ->> 9
 
+let%node k ~i:(a,c) ~o:(b) =
+  f = a @whn c;
+  d = a ;
+  b = f + d
+
 let _ =
   (* INIT *)
-  let s = v_init 1 2 in
-  print_int s.v_out_c;
+  let s = k_init 1 true in
+  print_int s.k_out_b;
   (* STEP *)
   for i = 0 to 10 do
-    v_step s 1 2;
-    print_int s.v_out_c;
+    k_step s 1 false;
+    print_int s.k_out_b;
   done

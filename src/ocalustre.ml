@@ -41,6 +41,9 @@ let create_node mapper str =
         let _norm_node = normalize_node _node in
         let _sched_node = schedule _norm_node in
         (* print_node Format.std_formatter _sched_node; *)
+        if !why then (
+          let whyml = Proof_compiling.pcompile_cnode _sched_node in
+          whyml_node Format.std_formatter whyml);
         if !alloc then
           let _inode = compile_cnode _sched_node in
           [Extracting.tocaml_node _inode]

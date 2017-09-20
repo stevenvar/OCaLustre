@@ -84,7 +84,7 @@ let rec whyml_expression fmt exp =
 
 let whyml_equations fmt el =
   let whyml_equation fmt e =
-    Format.fprintf fmt "let %a = %a in \n"
+    Format.fprintf fmt "let %a = %a in\n"
       print_pattern e.s_pattern
       whyml_expression e.s_expression
   in
@@ -133,14 +133,14 @@ let print_pre fmt (p,ins) =
   match p with
   | None -> ()
   | Some x ->
-    Format.fprintf fmt "requires {  %a } \n"
+    Format.fprintf fmt "requires {  %a }"
       whyml_expression x
 
 
 let print_pre_inv fmt (p,inv,st,ins) =
   match p,inv with
   | Some x , None  ->
-    Format.fprintf fmt "requires {  %a } \n"
+    Format.fprintf fmt "requires {  %a }"
 
       whyml_expression x
   | Some x , Some y ->
@@ -230,10 +230,8 @@ let whyml_fun_init fmt s_init =
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt
     "let %a_init %a =
-     %a
-     %a
-     %a
-     (%a,%a)"
+@[%a
+%a%a(%a,%a)@]"
     print_pattern name
     print_expanded_pattern inputs
   print_pre (pre,inputs)
@@ -260,10 +258,7 @@ let whyml_fun_step fmt s_step =
   let tpats_pre = prefix_pattern tpats "pre_" in
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt
-    "let %a_step %a %a = \n
-     %a
-     %a
-      %a (%a,%a)"
+    "let %a_step %a %a =\n@[%a\n%a\n%a\n(%a,%a)@]"
     print_pattern name
     print_expanded_pattern tpats_pre
     print_expanded_pattern inputs
@@ -283,19 +278,17 @@ let whyml_node fmt node =
   let tpats_pre = prefix_pattern tpats "pre_" in
   let tpats_post = prefix_pattern tpats "post_" in
   Format.fprintf fmt "
-let %a () =
- (* apps inits *)
-  %a
- (* instant 0 *)
-  %a
- in
- (* instant n *)
-  %a
- in
- (* switch between instant 0 and instant n >=0 *)
+@[let %a () =
+(* apps inits *)
+@[%a@]
+(* instant 0 *)\n@[%a@]
+in
+(* instant n *)\n@[%a@]
+in
+@[(* switch between instant 0 and instant n >=0 *)
  let state = ref None in
   fun %a %a ->
-   %a
+   @[%a
    match !state with
    | None -> let (s, result) = (%a_init %a ) in
              %a
@@ -306,8 +299,8 @@ let %a () =
              let (s, result) = (%a_step %a %a ) in
              %a
              (state := Some s; result)
-  end
-"
+  end@]
+@]@]"
     print_pattern node.s_name
 
     whyml_app_inits node.s_apps_init
