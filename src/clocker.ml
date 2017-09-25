@@ -51,14 +51,13 @@ let rec print_tuple f fmt l =
 
 
 let rec print_clock fmt = function
-
   | CVar {c_index = n ; c_value = CtUnknown } ->
     (*let name = try List.assoc n tvar_names
       with Not_found ->
         raise (ClockingBug ("Non generic variable :"^(string_of_int n)))
-      in *) Format.fprintf Format.std_formatter "%d?" n
+      in *) Format.fprintf Format.std_formatter "%d" n
   | CVar {c_index = n ; c_value = t} ->
-    Format.fprintf Format.std_formatter "%a" print_clock t
+    Format.fprintf Format.std_formatter "-%a" print_clock t
   | Arrow (t1,t2) -> Format.fprintf fmt "%a -> %a" print_clock t1 print_clock t2
   | CTuple tl -> Format.fprintf fmt  "(%a)" (print_tuple print_clock) tl
   | On (x,i) ->  Format.fprintf fmt "%a on %s" print_clock x i
@@ -95,10 +94,11 @@ let rec add_to_env i tau env =
 
 
 let print_env fmt gamma =
-  List.iter (fun (x,t) -> Format.fprintf Format.std_formatter "%a :: %a \n"
+  List.iter (fun (x,t) -> Format.fprintf Format.std_formatter "(%a :: %a) "
                 print_pattern {p_desc = x ; p_loc = Location.none}
                 print_clock t)
-    gamma
+            gamma;
+  Format.fprintf fmt "\n"
 
 let rec get_clock p env =
   match p.p_desc with
@@ -138,15 +138,12 @@ let occurs {c_index = n; c_value = _ } =
     | _  -> raise (ClockingBug "occurs")
   in occrec
 
-
-
 let rec unify (tau1, tau2) =
-
   match (shorten_var tau1, shorten_var tau2) with
   | (CVar ({c_index = n ;c_value =CtUnknown} as tv1) as t1),
     (CVar ({c_index = m ;c_value =CtUnknown} as tv2) as t2)
     ->
-    if n <> m then (tv2.c_value <- t1 );
+    if n <> m then (tv1.c_value <- t2 );
   | t1, (CVar ({c_index = _ ;c_value =CtUnknown} as tv) as t2)
     -> if not (occurs tv t1) then tv.c_value <- t1
     else raise (ClockClash (t1,t2))
@@ -339,7 +336,10 @@ let rec typing_expr gamma =
     | InfixOp (op, e1,e2) ->
       let t1 = clock_rec e1 in
       let t2 = clock_rec e2 in
-      unify (t1,t2) ; t1
+      print_env Format.std_formatter gamma;
+      unify (t1,t2) ; 
+      print_env Format.std_formatter gamma;
+      t1
     | PrefixOp (op, e1) -> clock_rec e1
     | Unit ->
       CVar (new_varclock ())

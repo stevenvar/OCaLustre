@@ -10,6 +10,7 @@ type clock_scheme = Forall of int list * clock
 
 (* The env is made of (name,type) couples for each variable *)
 type env_elem = (pattern * clock_scheme)
+(* type env_elem = (string * clock_scheme) *)
 
 let new_varclock, reset_varclocks =
   let cpt = ref 0 in
@@ -19,12 +20,67 @@ let new_varclock, reset_varclocks =
   ),
   fun () -> cpt := 0
 
+
+(* Harvest all the unknown variables in tau  *)
+let vars_of_clock tau =
+  let rec vars vs t =
+    match t with
+    | Var { index = n ; value = Unknown } ->
+      (* if the variable is already in the list, don't add *)
+      if List.mem n vs then vs else n::vs
+    | Var { index = _ ; value = t } ->
+      (* follow the indirection  *)
+      vars vs t
+    | Arrow(t1,t2) ->
+      vars (vars vs t1) t2
+    | CTuple [] -> failwith "empty tuple"
+    | CTuple (t::ts) ->
+      List.fold_left (fun acc t -> vars acc t) (vars vs t) ts
+    | Unknown -> failwith "vars_of_clock"
+  in
+  vars [] tau
+
+(* Function computing the diff of two lists  *)
+  let substract l1 l2 =
+    List.filter (fun x -> not (List.mem x l2)) l1
+
+(* Returns the variables in t that are not in bv (i.e. the free vars) *)
+let unknowns_of_type t bv =
+  substract (vars_of_clock t) bv
+
+(* Get all the free vars in a type env  *)
+let unknowns_of_type_env env =
+  List.flatten (List.map (function Forall(gv,t) -> unknowns_of_type t gv) env)
+
+(* We're working with sets  *)
+let rec make_set l =
+    match l with
+    | [] -> []
+    | x::xs ->
+    if List.mem x xs then
+      make_set l
+    else
+      x :: (make_set xs)
+
+(* A typing env is a list of types of the program *)
+(* let typing_env = ref [] *)
+let global_typing_env : env_elem list ref = ref []
+
+(* All the unknown vars of tau (except the ones in gamma) get bounded  *)
+let generalise_type gamma tau =
+  let gamma = List.map (fun (a,b) -> b) gamma in
+  let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
+  let genvars = make_set genvars in
+  Forall(genvars,tau)
+
+
 (* Shorten variables (follow indirection) *)
 
 let rec shorten t =
   match t with
   | Var { index = _ ; value = Unknown } -> t
-  | Var { index = _ ; value = Var { index = _ ; value = Unknown} as tv} -> tv
+  | Var { index = _ ; value = Var { index = m ; value = Unknown}} -> 
+     Var { index = m ; value = Unknown }
   | Var ({ index = _ ; value = Var tv1} as tv2) ->
     tv2.value <- tv1.value;
     shorten t
@@ -71,7 +127,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
       let name = string_of_int n in
       Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
-      Format.fprintf fmt "->%a" print_rec t
+      Format.fprintf fmt "*%a" print_rec t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "( %a -> %a )" print_rec t1 print_rec t2
     | CTuple ts ->
@@ -92,18 +148,15 @@ exception ClockClash of clock * clock
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  Format.fprintf Format.std_formatter "Unifying %a and %a \n"
-    print_clock_scheme (Forall([1;2;3;4;5;6],tau1))
-    print_clock_scheme (Forall([1;2;3;4;5;6], tau2));
+  Format.fprintf Format.std_formatter "J'unifie %a et %a \n" 
+  print_clock_scheme (generalise_type !global_typing_env tau1)
+  print_clock_scheme (generalise_type !global_typing_env tau2);
   match tau1, tau2 with
   | Var ({ index = n; value = Unknown} as tv1),
     Var { index = m; value = Unknown} ->
     (* two unknown variables *)
     (* tv1 -> tv2 -> <?> : every modif of tau2.value will modify tv1 *)
     if n <> m then tv1.value <- tau2;
-     Format.fprintf Format.std_formatter "Unifying %a and %a \n"
-    print_clock_scheme (Forall([1;2;3;4;5;6],tau1))
-    print_clock_scheme (Forall([1;2;3;4;5;6], tau2));
   | _ , Var ({index = _ ; value = Unknown} as tv) ->
     if not (occurs tv tau1) then tv.value <- tau1
     else (raise (ClockClash (tau1,tau2)))
@@ -116,32 +169,6 @@ let rec unify (tau1,tau2) =
     List.iter2 (fun a b -> unify(a,b)) tl1 tl2;
   | _ -> raise (ClockClash (tau1,tau2))
 
-(* A typing env is a list of types of the program *)
-(* let typing_env = ref [] *)
-let global_typing_env : env_elem list ref = ref []
-
-(* Harvest all the unknown variables in tau  *)
-let vars_of_clock tau =
-  let rec vars vs t =
-    match t with
-    | Var { index = n ; value = Unknown } ->
-      (* if the variable is already in the list, don't add *)
-      if List.mem n vs then vs else n::vs
-    | Var { index = _ ; value = t } ->
-      (* follow the indirection  *)
-      vars vs t
-    | Arrow(t1,t2) ->
-      vars (vars vs t1) t2
-    | CTuple [] -> failwith "empty tuple"
-    | CTuple (t::ts) ->
-      List.fold_left (fun acc t -> vars acc t) (vars vs t) ts
-    | Unknown -> failwith "vars_of_clock"
-  in
-  vars [] tau
-
-(* Function computing the diff of two lists  *)
-  let substract l1 l2 =
-    List.filter (fun x -> not (List.mem x l2)) l1
 
 (* Returns the variables in t that are not in bv (i.e. the free vars) *)
 let unknowns_of_type t bv =
@@ -161,13 +188,6 @@ let rec make_set l =
     else
       x :: (make_set xs)
 
-(* All the unknown vars of tau (except the ones in gamma) get bounded  *)
-let generalise_type gamma tau =
-  let gamma = List.map (fun (a,b) -> b) gamma in
-  let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
-  let genvars = make_set genvars in
-  Forall(genvars,tau)
-
 (* Create an instance of its type_env argument *)
 let gen_instance (Forall(gv,tau)) =
   (* Each generic variables get unknown *)
@@ -176,10 +196,12 @@ let gen_instance (Forall(gv,tau)) =
     match t with
     | Var { index = n; value = Unknown } ->
       (* If the variable is generic get its corresponding unkown *)
-      (try
-         List.assoc n unknowns
-       (* Otherwise stay free *)
-       with Not_found -> t)
+      begin 
+        try
+          List.assoc n unknowns
+      (* Otherwise stay free *)
+        with Not_found -> t
+      end
     | Var { index = _ ; value = t } ->
       (* follow indirection *)
       ginstance t
@@ -189,25 +211,19 @@ let gen_instance (Forall(gv,tau)) =
   in
   ginstance tau
 
-let clock_lookup n gamma =
-  let rec found p =
-    match p.p_desc with
-    | Ident m -> n = m
-    | Typed (p,s) -> found p
-    | Tuple (pl) ->
-      (* Wrong behaviour : we want to get the n-th clock for the n-th ident in a pattern *)
-      List.fold_left (fun acc p -> acc || found p) false pl
-    | PUnit -> false
+let clock_lookup (n:string) (gamma: env_elem list) =
+  let rec get_idents l = 
+    match l with 
+    | [] -> []
+    | ({ p_desc = Ident x; p_loc = _},y)::xs -> 
+       (x,y)::(get_idents xs)
+    | _::xs -> 
+       (get_idents xs)
   in
-let rec aux l =
-    match l with
-      [] -> raise Not_found
-      | (x,t)::xs ->
-        if found x then t else aux xs
-  in
-  aux gamma
-
-let print_env env =
+  let gamma = get_idents gamma in 
+  List.assoc n gamma
+  
+let print_env (env : env_elem list) =
   let rec print_list fmt l =
     match l with
       [] -> Format.fprintf fmt ""
@@ -230,17 +246,30 @@ let clock_expr gamma e =
     | Variable n ->
       (* get the clock scheme of n in the env *)
       let sigma =
-        (try clock_lookup n gamma
-         with Not_found ->
-           Error.print_error e.e_loc ("Unbound variable "^n))
+        begin 
+          try clock_lookup n gamma
+          with Not_found ->
+            Error.print_error e.e_loc ("Unbound variable "^n)
+        end
         (* instantiate it *)
-      in gen_instance sigma
+      in
+      Format.fprintf Format.std_formatter "On trouve %s :: %a \n" 
+                     n print_clock_scheme sigma;
+      let gs = gen_instance sigma in 
+(* Problem here : gen_instance creates new variables *)
+      Format.fprintf Format.std_formatter "GenInstance : %a \n" 
+                     print_clock_scheme (generalise_type !global_typing_env gs);
+      gs
     | InfixOp (op,e1,e2) ->
       let c1 = clock_rec e1 in
       let c2 = clock_rec e2 in
-      print_env !global_typing_env;
+      print_env gamma;
+      print_clock_scheme Format.std_formatter (generalise_type !global_typing_env c1);
+      print_clock_scheme Format.std_formatter (generalise_type !global_typing_env c2);
       unify(c1,c2);
-      print_env !global_typing_env;
+      print_clock_scheme Format.std_formatter (generalise_type !global_typing_env c1);
+      print_clock_scheme Format.std_formatter (generalise_type !global_typing_env c2);
+      print_env gamma;
       c1
     | Alternative (e1,e2,e3) ->
       let c1 = clock_rec e1 in
@@ -255,7 +284,7 @@ let clock_expr gamma e =
       let c2 = clock_rec e' in
       unify(c1,Arrow(c2,u)); u
     | ETuple es -> CTuple (List.map clock_rec es)
-    | _ -> Var (new_varclock ())
+    | _ -> failwith "type"
   in
   clock_rec e
 
@@ -277,7 +306,7 @@ let clocking ({ pattern = p; expression = e}) =
   let sigma = generalise_type !global_typing_env tau in
   (* global_env := s::!global_env; *)
   global_typing_env := (p,sigma)::!global_typing_env;
-  reset_varclocks ();
+  (* reset_varclocks (); *)
   Format.fprintf fmt "Clock of %a is %a \n" Parsing_ast_printer.print_pattern p
     print_clock_scheme sigma
 
@@ -321,6 +350,7 @@ let rec lookup_clock env p =
 
 
 let clock_node node =
+  reset_varclocks ();
   (* "Uncurrying" inputs and outputs ...   *)
   let ins = split_tuple node.inputs in
   (* let outs = split_tuple node.outputs in *)
