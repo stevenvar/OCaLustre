@@ -46,7 +46,7 @@ let create_node mapper str =
           whyml_node Format.std_formatter whyml);
         if !clocking then (
           let _ = Clocker.clock_node _sched_node (ref []) (ref true) in
-          Clocking_ocl.test ()
+          Clocking_ocl.clock_node _sched_node
         );
         if !alloc then
           let _inode = compile_cnode _sched_node in
