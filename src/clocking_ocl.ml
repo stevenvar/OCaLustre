@@ -6,6 +6,7 @@ type clock = Unknown
            | CTuple of clock list
            | Arrow of clock * clock
            | On of clock * ident
+           | Onnot of clock * ident
            | Carrier of ident * clock (* clocks with a name like c :: 'a *)
 
 and varclock = { index : int ; mutable value : clock }
@@ -40,6 +41,7 @@ let vars_of_clock tau =
     | CTuple (t::ts) ->
       List.fold_left (fun acc t -> vars acc t) (vars vs t) ts
     | On (c,s) -> vars vs c
+    | Onnot (c,s) -> vars vs c
     | Carrier (s,c) -> vars vs c
     | Unknown -> failwith "vars_of_clock"
   in
@@ -100,6 +102,7 @@ let occurs { index = n ; value = _ } t =
     | Arrow (t1,t2) -> (occrec t1) || (occrec t2)
     | CTuple ts -> List.fold_left (fun acc t -> acc || occrec t) false ts
     | On (c,s) -> occrec c
+    | Onnot (c,s) -> occrec c
     | Carrier (s,c) -> occrec c
     | Unknown -> failwith "occurs"
   in occrec t
@@ -147,6 +150,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
       in
       Format.fprintf fmt "(%a)" print_list ts
     | On (c,s) -> Format.fprintf fmt "%a on %s" print_rec c s
+    | Onnot (c,s) -> Format.fprintf fmt "%a on (not %s)" print_rec c s
     | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_rec c
     | Unknown -> failwith "printclockscheme"
   in
@@ -183,6 +187,8 @@ let rec unify (tau1,tau2) =
     unify(t2,t2')
   | CTuple tl1, CTuple tl2 ->
     List.iter2 (fun a b -> unify(a,b)) tl1 tl2;
+  | Onnot (c,x) , Onnot (d,y) when x = y ->
+    unify(c,d)
   | On (c,x) , On (d,y) when x = y ->
     (* We can only unify values sampled with the same clock *)
     unify(c,d);
@@ -229,6 +235,7 @@ let gen_instance (Forall(gv,tau)) =
     | Arrow(t1,t2) -> Arrow(ginstance t1, ginstance t2)
     | CTuple ts -> CTuple (List.map ginstance ts)
     | On (c,s) -> On (ginstance c,s)
+    | Onnot (c,s) -> Onnot (ginstance c,s)
     | Carrier (s,c) -> Carrier (s,ginstance c)
     | Unknown -> failwith "gen_instance"
   in
@@ -303,11 +310,7 @@ let clock_expr gamma e =
       let c1 = gen_instance c1 in
       let c2 = clock_rec e' in
       let t = Arrow (c2,u) in
-
-
       unify(c1,t);
-      (* Format.fprintf Format.std_formatter "=> \n %a \n \n" print_clock_scheme (generalise_type gamma t); *)
-      (* Format.fprintf Format.std_formatter "=> \n %a \n \n" print_clock_scheme (generalise_type gamma u); *)
       u
     | When (e,c) ->
       let c1 = clock_rec e in
@@ -317,6 +320,19 @@ let clock_expr gamma e =
       let s = "clk_"^s in
       let a = Var (new_varclock ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
+      (* clock of result *)
+      let u = Var (new_varclock ()) in
+      let new_type = Arrow(c1,Arrow(c2,u)) in
+      unify(tt,new_type);
+      u
+    | Whennot (e,c) ->
+      let c1 = clock_rec e in
+      let c2 = clock_rec c in
+      (* Clock of 'whenot' is 'a -> (c :: 'a) -> 'a on (not c) *)
+      let s = get_ident c in
+      let s = "clk_"^s in
+      let a = Var (new_varclock ()) in
+      let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
       (* clock of result *)
       let u = Var (new_varclock ()) in
       let new_type = Arrow(c1,Arrow(c2,u)) in
