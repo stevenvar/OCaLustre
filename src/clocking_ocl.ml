@@ -338,6 +338,19 @@ let clock_expr gamma e =
       let new_type = Arrow(c1,Arrow(c2,u)) in
       unify(tt,new_type);
       u
+    | Merge (c,e1,e2) ->
+      let cc = clock_rec c in
+      let c1 = clock_rec e1 in
+      let c2 = clock_rec e2 in
+      let s = get_ident c in
+      let s = "clk_"^s in
+      (* Clock of 'whenot' is clk:'a -> 'a on c -> 'a on (not c) -> 'a *)
+      let a = Var(new_varclock () ) in
+      let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
+      let u = Var (new_varclock () ) in
+      let new_type = Arrow(cc,Arrow(c1,Arrow(c2,u))) in
+      unify(tt,new_type);
+      u
     | ETuple es -> CTuple (List.map clock_rec es)
     | _ -> failwith "type"
   in
