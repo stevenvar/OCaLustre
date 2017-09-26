@@ -90,118 +90,161 @@ let rec get_idents l e =
   let l = get_idents l e1 in
   l
 
+(* Extract name of a clock in ocaml attribute *)
+let extract_clock attr =
+  let (sl,p) = attr in
+  match p with
+  | PStr str ->
+    begin
+      match str with
+        [x] ->
+        begin
+          match x.pstr_desc with
+          | Pstr_eval (e,attr) ->
+            begin
+              match e.pexp_desc with
+              | Pexp_ident {txt = (Lident v); loc} -> e
+              | _ -> Error.syntax_error e.pexp_loc
+            end
+          | _ -> Error.syntax_error x.pstr_loc
+        end
+      | _ -> Error.syntax_error sl.loc
+    end
+  | _ -> Error.syntax_error sl.loc
 
 (* transform expressions to node of the ocalustre AST *)
-let rec mk_expr e =
-  match e with
-  | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
-  | { pexp_desc = Pexp_tuple el ; pexp_loc ; pexp_attributes} ->
-    let l = List.map mk_expr el in
-    { e_desc = ETuple (l) ;
-      e_loc = pexp_loc }
+let make_expression e =
+  (* Get attributes and extract their name and value *)
+  let attr = e.pexp_attributes in
+  let clk = if attr <> [] then
+      let a = List.hd attr in
+      let (sl,pl) = a in
+      Some (sl,extract_clock a)
+    else None
+  in
+  let rec mk_expr e =
+    (* List.iter ( fun (sl,p) ->  Format.fprintf Format.std_formatter "=>%s<=\n" sl.txt ) attr; *)
+    match e with
+    | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
+    | { pexp_desc = Pexp_tuple el ; pexp_loc ; pexp_attributes} ->
+      let l = List.map mk_expr el in
+      { e_desc = ETuple (l) ;
+        e_loc = pexp_loc }
 
-  | [%expr [%e? e1] = [%e? e2] ] ->
-    { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ;
-      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] <> [%e? e2] ] ->
-    { e_desc = InfixOp(Diff, mk_expr e1, mk_expr e2) ;
-      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] + [%e? e2] ] -> { e_desc = mk_expr e1 +/ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] * [%e? e2] ] -> { e_desc = mk_expr e1 */ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] - [%e? e2] ] -> { e_desc = mk_expr e1 -/ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] / [%e? e2] ] -> { e_desc = mk_expr e1 // mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] +. [%e? e2] ] -> { e_desc = mk_expr e1 +./ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] *. [%e? e2] ] -> { e_desc = mk_expr e1 *./ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] -. [%e? e2] ] -> { e_desc = mk_expr e1 -./ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] /. [%e? e2] ] -> { e_desc = mk_expr e1 /./ mk_expr e2 ;
-                                       e_loc = e.pexp_loc }
-  | [%expr [%e? e1] > [%e? e2] ] -> { e_desc = mk_expr e1 >/ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] < [%e? e2] ] -> { e_desc = mk_expr e1 </ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] <= [%e? e2] ] -> { e_desc = mk_expr e1 <=/ mk_expr e2 ;
-                                      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] >= [%e? e2] ] -> { e_desc = mk_expr e1 >=/ mk_expr e2 ;
-                                       e_loc = e.pexp_loc }
-  | [%expr [%e? e1] && [%e? e2] ] -> { e_desc = mk_expr e1 &&/ mk_expr e2 ;
-                                       e_loc = e.pexp_loc }
-  | [%expr [%e? e1] || [%e? e2] ] -> { e_desc = mk_expr e1 ||/ mk_expr e2 ;
-                                       e_loc = e.pexp_loc }
-  | [%expr [%e? e1] mod [%e? e2] ] -> { e_desc = InfixOp (Mod,mk_expr e1,mk_expr e2) ;
-                                       e_loc = e.pexp_loc }
-  | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
-    { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
-      e_loc = e.pexp_loc }
-  | [%expr merge ([%e? e1]) ([%e? e2]) ([%e? e3]) ] ->
-    { e_desc = Merge ((mk_expr e1),(mk_expr e2),(mk_expr e3)) ;
-      e_loc = e.pexp_loc }
-  | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ;
-                              e_loc = e.pexp_loc }
-  | [%expr pre [%e? e] ] -> { e_desc = Pre (mk_expr e) ;
-                              e_loc = e.pexp_loc }
-  | [%expr ~- [%e? e] ] -> { e_desc = PrefixOp (Neg,(mk_expr e)) ;
-                             e_loc = e.pexp_loc }
-  | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ;
-                              e_loc = e.pexp_loc }
-  | { pexp_desc = Pexp_constant c;
-      pexp_loc ;
-      pexp_attributes } ->
-    begin match c with
-      | Pconst_integer (i,s) -> { e_desc = Value (Integer (int_of_string i)) ;
-                                  e_loc = e.pexp_loc }
-      | Pconst_float (f,s) -> { e_desc = Value (Float (float_of_string f)) ;
+    | [%expr [%e? e1] = [%e? e2] ] ->
+      { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ;
+        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] <> [%e? e2] ] ->
+      { e_desc = InfixOp(Diff, mk_expr e1, mk_expr e2) ;
+        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] + [%e? e2] ] -> { e_desc = mk_expr e1 +/ mk_expr e2 ;
+                                        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] * [%e? e2] ] -> { e_desc = mk_expr e1 */ mk_expr e2 ;
+                                        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] - [%e? e2] ] -> { e_desc = mk_expr e1 -/ mk_expr e2 ;
+                                        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] / [%e? e2] ] -> { e_desc = mk_expr e1 // mk_expr e2 ;
+                                        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] +. [%e? e2] ] -> { e_desc = mk_expr e1 +./ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] *. [%e? e2] ] -> { e_desc = mk_expr e1 *./ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] -. [%e? e2] ] -> { e_desc = mk_expr e1 -./ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] /. [%e? e2] ] -> { e_desc = mk_expr e1 /./ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] > [%e? e2] ] -> { e_desc = mk_expr e1 >/ mk_expr e2 ;
+                                        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] < [%e? e2] ] -> { e_desc = mk_expr e1 </ mk_expr e2 ;
+                                        e_loc = e.pexp_loc }
+    | [%expr [%e? e1] <= [%e? e2] ] -> { e_desc = mk_expr e1 <=/ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] >= [%e? e2] ] -> { e_desc = mk_expr e1 >=/ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] && [%e? e2] ] -> { e_desc = mk_expr e1 &&/ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] || [%e? e2] ] -> { e_desc = mk_expr e1 ||/ mk_expr e2 ;
+                                         e_loc = e.pexp_loc }
+    | [%expr [%e? e1] mod [%e? e2] ] -> { e_desc = InfixOp (Mod,mk_expr e1,mk_expr e2) ;
+                                          e_loc = e.pexp_loc }
+    | [%expr if ([%e? e1]) then ([%e? e2]) else ([%e? e3]) ] ->
+      { e_desc = alternative (mk_expr e1) (mk_expr e2) (mk_expr e3) ;
+        e_loc = e.pexp_loc }
+    | [%expr merge ([%e? e1]) ([%e? e2]) ([%e? e3]) ] ->
+      { e_desc = Merge ((mk_expr e1),(mk_expr e2),(mk_expr e3)) ;
+        e_loc = e.pexp_loc }
+    | [%expr not [%e? e] ] -> { e_desc = mk_not (mk_expr e) ;
                                 e_loc = e.pexp_loc }
-      | Pconst_string (str,s) -> { e_desc = Value (String str);
-                                   e_loc = e.pexp_loc }
-      | _ -> assert false   (* only int/float ftm *)
-    end
-  | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; loc} ,e);
-      pexp_loc ;
-      pexp_attributes } ->
-     begin match e with
-      | None -> { e_desc = Value (Enum s) ;
-                                e_loc = pexp_loc }
-      | _ -> assert false   (* only enum types *)
-    end
+    | [%expr pre [%e? e] ] -> { e_desc = Pre (mk_expr e) ;
+                                e_loc = e.pexp_loc }
+    | [%expr ~- [%e? e] ] -> { e_desc = PrefixOp (Neg,(mk_expr e)) ;
+                               e_loc = e.pexp_loc }
+    | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ;
+                                e_loc = e.pexp_loc }
+    | { pexp_desc = Pexp_constant c;
+        pexp_loc ;
+        pexp_attributes } ->
+      begin match c with
+        | Pconst_integer (i,s) -> { e_desc = Value (Integer (int_of_string i)) ;
+                                    e_loc = e.pexp_loc }
+        | Pconst_float (f,s) -> { e_desc = Value (Float (float_of_string f)) ;
+                                  e_loc = e.pexp_loc }
+        | Pconst_string (str,s) -> { e_desc = Value (String str);
+                                     e_loc = e.pexp_loc }
+        | _ -> assert false   (* only int/float ftm *)
+      end
+    | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; loc} ,e);
+        pexp_loc ;
+        pexp_attributes } ->
+      begin match e with
+        | None -> { e_desc = Value (Enum s) ;
+                    e_loc = pexp_loc }
+        | _ -> assert false   (* only enum types *)
+      end
 
-  | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
-    mk_expr e
-  | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
-     pexp_loc ;
-     pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
-  | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
-  | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] ->> [%e? e2] ]  ->
-    { e_desc = Fby (mk_expr e1 , mk_expr e2);
-      e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] --> [%e? e2] ]  ->
-    { e_desc = Arrow (mk_expr e1 , mk_expr e2);
-      e_loc = e.pexp_loc  }
-  | [%expr [%e? e1] @whn [%e? e2] ] ->
-    { e_desc =  When (mk_expr e1 , mk_expr e2) ;
-      e_loc = e.pexp_loc }
-  | [%expr [%e? e1] @whnot [%e? e2] ] ->
-    { e_desc =  Whennot (mk_expr e1 , mk_expr e2) ;
-      e_loc = e.pexp_loc }
-  | [%expr call ([%e? e1]) ] ->
-    let app = Call (e1)
-    in
-    { e_desc = app ; e_loc = e.pexp_loc }
-  | [%expr [%e? e1] [%e? e2] ] ->
-    let app = Application(checkname_ident e1, mk_expr e2)
-    in
-    { e_desc = app ; e_loc = e.pexp_loc }
+    | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
+      mk_expr e
+    | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
+       pexp_loc ;
+       pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
+    | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
+    | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
+    | [%expr [%e? e1] ->> [%e? e2] ]  ->
+      { e_desc = Fby (mk_expr e1 , mk_expr e2);
+        e_loc = e.pexp_loc  }
+    | [%expr [%e? e1] --> [%e? e2] ]  ->
+      { e_desc = Arrow (mk_expr e1 , mk_expr e2);
+        e_loc = e.pexp_loc  }
+    (* | [%expr [%e? e1] @whn [%e? e2] ] -> *)
+    (*   { e_desc =  When (mk_expr e1 , mk_expr e2) ; *)
+    (*     e_loc = e.pexp_loc } *)
+    (* | [%expr [%e? e1] @whnot [%e? e2] ] -> *)
+    (*   { e_desc =  Whennot (mk_expr e1 , mk_expr e2) ; *)
+    (*     e_loc = e.pexp_loc } *)
+    | [%expr call ([%e? e1]) ] ->
+      let app = Call (e1)
+      in
+      { e_desc = app ; e_loc = e.pexp_loc }
+    | [%expr [%e? e1] [%e? e2] ] ->
+      let app = Application(checkname_ident e1, mk_expr e2)
+      in
+      { e_desc = app ; e_loc = e.pexp_loc }
 
-  | _ ->
-    Pprintast.expression Format.std_formatter e;
-    Error.syntax_error e.pexp_loc
+    | _ ->
+      Pprintast.expression Format.std_formatter e;
+      Error.syntax_error e.pexp_loc
+  in
+  let exp = mk_expr e in
+  match clk with
+  |  Some (sl,clk) ->
+    begin
+      match sl.txt with
+      | "when" -> { exp with e_desc = When (exp,mk_expr clk)}
+      | "whenot" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
+      | "whennot" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
+      | _ -> Error.print_error clk.pexp_loc "Wrong attribute"
+    end
+  | None -> exp
 
 let id_of_lid lid =
   match lid with
@@ -211,21 +254,21 @@ let id_of_lid lid =
 let rec pat_of_pexp p =
   match p.pexp_desc with
   | Pexp_ident i -> { p_desc = Ident (id_of_lid i.txt) ;
-                  p_loc = p.pexp_loc ; }
+                      p_loc = p.pexp_loc ; }
   | Pexp_tuple t ->
     let tl = List.map (fun p -> pat_of_pexp p) t in
     { p_desc = Tuple tl ;
       p_loc = p.pexp_loc ;
     }
-   | Pexp_constraint (e',t) ->
-      let pat' =
-        begin match t.ptyp_desc with
-          | Ptyp_constr ({ loc ; txt = lid},_) ->
-            { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc }
-          | _ -> Error.syntax_error p.pexp_loc
-        end
-      in
-      pat'
+  | Pexp_constraint (e',t) ->
+    let pat' =
+      begin match t.ptyp_desc with
+        | Ptyp_constr ({ loc ; txt = lid},_) ->
+          { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc }
+        | _ -> Error.syntax_error p.pexp_loc
+      end
+    in
+    pat'
   | _ -> raise @@ Invalid_argument "pat_of_expr"
 
 (* creates equation node in the AST *)
@@ -237,14 +280,14 @@ let mk_equation eq =
     | Pexp_ident _ ->
       {
         pattern= pat_of_pexp p;
-        expression = mk_expr e
+        expression = make_expression e
     }
     | Pexp_tuple tu ->
      { pattern=  pat_of_pexp p;
-       expression = mk_expr e}
+       expression = make_expression e}
     | Pexp_constraint (e',t) ->
 
-      { pattern = pat_of_pexp p ; expression = mk_expr e}
+      { pattern = pat_of_pexp p ; expression = make_expression e}
     | _ -> Error.syntax_error eq.pexp_loc
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
@@ -265,17 +308,17 @@ let rec mk_equations eqs =
 
 let mk_pre b =
   match b with
-  | [%expr pre [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
+  | [%expr pre [%e? e] ; [%e? e' ] ] -> Some (make_expression e) , e'
   | _ -> None , b
 
 let mk_post b =
   match b with
-  | [%expr post [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
+  | [%expr post [%e? e] ; [%e? e' ] ] -> Some (make_expression e) , e'
   | _ -> None , b
 
 let mk_inv b =
   match b with
-  | [%expr inv [%e? e] ; [%e? e' ] ] -> Some (mk_expr e) , e'
+  | [%expr inv [%e? e] ; [%e? e' ] ] -> Some (make_expression e) , e'
   | _ -> None , b
 
 
@@ -324,8 +367,8 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
 (* creates a node "lustre node" in the AST *)
 let mk_node name body =
   let name = checkname_pattern name in
-  let inputs, body = checkio (Labelled "i") body in
-  let outputs, body = checkio (Labelled "o") body in
+  let inputs, body = checkio (Nolabel) body in
+  let outputs, body = checkio (Labelled "return") body in
   let pre,body = mk_pre body in
   let post,body = mk_post body in
   let inv,body = mk_inv body in

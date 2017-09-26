@@ -40,7 +40,8 @@ let create_node mapper str =
         let _node = mk_node v.pvb_pat v.pvb_expr in
         let _norm_node = normalize_node _node in
         let _sched_node = schedule _norm_node in
-        (* print_node Format.std_formatter _sched_node; *)
+        if !verbose then
+          print_node Format.std_formatter _sched_node;
         if !why then (
           let whyml = Proof_compiling.pcompile_cnode _sched_node in
           whyml_node Format.std_formatter whyml);

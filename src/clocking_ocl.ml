@@ -147,7 +147,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
       in
       Format.fprintf fmt "(%a)" print_list ts
     | On (c,s) -> Format.fprintf fmt "%a on %s" print_rec c s
-    | Carrier (s,c) -> Format.fprintf fmt "%s:%a" s print_rec c
+    | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_rec c
     | Unknown -> failwith "printclockscheme"
   in
   let rec print_list fmt l =
@@ -156,7 +156,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
     | [x] -> Format.fprintf fmt "%s" (List.assoc x cvar_names)
     | x::xs -> Format.fprintf fmt "%s,%a" (List.assoc x cvar_names) print_list xs
   in
-  Format.fprintf fmt "∀ %a.%a" print_list (List.rev gv)  print_rec t
+  Format.fprintf fmt "forall %a.%a" print_list (List.rev gv)  print_rec t
 
 (* Unification function : unifies types tau1 and tau2 *)
 exception ClockClash of clock * clock
@@ -164,9 +164,9 @@ exception ClockClash of clock * clock
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  Format.fprintf Format.std_formatter "Unifying %a and %a \n"
-  print_clock_scheme (generalise_type !global_typing_env tau1)
-  print_clock_scheme (generalise_type !global_typing_env tau2);
+  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n" *)
+  (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
+  (* print_clock_scheme (generalise_type !global_typing_env tau2); *)
   match tau1, tau2 with
   | Var ({ index = n; value = Unknown} as tv1),
     Var { index = m; value = Unknown} ->
@@ -336,10 +336,11 @@ let clocking gamma ({ pattern = p; expression = e}) =
     with ClockClash (c1,c2) ->
       begin
         let vars = (vars_of_clock c1)@(vars_of_clock c2) in
-        Format.fprintf fmt "Clash between %a and %a"
+        let s1 = Format.asprintf
+        "Clock clash between %a and %a"
           print_clock_scheme (Forall(vars,c1))
-          print_clock_scheme (Forall(vars,c2));
-        failwith ":("
+          print_clock_scheme (Forall(vars,c2)) in
+        Error.print_error e.e_loc s1
       end
   in
   let sigma = generalise_type gamma tau in
@@ -417,9 +418,9 @@ let clock_node node =
         let clk = Var (new_varclock ()) in
         (p,Forall([],clk))::acc) env ins in
   let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
-  Format.fprintf Format.std_formatter "local env of %a : %a"
-    Parsing_ast_printer.print_pattern node.name
-    print_env env;
+  (* Format.fprintf Format.std_formatter "local env of %a : %a" *)
+  (*   Parsing_ast_printer.print_pattern node.name *)
+  (*   print_env env; *)
   let ins_p = List.map (fun { p_desc = Ident i; p_loc = _} -> i) ins in
   let ckins = List.map (look_for_ident env) ins_p in
   let ckins = List.map (fun (Forall(_,c)) -> c) ckins in
@@ -430,7 +431,7 @@ let clock_node node =
   let t = Arrow(gen_instance ckins, gen_instance ckouts) in
   let tt = generalise_type !global_typing_env t in
   global_typing_env := ((node.name,tt)::!global_typing_env);
-  Format.fprintf Format.std_formatter "global env : %a" print_env !global_typing_env;
+  (* Format.fprintf Format.std_formatter "global env : %a" print_env !global_typing_env; *)
   Format.fprintf Format.std_formatter "%a : %a\n"
     Parsing_ast_printer.print_pattern node.name
     print_clock_scheme tt
