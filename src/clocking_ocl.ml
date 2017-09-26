@@ -149,8 +149,8 @@ let print_clock_scheme fmt (Forall(gv,t)) =
         | x::xs -> Format.fprintf fmt "%a * %a" print_rec x print_list xs
       in
       Format.fprintf fmt "(%a)" print_list ts
-    | On (c,s) -> Format.fprintf fmt "%a on %s" print_rec c s
-    | Onnot (c,s) -> Format.fprintf fmt "%a on (not %s)" print_rec c s
+    | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_rec c s
+    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_rec c s
     | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_rec c
     | Unknown -> failwith "printclockscheme"
   in
@@ -372,6 +372,7 @@ let clocking gamma ({ pattern = p; expression = e}) =
         Error.print_error e.e_loc s1
       end
   in
+  let tau = shorten tau in
   let sigma = generalise_type gamma tau in
   (* Format.fprintf fmt "Clock of %a is %a \n" Parsing_ast_printer.print_pattern p *)
     (* print_clock_scheme sigma; *)
@@ -407,6 +408,7 @@ let rec look_for_ident (env : env_elem list) i =
         if x = i then s
         else look_for_ident xs i
       | Tuple tl ->
+
         let tl = List.map (fun { p_desc = p } -> p) tl in
         begin
           try
@@ -417,7 +419,8 @@ let rec look_for_ident (env : env_elem list) i =
           with Not_found ->
             look_for_ident xs i
         end
-      | _ -> look_for_ident xs i
+      | _ ->
+        look_for_ident xs i
     end
 
 
@@ -449,13 +452,13 @@ let clock_node node =
   let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
   (* Format.fprintf Format.std_formatter "local env of %a : %a" *)
   (*   Parsing_ast_printer.print_pattern node.name *)
-  (*   print_env env; *)
+
   let ins_p = List.map (fun { p_desc = Ident i; p_loc = _} -> i) ins in
   let ckins = List.map (look_for_ident env) ins_p in
   let ckins = List.map (fun (Forall(_,c)) -> c) ckins in
   let ckins = CTuple ckins in
   let ckins = generalise_type env ckins in
-  (* (\* let ckins = lookup_clock !global_typing_env node.inputs in *\) *)
+  (* print_env Format.std_formatter env; *)
   let ckouts = lookup_clock env node.outputs in
   let t = Arrow(gen_instance ckins, gen_instance ckouts) in
   let tt = generalise_type !global_typing_env t in
