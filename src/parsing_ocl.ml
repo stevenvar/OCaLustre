@@ -104,13 +104,13 @@ let extract_clock attr =
             begin
               match e.pexp_desc with
               | Pexp_ident {txt = (Lident v); loc} -> e
-              | _ -> Error.syntax_error e.pexp_loc
+              | _ -> Error.syntax_error e.pexp_loc "should be an ident"
             end
-          | _ -> Error.syntax_error x.pstr_loc
+          | _ -> Error.syntax_error x.pstr_loc "wrong form of clock"
         end
-      | _ -> Error.syntax_error sl.loc
+      | _ -> Error.syntax_error sl.loc "wrong clock"
     end
-  | _ -> Error.syntax_error sl.loc
+  | _ -> Error.syntax_error sl.loc "wrong attribute"
 
 (* transform expressions to node of the ocalustre AST *)
 let make_expression e =
@@ -231,8 +231,10 @@ let make_expression e =
       { e_desc = app ; e_loc = e.pexp_loc }
 
     | _ ->
-      Pprintast.expression Format.std_formatter e;
-      Error.syntax_error e.pexp_loc
+       let s =
+         Format.asprintf "in %a"
+                       Pprintast.expression e in 
+      Error.syntax_error e.pexp_loc s
   in
   let exp = mk_expr e in
   match clk with
@@ -265,7 +267,8 @@ let rec pat_of_pexp p =
       begin match t.ptyp_desc with
         | Ptyp_constr ({ loc ; txt = lid},_) ->
           { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc }
-        | _ -> Error.syntax_error p.pexp_loc
+        | _ ->
+           Error.syntax_error p.pexp_loc "this is not a type constraint"
       end
     in
     pat'
@@ -288,7 +291,8 @@ let mk_equation eq =
     | Pexp_constraint (e',t) ->
 
       { pattern = pat_of_pexp p ; expression = make_expression e}
-    | _ -> Error.syntax_error eq.pexp_loc
+    | _ -> 
+       Error.syntax_error eq.pexp_loc "in equation"
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
     pexp_loc ;
@@ -296,7 +300,8 @@ let mk_equation eq =
     print_endline "tuuuuple";
     {pattern= { p_desc =  Tuple (checkname_tuple p) ; p_loc = pexp_loc } ;
             expression = mk_expr (snd e)} *)
-  | _ -> Error.syntax_error eq.pexp_loc
+  | _ -> 
+     Error.syntax_error eq.pexp_loc "not an equation" 
 
 
 
@@ -331,9 +336,9 @@ let rec parse_patt p =
         begin match t.ptyp_desc with
           | Ptyp_constr ({ loc ; txt = lid},_) ->
             { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc }
-          | _ -> Error.syntax_error p.ppat_loc
+          | _ -> Error.syntax_error p.ppat_loc "this is not a type constraint"
         end
-      | _ -> Error.syntax_error p.ppat_loc
+      | _ -> Error.syntax_error p.ppat_loc "unknown pattern format"
 
 (* check that the I/O are tuples and returns a tuple of corresponding idents *)
 let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
@@ -348,11 +353,11 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
         begin match t.ptyp_desc with
           | Ptyp_constr ({ loc ; txt = lid},_) ->
             { p_desc = Typed (parse_patt p , id_of_lid lid) ; p_loc = p.ppat_loc } , e
-          | _ -> Error.syntax_error p.ppat_loc
+          | _ -> Error.syntax_error p.ppat_loc "this is not a type constraint"
         end
-      | _ -> Error.syntax_error p.ppat_loc
+      | _ -> Error.syntax_error p.ppat_loc "unknown pattern format"
     else
-      Error.syntax_error body.pexp_loc
+      Error.syntax_error body.pexp_loc "wrong label"
   (*  | [%expr fun () -> [%e? body] ] -> ( [], body)
       | [%expr fun [%p? inputs] -> [%e? body] ] ->
       begin match inputs.ppat_desc with
@@ -360,7 +365,7 @@ let checkio s ({pexp_desc; pexp_loc; pexp_attributes} as body) =
         | Ppat_tuple l -> (List.map (fun x -> checkname_pattern x) l, body) (* todo *)
         | _ -> (* Error.syntax_error body.pexp_loc *) failwith "okok"
       end *)
-  | _ -> Error.syntax_error body.pexp_loc
+  | _ -> Error.syntax_error body.pexp_loc "wrong i/o"
 
 
 

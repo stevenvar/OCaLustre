@@ -57,7 +57,7 @@ let create_node mapper str =
           let _seq_node = seq_node _sched_node outputs_env in
           (* print_s_node Format.std_formatter _seq_node; *)
           tocaml_node _seq_node
-      | _ -> Error.syntax_error s.pstr_loc
+      | _ -> Error.syntax_error s.pstr_loc "not a node"
     end
   | x -> [default_mapper.structure_item mapper str]
 

@@ -7,5 +7,5 @@ let print_error loc string =
   failwith string
     (* raise (Location.Error (Location.error ~loc:loc ("Error:"^string))) *)
 
-  let syntax_error loc =
-    print_error loc "Syntax Error"
+let syntax_error loc s =
+    print_error loc ("Syntax Error : "^s)

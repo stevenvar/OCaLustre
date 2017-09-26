@@ -461,6 +461,7 @@ let seq_node n env =
   let outputs = list_of_pat n.outputs in
   let name = n.name in
   let sname = string_of_pattern name in
+  nb := 0;
   let state = mk_state n in
   nb := 0;
   env := (sname,outputs)::!env;

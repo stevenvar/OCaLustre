@@ -138,7 +138,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
       (* let name = string_of_int n in *)
       Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
-      Format.fprintf fmt "%a" print_rec t
+      Format.fprintf fmt "^%a" print_rec t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
     | CTuple ts ->
@@ -260,7 +260,7 @@ let print_env fmt (env : env_elem list) =
     | [(p,s)] -> Format.fprintf fmt "(%a:%a)"
                    Parsing_ast_printer.print_pattern p
                    print_clock_scheme s
-    | (p,s)::xs -> Format.fprintf fmt "(%a:%a),%a"
+    | (p,s)::xs -> Format.fprintf fmt "(%a:%a),\n%a"
                  Parsing_ast_printer.print_pattern p
                  print_clock_scheme s
                  print_list xs
@@ -431,7 +431,7 @@ let rec lookup_clock env p =
     begin
     try
       look_for_ident env i
-    with Not_found -> print_env Format.std_formatter env ; failwith ("not found :"^i)
+    with Not_found -> failwith ("not found :"^i)
   end
   | Tuple pl ->
     let clocks = List.map (fun p -> lookup_clock env p) pl in
