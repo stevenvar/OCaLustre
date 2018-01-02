@@ -27,9 +27,10 @@ let outputs_env = ref []
 
 (* maps structure_items of the form :
 
-   let%node NAME ~i:(IN1,IN2,...) ~o:(OUT1, OUT2, ...) =
-    OUT1 = IN1;
+   let%node NAME (IN1,IN2,...) ~return:(OUT1, OUT2, ...) =
+    OUT1 := EQ1;
     ...
+    OUTX := EQX
 *)
 
 let create_node mapper str =
@@ -50,7 +51,7 @@ let create_node mapper str =
           Clocking_ocl.clock_node _sched_node
           (* Clocking_ocl.test (); *)
         );
-        if !alloc then
+        if not !alloc then
           let _inode = compile_cnode _sched_node in
           [Extracting.tocaml_node _inode]
         else
@@ -75,7 +76,7 @@ let lustre_mapper argv =
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                   ("-y", Arg.Set why, "Prints whyml code");
-                  ("-f", Arg.Set alloc, "Generates functional code (closures)");
+                  ("-a", Arg.Set alloc, "Generate non-allocating code (state passing style)");
                   ("-i", Arg.Set clocking, "Prints clocks types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;

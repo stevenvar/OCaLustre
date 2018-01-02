@@ -352,7 +352,14 @@ let clock_expr gamma e =
       unify(tt,new_type);
       u
     | ETuple es -> CTuple (List.map clock_rec es)
-    | _ -> failwith "type"
+    | Fby (e1,e2) ->
+      let c1 = clock_rec e1 in
+      (* let c2 = clock_rec e2 in *)
+      (* unify(c1,c2); *)
+      c1
+    | PrefixOp (op,e) ->
+      let c = clock_rec e in
+      c
   in
   clock_rec e
 

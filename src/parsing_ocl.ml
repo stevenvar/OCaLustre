@@ -233,7 +233,7 @@ let make_expression e =
     | _ ->
        let s =
          Format.asprintf "in %a"
-                       Pprintast.expression e in 
+                       Pprintast.expression e in
       Error.syntax_error e.pexp_loc s
   in
   let exp = mk_expr e in
@@ -277,7 +277,7 @@ let rec pat_of_pexp p =
 (* creates equation node in the AST *)
 let mk_equation eq =
   match eq with
-  | [%expr [%e? p] = [%e? e] ] ->
+  | [%expr [%e? p] := [%e? e] ] ->
     begin
       match p.pexp_desc with
     | Pexp_ident _ ->
@@ -291,7 +291,7 @@ let mk_equation eq =
     | Pexp_constraint (e',t) ->
 
       { pattern = pat_of_pexp p ; expression = make_expression e}
-    | _ -> 
+    | _ ->
        Error.syntax_error eq.pexp_loc "in equation"
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
@@ -300,8 +300,8 @@ let mk_equation eq =
     print_endline "tuuuuple";
     {pattern= { p_desc =  Tuple (checkname_tuple p) ; p_loc = pexp_loc } ;
             expression = mk_expr (snd e)} *)
-  | _ -> 
-     Error.syntax_error eq.pexp_loc "not an equation" 
+  | _ ->
+     Error.syntax_error eq.pexp_loc "not an equation"
 
 
 
