@@ -241,8 +241,8 @@ let compile_cnode node =
   let i_inits = generate_inits i_eqs inputs in
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
-  let i_all_inits = schedule_ieqs (i_inits@i_fby_inits@i_app_inits) inputs in
-  let i_all_inits = (i_inits@i_fby_inits@i_app_inits) in
+  let i_all_inits = schedule_ieqs (i_fby_inits@i_inits@i_app_inits) inputs in
+  (* let i_all_inits = (i_fby_inits@i_inits@i_app_inits) in *)
   {
     i_pre = compile_condition node.pre;
     i_post = compile_condition node.post;
