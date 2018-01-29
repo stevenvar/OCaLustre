@@ -82,7 +82,7 @@ let%node causloop () ~return:(a,b) =
   Error:Causality loop in node causloop including these variables : b a
 ```
 
-## Synchronous Operators
+## Synchronous Operator
 
 
 - The ```->>``` operator (known as fby - followed by - in Lustre) is the initialized delay operator. It is is used to define a flow as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre" in Lustre) :
@@ -112,7 +112,7 @@ Clocks are equivalent to a type system and the type of the previous example is :
 With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
 
 
-- The ```[@whennot _]``` ("when not") annotation is the counterpart of ```@wh```and produces a value only when its clock is ```false```
+- The ```[@ whennot _]``` ("when not") annotation is the counterpart of ```[@ when _ ]```and produces a value only when its clock is ```false```
 
 - You can use operators only on flows declared on the same clocks. The following node is correct :
 
