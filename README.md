@@ -13,8 +13,8 @@ Inputs and outputs are considered as data flows, i.e. flows of values that can c
 Here is an OcaLustre node that takes two flows a and b, and produces a flow c that is the sum of a and b :
 
 ```ocaml
-let%node example ~i:(a,b) ~o:(c) =
-  c = a + b
+let%node example (a,b) ~return:(c) =
+  c := a + b
 ```
 
 ## Published version
@@ -25,10 +25,10 @@ A more complete description of a previous version of the prototype has been publ
 ## Complete syntax
 
 ```ocaml
-let%node <ident> ~i:<inputs> ~o:<outputs> =
-  <out> = <expr>;
+let%node <ident> <inputs> ~return:<outputs> =
+  <out> := <expr>;
   ...
-  <out> = <expr>
+  <out> := <expr>
 
 ```
 with
@@ -42,11 +42,11 @@ with
        | <unop> <expr>
        | <value>
        | (<expr>,*)
-       | <expr> @wh <ident>
-       | <expr> @whnot <ident>
+       | <expr> [@ when <ident>]
+       | <expr> [@ whennot <ident>]
        | merge <ident> <expr> <expr>
 <ident> ::= [a-zA-z][a-zA-Z0-9]*
-<value> ::= int | bool | float
+<value> ::= int | bool | float | constant constructor 
 <param> ::= (<ident>,*) | <ident>
 <inputs> ::= (<param>,*)
 <outputs> ::= (<param>,*)
@@ -56,27 +56,27 @@ with
 ```
 NB: The sequence of assignations can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
-let%node foo ~i:() ~o:(a,c,b) =
-  c = b + a;
-  b = a * 3;
-  a = 7
+let%node foo () ~return:(a,c,b) =
+  c := b + a;
+  b := a * 3;
+  a := 7
 ```
 
 is - at compile time - automatically transformed into :
 
 ```ocaml
-let%node foo ~i:() ~o:(a,c,b) =
-  a = 7;
-  b = a * 3;
-  c = b + a
+let%node foo () ~return:(a,c,b) =
+  a := 7;
+  b := a * 3;
+  c := b + a
 ```
 
 Note that scenarios where flows mutually depend on each others (ie. causality loops) are rejected during compilation :
 
 ```ocaml
-let%node causloop ~i:() ~o:(a,b) =
-  a = 7 + b;
-  b = a - 2
+let%node causloop () ~return:(a,b) =
+  a := 7 + b;
+  b := a - 2
 ```
 ```
   Error:Causality loop in node causloop including these variables : b a
@@ -84,41 +84,25 @@ let%node causloop ~i:() ~o:(a,b) =
 
 ## Synchronous Operators
 
-- The ```-->``` operator is the initialization operator : it initializes a flow with a value for the first instant and another value for the next instants.
 
-
-For example :
-```ocaml
-   n = 0 --> 1
-```
-
-produces `0, 1, 1, 1, ...`
-
-- The ```pre``` operator is the memory operator : it returns the value of the flow at the previous instant.
-
-For example :
-```ocaml
-   n = 0 --> ( pre n + 1 )
-```
-means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
-
-
-- The ```->>``` operator (known as fby - followed by - in Lustre) mixes the two and is similar to "--> pre" , so the previous example can also be written :
+- The ```->>``` operator (known as fby - followed by - in Lustre) is the initialized delay operator. It is is used to define a flow as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre" in Lustre) :
 
 ```ocaml
-   n = 0 ->> (n + 1)
+   n := 0 ->> (n + 1)
 ```
+
+means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
 
 ## Clocks
 
-- You can use the ```@wh``` ("when") operator in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
+- You can use the ```[@ when _]``` annotation in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
 
 For example, in the following example, we return the value of x only when c is true:
 
 ```ocaml
 
-let%node sampler ~i:(x,c) ~o:y =
-   y = x @wh c
+let%node sampler (x,c) ~return:y =
+   y = x [@ when c]
 ```
 
 Clocks are equivalent to a type system and the type of the previous example is :
@@ -128,15 +112,15 @@ Clocks are equivalent to a type system and the type of the previous example is :
 With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
 
 
-- The ```@whnot``` ("when not") operator is the counterpart of ```@wh```and produces a value only when its clock is ```false```
+- The ```[@whennot _]``` ("when not") annotation is the counterpart of ```@wh```and produces a value only when its clock is ```false```
 
-- You can use arithmetics operators only on flows declared on the same clocks. The following node is correct :
+- You can use operators only on flows declared on the same clocks. The following node is correct :
 
 ```ocaml
 
-let%node sampler ~i:(x1,x2,c) ~o:y =
-   a = x1 @wh c;
-   b = x2 @wh c;
+let%node sampler (x1,x2,c) ~return:y =
+   a = x1 [@ when c];
+   b = x2 [@ when c];
    y = a + b
 ```
 
@@ -146,9 +130,9 @@ But the following example is incorrect :
 
 ```ocaml
 
-let%node sampler ~i:(x1,x2,c,d) ~o:y =
-   a = x1 @wh c;
-   b = x2 @wh d;
+let%node sampler (x1,x2,c,d) ~return:y =
+   a = x1 [@ when c];
+   b = x2 [@ when d];
    y = a + b
 ```
 
@@ -157,9 +141,9 @@ let%node sampler ~i:(x1,x2,c,d) ~o:y =
 In the following example, we return the value ```1``` half the time, and the value ```2``` the other half of time:
 
 ```ocaml
-let%node tictoc ~i:c ~o:y =
-  a = 1 @wh c ;
-  b = 2 @whnot c;
+let%node tictoc c ~return:y =
+  a = 1 [@ when c];
+  b = 2 [@ whennot c];
   y = merge c a b
 ```
 
@@ -197,8 +181,8 @@ ocamlc -dsource -ppx ocalustre tests/foo.ml
 ```ocaml
 
 
-let%node fibonacci ~i:() ~o:(f) =
-  f = 0 ->> ((1 ->> f) + f)
+let%node fibonacci () ~return:(f) =
+  f := 0 ->> ((1 ->> f) + f)
 
 let _ =
   let fibonacci_step = fibonacci ()
