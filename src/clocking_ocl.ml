@@ -37,7 +37,7 @@ let vars_of_clock tau =
       vars vs t
     | Arrow(t1,t2) ->
       vars (vars vs t1) t2
-    | CTuple [] -> failwith "empty tuple"
+    | CTuple [] -> []
     | CTuple (t::ts) ->
       List.fold_left (fun acc t -> vars acc t) (vars vs t) ts
     | On (c,s) -> vars vs c
@@ -279,7 +279,7 @@ let make_carrier s ck = Carrier (s,ck)
 let clock_expr gamma e =
   let rec clock_rec e =
     match e.e_desc with
-    | Value _ -> Var (new_varclock ())
+    | Value _ | Unit -> Var (new_varclock ())
     | Variable n ->
       (* get the clock scheme of n in the env *)
       let sigma =
@@ -360,13 +360,16 @@ let clock_expr gamma e =
     | PrefixOp (op,e) ->
       let c = clock_rec e in
       c
+    | Call e ->
+      let a = Var(new_varclock ()) in
+      a
+    | Pre _ | Arrow _ -> failwith "shouldn't happen"
   in
   clock_rec e
 
 
 
 let clocking gamma ({ pattern = p; expression = e}) =
-  let fmt = Format.std_formatter in
   let tau =
     try clock_expr gamma e
     with ClockClash (c1,c2) ->
@@ -381,9 +384,6 @@ let clocking gamma ({ pattern = p; expression = e}) =
   in
   let tau = shorten tau in
   let sigma = generalise_type gamma tau in
-  (* Format.fprintf fmt "Clock of %a is %a \n" Parsing_ast_printer.print_pattern p *)
-    (* print_clock_scheme sigma; *)
-  (* New env *)
   (p,sigma)::gamma
 
 
@@ -457,10 +457,12 @@ let clock_node node =
         let clk = Var (new_varclock ()) in
         (p,Forall([],clk))::acc) env ins in
   let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
-  (* Format.fprintf Format.std_formatter "local env of %a : %a" *)
-  (*   Parsing_ast_printer.print_pattern node.name *)
-
-  let ins_p = List.map (fun { p_desc = Ident i; p_loc = _} -> i) ins in
+  let extract_ids pat acc =
+    match pat.p_desc with
+    | Ident i -> i :: acc
+    | _ -> acc
+  in
+  let ins_p = List.fold_left (fun acc x -> extract_ids x acc) [] ins in
   let ckins = List.map (look_for_ident env) ins_p in
   let ckins = List.map (fun (Forall(_,c)) -> c) ckins in
   let ckins = CTuple ckins in

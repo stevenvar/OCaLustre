@@ -85,10 +85,10 @@ let rec get_idents l e =
   | Whennot (e',c) -> get_idents l e'
   | ETuple (el) -> List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
   | Merge (e1,e2,e3) ->
-  let l = get_idents l e3 in
-  let l = get_idents l e2 in
-  let l = get_idents l e1 in
-  l
+    let l = get_idents l e3 in
+    let l = get_idents l e2 in
+    let l = get_idents l e1 in
+    l
 
 (* Extract name of a clock in ocaml attribute *)
 let extract_clock attr =
@@ -104,7 +104,7 @@ let extract_clock attr =
             begin
               match e.pexp_desc with
               | Pexp_ident {txt = (Lident v); loc} -> e
-              | _ -> Error.syntax_error e.pexp_loc "should be an ident"
+              | _ -> Error.syntax_error e.pexp_loc "the clock should only be an ident"
             end
           | _ -> Error.syntax_error x.pstr_loc "wrong form of clock"
         end
@@ -209,32 +209,24 @@ let make_expression e =
        pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
     | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
     | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
-    | [%expr [%e? e1] ->> [%e? e2] ]  ->
+    | [%expr [%e? e1] fby [%e? e2] ]  ->
       { e_desc = Fby (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
     | [%expr [%e? e1] --> [%e? e2] ]  ->
       { e_desc = Arrow (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
-    (* | [%expr [%e? e1] @whn [%e? e2] ] -> *)
-    (*   { e_desc =  When (mk_expr e1 , mk_expr e2) ; *)
-    (*     e_loc = e.pexp_loc } *)
-    (* | [%expr [%e? e1] @whnot [%e? e2] ] -> *)
-    (*   { e_desc =  Whennot (mk_expr e1 , mk_expr e2) ; *)
-    (*     e_loc = e.pexp_loc } *)
-    | [%expr call ([%e? e1]) ] ->
-      let app = Call (e1)
-      in
+    | [%expr eval ([%e? e1]) ] ->
+      let app = Call (e1) in
       { e_desc = app ; e_loc = e.pexp_loc }
     | [%expr [%e? e1] [%e? e2] ] ->
-      let app = Application(checkname_ident e1, mk_expr e2)
-      in
+      let app = Application(checkname_ident e1, mk_expr e2) in
       { e_desc = app ; e_loc = e.pexp_loc }
 
     | _ ->
        let s =
          Format.asprintf "in %a"
-                       Pprintast.expression e in
-      Error.syntax_error e.pexp_loc s
+           Pprintast.expression e in
+       Error.syntax_error e.pexp_loc s
   in
   let exp = mk_expr e in
   match clk with

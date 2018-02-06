@@ -62,13 +62,6 @@ let rec normalize_exp l exp =
     l', { exp with e_desc = exp' }
   | Value c -> l , exp
   | Variable v -> l, exp
-  | Arrow (e1,e2) ->
-    let l',e1' = normalize_exp l e1 in
-    let l'', e2' = normalize_exp l e2 in
-    l'', { exp with e_desc = Arrow(e1',e2') }
-  | Pre e ->
-    let l',e' = normalize_exp l e in
-    l', { exp with e_desc = Pre e' }
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in
@@ -93,6 +86,7 @@ let rec normalize_exp l exp =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Merge (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
+  | Pre _ | Arrow _ -> assert false
 
 (* The algorithm begins with this function, because we don't want normalizing
 at the first-level
@@ -123,13 +117,6 @@ let norm_exp l exp  =
     l', { exp with e_desc = exp' }
   | Value c -> l , exp
   | Variable v -> l, exp
-  | Arrow (e1,e2) ->
-    let l',e1' = normalize_exp l e1 in
-    let l'', e2' = normalize_exp l e2 in
-    l'', { exp with e_desc = Arrow(e1',e2') }
-  | Pre e ->
-    let l',e' = normalize_exp l e in
-    l', { exp with e_desc = Pre e'}
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in
@@ -152,6 +139,67 @@ let norm_exp l exp  =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Merge (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
+  | Arrow _ | Pre _ -> assert false
+
+
+(* replace every --> and pre with their equivalent with fby *)
+  let rec kernalize exp =
+    match exp.e_desc with
+    | Value _ | Variable _ | Unit -> exp
+    | Pre e ->
+      let e = kernalize e in
+      { exp with e_desc = Fby({exp with e_desc = Value Nil}, e) }
+    | Arrow (e,e') ->
+      let e = kernalize e in
+      let e' = kernalize e' in
+      let tf = { exp with e_desc = Fby
+                              ({ exp with e_desc = Value (Bool true) },
+                               { exp with e_desc = Value (Bool false)})
+               }
+      in
+      { exp with e_desc = Alternative(tf,e,e') }
+    | Fby(e,e') ->
+      let e = kernalize e in
+      let e' = kernalize e' in
+      { exp with e_desc = Fby(e,e') }
+    | Alternative(c,e,e') ->
+      let c = kernalize c in
+      let e = kernalize e in
+      let e' = kernalize e' in
+      { exp with e_desc = Alternative(c,e,e') }
+     | Application (i,e) ->
+       let e' = kernalize e in
+       { exp with e_desc = Application (i,e') }
+     | Call e ->
+       { exp with e_desc = Call e }
+     | InfixOp (op,e1,e2) ->
+       let e1 = kernalize e1 in
+       let e2 = kernalize e2 in
+       { exp with e_desc = InfixOp(op,e1,e2) }
+     | PrefixOp (op,e) ->
+       let e = kernalize e in
+       { exp with e_desc = PrefixOp(op,e) }
+     | When (e,i) ->
+       let e = kernalize e in
+       { exp with e_desc = When (e,i) }
+     | Whennot (e,i) ->
+       let e = kernalize e in
+       { exp with e_desc = Whennot (e,i) }
+     | ETuple el ->
+       let el = List.map kernalize el in
+       { exp with e_desc = ETuple el }
+     | Merge (e1,e2,e3) ->
+       let e1 = kernalize e1 in
+       let e2 = kernalize e2 in
+       let e3 = kernalize e3 in
+       { exp with e_desc = Merge(e1,e2,e3) }
+
+let kernalize_eqs eqs =
+  let kernalize_eq eq =
+    let exp = eq.expression in
+    { pattern = eq.pattern ; expression = kernalize exp }
+  in
+  List.map kernalize_eq eqs
 
 (* Normalizing an equation *)
 let normalize_eqs eqs =
@@ -166,7 +214,8 @@ let normalize_eqs eqs =
 (* Entry function: normalize a node *)
 let normalize_node node =
   reset ();
-  let (eqs1,eqs2) =  normalize_eqs node.equations in
+  let eqs = kernalize_eqs node.equations in
+  let (eqs1,eqs2) = normalize_eqs eqs in
   {
     pre = node.pre;
     post = node.post;

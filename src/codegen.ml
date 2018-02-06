@@ -78,9 +78,9 @@ let rec tocaml_expression e =
   | S_List e -> [%expr () ]
   | S_Application (id, num, el) ->
     let el' = List.map tocaml_expression el in
-    let pat = { p_desc = PUnit;
-                p_loc = Location.none;} in
-    let n = string_of_int num in
+    (* let pat = { p_desc = PUnit; *)
+                (* p_loc = Location.none;} in *)
+    (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
@@ -88,10 +88,10 @@ let rec tocaml_expression e =
     }
   | S_Application_init (id,num,el) ->
     let el' = List.map tocaml_expression el in
-    let pat = { p_desc = PUnit;
-                p_loc = Location.none;} in
+    (* let pat = { p_desc = PUnit; *)
+                (* p_loc = Location.none;} in *)
     (* List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el; *)
-    let n = string_of_int num in
+    (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
