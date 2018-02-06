@@ -38,7 +38,9 @@ with
        | if <expr> then <expr> else <expr>
        | <ident> <param> (* function application *)
        | <expr> <binop> <expr>
-       | <value> ->> <expr>
+       | <value> fby <expr>
+       | <expr> --> <expr>
+       | pre <expr>
        | <unop> <expr>
        | <value>
        | (<expr>,*)
