@@ -106,8 +106,7 @@ means that n is equal to 0 at the first instant and then to its previous value +
    n := 0 fby (n + 1)
 ```
 
-means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
-
+means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants.
 ## Clocks
 
 - You can use the ```[@ when _]``` annotation in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
