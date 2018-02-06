@@ -8,7 +8,7 @@ Synchronous extension of OCaml in the style of the Lustre synchronous programmin
 The OCaml language is extended with Lustre "nodes". These nodes can be viewed as synchronous functions,
 which run at every instant. An instant is the atomic unit of time at which a node computes outputs from inputs.
 
-Inputs and outputs are considered as data flows, i.e. flows of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...  
+Inputs and outputs are considered as data flows, i.e. flows of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...
 
 Here is an OcaLustre node that takes two flows a and b, and produces a flow c that is the sum of a and b :
 
@@ -46,7 +46,7 @@ with
        | <expr> [@ whennot <ident>]
        | merge <ident> <expr> <expr>
 <ident> ::= [a-zA-z][a-zA-Z0-9]*
-<value> ::= int | bool | float | constant constructor 
+<value> ::= int | bool | float | constant constructor
 <param> ::= (<ident>,*) | <ident>
 <inputs> ::= (<param>,*)
 <outputs> ::= (<param>,*)
@@ -82,13 +82,28 @@ let%node causloop () ~return:(a,b) =
   Error:Causality loop in node causloop including these variables : b a
 ```
 
-## Synchronous Operator
+## Synchronous Operators
 
+ - The ```-->``` operator is the initialization operator : it initializes a flow with a value for the first instant and another value for the next instants.
 
-- The ```->>``` operator (known as fby - followed by - in Lustre) is the initialized delay operator. It is is used to define a flow as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre" in Lustre) :
+For example :
+```ocaml
+  n = 0 --> 1
+```
+produces `0, 1, 1, 1, ...`
+
+- The ```pre``` operator is the memory operator : it returns the value of the flow at the previous instant.
+
+For example :
+```ocaml
+  n = 0 --> ( pre n + 1 )
+```
+means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
+
+- The ```fby``` operator (``followed by'') is the initialized delay operator. It is is used to define a flow as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
 
 ```ocaml
-   n := 0 ->> (n + 1)
+   n := 0 fby (n + 1)
 ```
 
 means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
@@ -169,7 +184,7 @@ And use it with ocamlfind as any other package, for example :
   ocamlfind ocamlc -package ocalustre foo.ml
 ```
 
-Or as a ppx preprocessor : 
+Or as a ppx preprocessor :
 
 ```
 ocamlc -dsource -ppx ocalustre tests/foo.ml
@@ -195,4 +210,4 @@ let _ =
 
 ```
 
-Displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`  
+Displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`
