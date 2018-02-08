@@ -8,9 +8,9 @@ Synchronous extension of OCaml in the style of the Lustre synchronous programmin
 The OCaml language is extended with Lustre "nodes". These nodes can be viewed as synchronous functions,
 which run at every instant. An instant is the atomic unit of time at which a node computes outputs from inputs.
 
-Inputs and outputs are considered as data flows, i.e. flows of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...
+Inputs and outputs are considered as data flows, i.e. streams of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...
 
-Here is an OcaLustre node that takes two flows a and b, and produces a flow c that is the sum of a and b :
+Here is an OcaLustre node that takes two streams a and b, and produces a stream c that is the sum of a and b :
 
 ```ocaml
 let%node example (a,b) ~return:(c) =
@@ -73,7 +73,7 @@ let%node foo () ~return:(a,c,b) =
   c := b + a
 ```
 
-Note that scenarios where flows mutually depend on each others (ie. causality loops) are rejected during compilation :
+Note that scenarios where streams mutually depend on each others (ie. causality loops) are rejected during compilation :
 
 ```ocaml
 let%node causloop () ~return:(a,b) =
@@ -86,39 +86,39 @@ let%node causloop () ~return:(a,b) =
 
 ## Synchronous Operators
 
- - The ```-->``` operator is the initialization operator : it initializes a flow with a value for the first instant and another value for the next instants.
+ - The ```-->``` operator is the initialization operator : it initializes a stream with a value for the first instant and another value for the next instants.
 
 For example :
 ```ocaml
-  n = 0 --> 1
+  n := 0 --> 1
 ```
 produces `0, 1, 1, 1, ...`
 
-- The ```pre``` operator is the memory operator : it returns the value of the flow at the previous instant.
+- The ```pre``` operator is the memory operator : it returns the value of the stream at the previous instant.
 
 For example :
 ```ocaml
-  n = 0 --> ( pre n + 1 )
+  n := 0 --> (pre n + 1)
 ```
-means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the flow of natural integers : `0, 1, 2, 3, 4, ...`
+means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the stream of natural integers : `0, 1, 2, 3, 4, ...`
 
-- The ```fby``` operator (``followed by'') is the initialized delay operator. It is is used to define a flow as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
+- The ```fby``` operator (``followed by'') is the initialized delay operator. It is is used to define a stream as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
 
 ```ocaml
    n := 0 fby (n + 1)
 ```
 
-means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants.
+means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants (i.e. it's also the stream of natural integers).
 ## Clocks
 
-- You can use the ```[@ when _]``` annotation in order to generate flows at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
+- You can use the ```[@ when _]``` annotation in order to generate streams at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
 
 For example, in the following example, we return the value of x only when c is true:
 
 ```ocaml
 
 let%node sampler (x,c) ~return:y =
-   y = x [@ when c]
+   y := x [@ when c]
 ```
 
 Clocks are equivalent to a type system and the type of the previous example is :
@@ -130,14 +130,14 @@ With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a
 
 - The ```[@ whennot _]``` ("when not") annotation is the counterpart of ```[@ when _ ]```and produces a value only when its clock is ```false```
 
-- You can use operators only on flows declared on the same clocks. The following node is correct :
+- You can use operators only on streams declared on the same clocks. The following node is correct :
 
 ```ocaml
 
 let%node sampler (x1,x2,c) ~return:y =
-   a = x1 [@ when c];
-   b = x2 [@ when c];
-   y = a + b
+   a := x1 [@ when c];
+   b := x2 [@ when c];
+   y := a + b
 ```
 
 and has the following clock : ```('a * 'a * (ck_a : 'a)) -> ('a on ck_a) ```
@@ -147,20 +147,20 @@ But the following example is incorrect :
 ```ocaml
 
 let%node sampler (x1,x2,c,d) ~return:y =
-   a = x1 [@ when c];
-   b = x2 [@ when d];
-   y = a + b
+   a := x1 [@ when c];
+   b := x2 [@ when d];
+   y := a + b
 ```
 
-- You can combine two flows on complementary clocks ( ```'a on x```and ```'a on not x```) by using the ```merge``` operator. The result is on clock ```'a```
+- You can combine two streams on complementary clocks ( ```'a on x```and ```'a on not x```) by using the ```merge``` operator. The result is on clock ```'a```
 
 In the following example, we return the value ```1``` half the time, and the value ```2``` the other half of time:
 
 ```ocaml
 let%node tictoc c ~return:y =
-  a = 1 [@ when c];
-  b = 2 [@ whennot c];
-  y = merge c a b
+  a := 1 [@ when c];
+  b := 2 [@ whennot c];
+  y := merge c a b
 ```
 
 The clock of tictoc is ```(ck_a : 'a ) -> 'a  ```
