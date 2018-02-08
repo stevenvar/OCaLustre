@@ -198,7 +198,7 @@ ocamlc -dsource -ppx ocalustre tests/foo.ml
 
 
 let%node fibonacci () ~return:(f) =
-  f := 0 ->> ((1 ->> f) + f)
+  f := 0 fby ((1 fby f) + f)
 
 let _ =
   let fibonacci_step = fibonacci ()
