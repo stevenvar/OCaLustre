@@ -160,6 +160,9 @@ let seq_exp_list e name =
     | Value v -> { sexp with s_e_desc = S_Value v}::acc
     | Variable s -> { sexp with s_e_desc = S_Variable s}::acc
     | Unit -> { sexp with s_e_desc = S_Unit}::acc
+    | InfixOp (op,e1,e2) ->
+      let e = seq_exp e in 
+      e::acc
     | ETuple el ->
       begin
         match el with

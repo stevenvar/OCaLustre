@@ -115,7 +115,8 @@ let rec generate_init e {p_desc ; p_loc} l =
   match e with
   | IApplication (i,num,el') ->
     let p_desc = Ident (i^(string_of_int num)^"_step") in
-    {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,el')}::l
+    (* {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,el')}::l *)
+    {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,IUnit)}::l
   | _ -> l
 in
 List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el
@@ -238,7 +239,8 @@ let compile_cnode node =
   reset ();
   let inputs = to_list node.inputs in
   let i_eqs = List.map (compile_equation) node.equations in
-  let i_inits = generate_inits i_eqs inputs in
+  (* let i_inits = generate_inits i_eqs inputs in *)
+  let i_inits = [] in 
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
   let i_all_inits = schedule_ieqs (i_fby_inits@i_inits@i_app_inits) inputs in

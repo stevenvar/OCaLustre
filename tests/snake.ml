@@ -7,7 +7,7 @@ let%node button_led button_pinin ~return:led_pinout =
 
 let _ =
   let pb = Printf.printf "%b" in
-  let re = rising_edge false in
+  let re = rising_edge () in
   pb (re false);
   pb (re true);
   pb (re false);

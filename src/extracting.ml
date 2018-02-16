@@ -294,25 +294,29 @@ let tocaml_step node =
 let tocaml_node inode =
   let name = stringloc_of_ident (str_of_pattern inode.i_name) in
   let inits = List.rev inode.i_inits in
-  match inode.i_inputs.p_desc with
-  | PUnit ->
-    [%stri let [%p Pat.var name] =
-             fun () ->
-               [%e tocaml_inits inits (tocaml_step inode) ]
-    ]
-  | Ident x  ->
-    [%stri let [%p Pat.var name] =
-             fun [%p pat_of_pattern inode.i_inputs] ->
-               [%e tocaml_inits inits (tocaml_step inode) ]
-    ]
-  | Tuple t  ->
-    [%stri let [%p Pat.var name] =
-             fun [%p Pat.tuple (List.map pat_of_pattern t) ] ->
-               [%e tocaml_inits inits (tocaml_step inode) ]
-    ]
-  | Typed (p,s) ->
-
-     [%stri let [%p Pat.var name] =
-             fun [%p pat_of_pattern inode.i_inputs] ->
-               [%e tocaml_inits inits (tocaml_step inode) ]
-    ]
+  [%stri let [%p Pat.var name] =
+           fun () ->
+             [%e tocaml_inits inits (tocaml_step inode) ]
+  ]
+  (* match inode.i_inputs.p_desc with
+   * | PUnit ->
+   *   [%stri let [%p Pat.var name] =
+   *            fun () ->
+   *              [%e tocaml_inits inits (tocaml_step inode) ]
+   *   ]
+   * | Ident x  ->
+   *   [%stri let [%p Pat.var name] =
+   *            fun [%p pat_of_pattern inode.i_inputs] ->
+   *              [%e tocaml_inits inits (tocaml_step inode) ]
+   *   ]
+   * | Tuple t  ->
+   *   [%stri let [%p Pat.var name] =
+   *            fun [%p Pat.tuple (List.map pat_of_pattern t) ] ->
+   *              [%e tocaml_inits inits (tocaml_step inode) ]
+   *   ]
+   * | Typed (p,s) ->
+   * 
+   *    [%stri let [%p Pat.var name] =
+   *            fun [%p pat_of_pattern inode.i_inputs] ->
+   *              [%e tocaml_inits inits (tocaml_step inode) ]
+   *   ] *)
