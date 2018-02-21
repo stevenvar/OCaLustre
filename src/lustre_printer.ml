@@ -25,8 +25,8 @@ let print_infop fmt op =
   | Infe -> Format.fprintf fmt "<="
   | Sup -> Format.fprintf fmt ">"
   | Supe -> Format.fprintf fmt ">="
-  | Bor -> Format.fprintf fmt "||"
-  | Band -> Format.fprintf fmt "&&"
+  | Bor -> Format.fprintf fmt "or"
+  | Band -> Format.fprintf fmt "and"
   | Mod -> Format.fprintf fmt "mod"
 
 let rec print_pattern fmt p =
@@ -67,7 +67,7 @@ let rec print_expression fmt e =
                     print_ident i
                     print_expression e
   | Call (e) ->
-     Format.fprintf fmt "(call ...)"
+     Format.fprintf fmt "(eval ...)"
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
