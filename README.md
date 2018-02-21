@@ -38,7 +38,7 @@ with
        | if <expr> then <expr> else <expr>
        | <ident> <param> (* function application *)
        | <expr> <binop> <expr>
-       | <value> fby <expr>
+       | <value> >>> <expr>
        | <expr> --> <expr>
        | pre <expr>
        | <unop> <expr>
@@ -102,10 +102,10 @@ For example :
 ```
 means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the stream of natural integers : `0, 1, 2, 3, 4, ...`
 
-- The ```fby``` operator (``followed by'') is the initialized delay operator. It is is used to define a stream as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
+- The ```>>>``` operator (``followed by'' in Lustre / Lucid) is the initialized delay operator. It is is used to define a stream as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
 
 ```ocaml
-   n := 0 fby (n + 1)
+   n := 0 >>> (n + 1)
 ```
 
 means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants (i.e. it's also the stream of natural integers).
@@ -157,18 +157,16 @@ let%node sampler (x1,x2,c,d) ~return:y =
 In the following example, we return the value ```1``` half the time, and the value ```2``` the other half of time:
 
 ```ocaml
-let%node tictoc c ~return:y =
+let%node tictoc () ~return:y =
+  c := true >>> (false >>> c);
   a := 1 [@ when c];
   b := 2 [@ whennot c];
   y := merge c a b
 ```
 
-The clock of tictoc is ```(ck_a : 'a ) -> 'a  ```
-
-
 ## Requirements
 
-- OCaml (>= 4.03)
+- OCaml (>= 4.04)
 - ppx_tools
 - oasis
 
@@ -188,7 +186,7 @@ And use it with ocamlfind as any other package, for example :
 Or as a ppx preprocessor :
 
 ```
-ocamlc -dsource -ppx ocalustre tests/foo.ml
+ocamlc -ppx ocalustre tests/foo.ml
 ```
 
 
@@ -198,7 +196,7 @@ ocamlc -dsource -ppx ocalustre tests/foo.ml
 
 
 let%node fibonacci () ~return:(f) =
-  f := 0 fby ((1 fby f) + f)
+  f := 0 >>> ((1 >>> f) + f)
 
 let _ =
   let fibonacci_step = fibonacci ()
