@@ -157,11 +157,14 @@ let%node sampler (x1,x2,c,d) ~return:y =
 In the following example, we return the value ```1``` half the time, and the value ```2``` the other half of time:
 
 ```ocaml
-let%node tictoc () ~return:y =
-  c := true >>> (false >>> c);
+let%node tictoc c ~return:y =
   a := 1 [@ when c];
   b := 2 [@ whennot c];
   y := merge c a b
+
+let%node call_tictoc () ~return:d = 
+  c := true >>> (false >>> c);
+  d := tictoc c
 ```
 
 ## Requirements
