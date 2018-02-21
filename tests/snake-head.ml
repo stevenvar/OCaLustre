@@ -1,5 +1,7 @@
+type dir = South | North | West | East
+
 let%node rising_edge in_f ~return:out_f =
-  out_f := in_f && (not (false ->> in_f))
+  out_f := in_f && (not (false >>> in_f))
 
 
 let%node new_dir (dir,left,right) ~return:n_d =
@@ -27,8 +29,8 @@ let%node new_y (dir,y) ~return:n_y =
 
 
 let%node new_head (b1,b2) ~return:(x,y) = 
-  left := false ->> rising_edge(b1);
-  right := false ->> rising_edge(b2);
-  dir := South ->> new_dir (dir, left, right);
-  x := 0 ->> new_x(dir,x);
-  y := 0 ->> new_y(dir,y)
+  left := false >>> rising_edge(b1);
+  right := false >>> rising_edge(b2);
+  dir := South >>> new_dir (dir, left, right);
+  x := 0 >>> new_x(dir,x);
+  y := 0 >>> new_y(dir,y)
