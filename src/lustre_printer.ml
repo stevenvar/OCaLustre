@@ -39,6 +39,14 @@ let rec print_pattern fmt p =
                      s
 
 
+let rec print_name fmt p =
+  match p.p_desc with
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "%a" (print_list print_pattern) t
+  | PUnit -> Format.fprintf fmt ""
+  | Typed (p,s) -> print_pattern fmt p
+
+
 let rec print_expression fmt e =
   let rec print_expression_list fmt el =
     match el with
@@ -94,9 +102,10 @@ let rec print_expression fmt e =
 
 
 
+
 let print_equation fmt e =
   Format.fprintf fmt  "  %a = %a;"
-    print_pattern e.pattern
+    print_name e.pattern
     print_expression e.expression
 
 let rec print_equations fmt le =
@@ -111,17 +120,63 @@ let rec print_equations fmt le =
 let print_condition fmt cond =
   match cond with
   | Some x ->
-    Format.fprintf fmt "\n--%%PROPERTY %a;" print_expression x;
+    Format.fprintf fmt "\n --%%PROPERTY %a;" print_expression x;
   | None -> ()
+
+let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
+
+let split p =
+  match p.p_desc with
+  | Tuple t -> t
+  | _ -> [p]
+
+let remove_type x =
+  match x.p_desc with
+  | Typed (x,t) -> x
+  | _ -> x
+
+let rec print_local_vars fmt l =
+  match l with
+  | [] -> () 
+  | x::xs -> Format.fprintf fmt "var %a;\n %a" print_pattern x
+               print_local_vars xs
+
+
+let rec to_string x =
+  match x.p_desc with
+  | Ident x -> x
+  | PUnit -> "()"
+  | Typed(p,t) -> to_string p
+  | _ -> failwith "cannot make a string"
+  
+let rec remove_var x l =
+  match l with
+  | [] -> []
+  | p::t ->
+    let xname = to_string x in 
+    let name = to_string p in
+    if xname = name then t else p::remove_var x t
+
+
+let get_local_vars node =
+  let vars =
+    List.map (fun eq -> eq.pattern) node.equations
+  in
+  let ins = split node.inputs in 
+  let outs = split node.outputs in
+  let vars = List.fold_left (fun acc x -> remove_var x acc) vars outs in
+  List.fold_left (fun acc x -> remove_var x acc) vars ins
 
 let print_node fmt node =
   Format.fprintf fmt "
 node %a(%a) returns (%a)
+ %a
  let
 %a%a
  tel
 " print_pattern node.name
     print_pattern node.inputs
     print_pattern node.outputs
+    print_local_vars (get_local_vars node)
     print_equations node.equations
     print_condition node.inv
