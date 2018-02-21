@@ -240,15 +240,18 @@ let compile_cnode node =
   let inputs = to_list node.inputs in
   let i_eqs = List.map (compile_equation) node.equations in
   (* let i_inits = generate_inits i_eqs inputs in *)
-  let i_inits = [] in 
+  let i_inits = [] in
   let i_fby_inits = generate_fby_inits node.equations in
   let i_app_inits = generate_app_inits i_eqs in
   let i_all_inits = schedule_ieqs (i_fby_inits@i_inits@i_app_inits) inputs in
   (* let i_all_inits = (i_fby_inits@i_inits@i_app_inits) in *)
   {
-    i_pre = compile_condition node.pre;
-    i_post = compile_condition node.post;
-    i_inv = compile_condition node.inv;
+    i_pre = None ;
+    (* compile_condition node.pre; *)
+    i_post = None;
+    (* compile_condition node.post; *)
+    i_inv = None;
+    (* compile_condition node.inv; *)
     i_name = node.name ;
     i_inputs = node.inputs;
     i_outputs = node.outputs;

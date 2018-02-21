@@ -118,10 +118,14 @@ let norm_exp l exp  =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Fby (c, e) ->
-    let (l',c') = normalize_exp l c in
-    let (l'',e') = normalize_exp l' e in
-    let exp' = { exp with e_desc = Fby (c',e') } in
-    l'' , exp'
+    begin
+      match c.e_desc with
+      | Value _ ->
+        let (l'',e') = normalize_exp l e in
+        let exp' = { exp with e_desc = Fby (c,e') } in
+        l'' , exp'
+      | _ -> Error.syntax_error c.e_loc "A fby can only have a constant on its left part"
+    end
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = When (e',i) }

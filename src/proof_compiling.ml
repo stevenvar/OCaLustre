@@ -73,7 +73,7 @@ let rec compile_pre_expression e =
                   compile_pre_expression e2 ,
                   compile_pre_expression e3 )
   | Unit -> S_Unit
-  | Arrow (e1,e2) -> assert false
+  | Arrow (e1,e2) -> compile_pre_expression e
   | Fby (e1,e2) -> compile_pre_expression e
   | When (e',i) ->
     S_Alternative (compile_pre_expression i,
@@ -86,7 +86,7 @@ let rec compile_pre_expression e =
   | ETuple el ->
     let iel = List.map (fun e -> compile_pre_expression e) el in
     S_ExpTuple (iel)
-  | Pre e -> assert false
+  | Pre e -> compile_pre_expression e
   | Merge (e1,e2,e3) ->
     S_Alternative (compile_pre_expression e1,
                   compile_pre_expression e2,
@@ -114,7 +114,8 @@ let rec compile_expression_step e p =
                   compile_expression_step e2 p,
                   compile_expression_step e3 p)
   | Unit -> S_Unit
-  | Arrow (e1,e2) -> assert false
+  | Arrow (e1,e2) ->
+    compile_pre_expression e2
   | Fby (e1,e2) -> compile_pre_expression e2
   | When (e',i) ->
     S_Alternative (compile_expression_step i p,

@@ -19,6 +19,7 @@ open Compiling
 
 let verbose = ref false
 let clocking = ref false
+let lustre = ref false
 let why = ref false
 let alloc = ref false
 let not_printed_wrapper = ref true
@@ -33,6 +34,17 @@ let outputs_env = ref []
     OUTX := EQX
 *)
 
+let to_lustre_file node =
+  let name = !Location.input_name in
+  let name = Filename.remove_extension name in
+  let name = name^".ls" in
+  let oc = open_out_gen [ Open_wronly; Open_creat ; Open_append] 0o640 name in
+  let fmt =  Format.formatter_of_out_channel oc in
+  Format.fprintf fmt "%a" Lustre_printer.print_node  node;
+  close_out oc;
+  Format.printf "File %s has been written for node %s. \n" name (string_of_pattern node.name)
+
+
 let create_node mapper str =
   match str.pstr_desc with
   | Pstr_extension (({txt="node";_},PStr [s]),_) ->
@@ -43,6 +55,7 @@ let create_node mapper str =
         let _sched_node = schedule _norm_node in
         if !verbose then
           print_node Format.std_formatter _sched_node;
+        if !lustre then to_lustre_file _node;
         if !why then (
           let whyml = Proof_compiling.pcompile_cnode _sched_node in
           whyml_node Format.std_formatter whyml);
@@ -76,6 +89,7 @@ let lustre_mapper argv =
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                   ("-y", Arg.Set why, "Prints whyml code");
+                  ("-l", Arg.Set lustre, "Prints lustre node");
                   ("-a", Arg.Set alloc, "Generate non-allocating code (state passing style)");
                   ("-i", Arg.Set clocking, "Prints clocks types");]
   in let usage_msg = "OCaLustre : "

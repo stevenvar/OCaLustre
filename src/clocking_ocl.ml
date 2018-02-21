@@ -128,17 +128,17 @@ let print_clock_scheme fmt (Forall(gv,t)) =
   let cvar_names = List.combine (List.rev gv) names in
   let rec print_rec fmt = function
     | Var { index = n ; value = Unknown } ->
-      let name =
-        (try List.assoc n cvar_names
-         with  Not_found ->
-           (* failwith ("non generic var :"^string_of_int n) *)
-           string_of_int n
-        )
-      in
-      (* let name = string_of_int n in *)
+      (* let name =
+       *   (try List.assoc n cvar_names
+       *    with  Not_found ->
+       *      (\* failwith ("non generic var :"^string_of_int n) *\)
+       *      string_of_int n
+       *   )
+       * in *)
+      let name = string_of_int n in
       Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
-      Format.fprintf fmt "^%a" print_rec t
+      Format.fprintf fmt "%a" print_rec t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
     | CTuple ts ->
@@ -152,7 +152,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
     | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_rec c s
     | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_rec c s
     | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_rec c
-    | Unknown -> failwith "printclockscheme"
+    | Unknown -> Format.fprintf fmt  "?"
   in
   let rec print_list fmt l =
     match l with
@@ -171,7 +171,8 @@ let rec unify (tau1,tau2) =
   (* Format.fprintf Format.std_formatter "Unifying %a and %a \n" *)
   (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
   (* print_clock_scheme (generalise_type !global_typing_env tau2); *)
-  match tau1, tau2 with
+  begin
+    match tau1, tau2 with
   | Var ({ index = n; value = Unknown} as tv1),
     Var { index = m; value = Unknown} ->
     (* two unknown variables *)
@@ -194,7 +195,15 @@ let rec unify (tau1,tau2) =
     unify(c,d);
   | Carrier (s,c) , Carrier (s',d) ->
     unify(c,d);
+  | _ , Carrier (s,c) ->
+    unify(tau1,c)
+  | Carrier (s,c) , _ ->
+    unify(c,tau2)
   | _ -> raise (ClockClash (tau1,tau2))
+  end
+  (* Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
+  (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
+  (* print_clock_scheme (generalise_type !global_typing_env tau2) *)
 
 
 (* Returns the variables in t that are not in bv (i.e. the free vars) *)
@@ -260,7 +269,7 @@ let print_env fmt (env : env_elem list) =
     | [(p,s)] -> Format.fprintf fmt "(%a:%a)"
                    Parsing_ast_printer.print_pattern p
                    print_clock_scheme s
-    | (p,s)::xs -> Format.fprintf fmt "(%a:%a),\n%a"
+    | (p,s)::xs -> Format.fprintf fmt "(%a:%a),%a"
                  Parsing_ast_printer.print_pattern p
                  print_clock_scheme s
                  print_list xs
@@ -317,7 +326,7 @@ let clock_expr gamma e =
       let c2 = clock_rec c in
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
       let s = get_ident c in
-      let s = "clk_"^s in
+      (* let s = "clk_"^s in *)
       let a = Var (new_varclock ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
@@ -330,7 +339,7 @@ let clock_expr gamma e =
       let c2 = clock_rec c in
       (* Clock of 'whenot' is 'a -> (c :: 'a) -> 'a on (not c) *)
       let s = get_ident c in
-      let s = "clk_"^s in
+      (* let s = "clk_"^s in *)
       let a = Var (new_varclock ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
       (* clock of result *)
@@ -343,7 +352,7 @@ let clock_expr gamma e =
       let c1 = clock_rec e1 in
       let c2 = clock_rec e2 in
       let s = get_ident c in
-      let s = "clk_"^s in
+      (* let s = "clk_"^s in *)
       (* Clock of 'whenot' is clk:'a -> 'a on c -> 'a on (not c) -> 'a *)
       let a = Var(new_varclock () ) in
       let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
@@ -392,11 +401,14 @@ let split_tuple p =
   | Tuple pl -> pl
   | _ -> [p]
 
+let group_tuple pl =
+  CTuple pl
+
 (* Helper function that computes the position of an element in a list *)
 let get_position y l =
   let rec aux l n =
     match l with
-    | [] -> raise Not_found
+    | [] -> failwith "get_position"
     | x::xs ->
       if y = x then n
       else
@@ -407,7 +419,8 @@ let get_position y l =
 (* Function looking for a variable in an env (goes into tuples)  *)
 let rec look_for_ident (env : env_elem list) i =
   match env with
-    [] -> raise Not_found
+    [] -> (failwith ("cannot find "^i))
+            (* raise Not_found *)
   | (p,s)::xs ->
     begin
       match p.p_desc with
@@ -422,7 +435,7 @@ let rec look_for_ident (env : env_elem list) i =
             let n = get_position (Ident i) tl in
             match s with
             | Forall(g,CTuple l) -> Forall(g,List.nth l n)
-            | _ -> raise Not_found
+            | _ -> failwith "look for ident"
           with Not_found ->
             look_for_ident xs i
         end
@@ -430,52 +443,96 @@ let rec look_for_ident (env : env_elem list) i =
         look_for_ident xs i
     end
 
+open Parsing_ast_printer
+
+(* Be careful not to look for the same location (bug for outputs) *)
+let rec pattern_equal p1 p2 =
+  match p1.p_desc, p2.p_desc with
+  | Ident i, Ident j -> i = j
+  | Typed (pi,_) , Typed (pj,_) -> pattern_equal pi pj
+  | Tuple pi, Tuple pj -> failwith "tuple"
+  | PUnit, PUnit -> true
+  | _ -> false
+
+let rec assoc_env p env =
+  match env with
+  |[] -> raise Not_found
+  | (x,c)::xs -> if pattern_equal x p then c else
+      assoc_env p xs
 
 (* Function for finding clock in an env *)
 let rec lookup_clock env p =
-  match p.p_desc with
-  | Ident i ->
-    begin
-    try
-      look_for_ident env i
-    with Not_found -> failwith ("not found :"^i)
-  end
-  | Tuple pl ->
-    let clocks = List.map (fun p -> lookup_clock env p) pl in
-    let clocks = List.map (fun (Forall(_,c)) -> c) clocks in
-    let clk = CTuple clocks in
-    generalise_type env clk
-  | _ -> failwith "no"
+  try
+    let x = assoc_env p env in
+    x
+  with Not_found ->
+    raise (Location.Error (Location.error ~loc:p.p_loc "Cannot find clock"))
+    (* failwith "lookup_clock" *)
+  (* match p.p_desc with
+   * | Ident i ->
+   *   begin
+   *   try
+   *     look_for_ident env i
+   *   with Not_found -> failwith ("not found :"^i)
+   * end
+   * | Tuple pl ->
+   *   let clocks = List.map (fun p -> lookup_clock env p) pl in
+   *   let clocks = List.map (fun (Forall(_,c)) -> c) clocks in
+   *   let clk = CTuple clocks in
+   *   generalise_type env clk
+   * | _ -> Format.fprintf Format.std_formatter "(%a)" Parsing_ast_printer.print_pattern p ;  failwith "Don't know what to do with : " *)
 
 
 let clock_node node =
   reset_varclocks ();
   (* "Uncurrying" inputs and outputs ...   *)
-  let ins = split_tuple node.inputs in
-  let env = !global_typing_env in
-  let env = List.fold_left (fun acc p ->
-        let clk = Var (new_varclock ()) in
-        (p,Forall([],clk))::acc) env ins in
-  let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
-  let extract_ids pat acc =
-    match pat.p_desc with
-    | Ident i -> i :: acc
-    | _ -> acc
-  in
-  let ins_p = List.fold_left (fun acc x -> extract_ids x acc) [] ins in
-  let ckins = List.map (look_for_ident env) ins_p in
-  let ckins = List.map (fun (Forall(_,c)) -> c) ckins in
-  let ckins = CTuple ckins in
-  let ckins = generalise_type env ckins in
+  let ins = node.inputs in
+  let ins = split_tuple ins in
+  let env = List.map (fun x -> (x,Forall([],Var (new_varclock ())))) ins in
   (* print_env Format.std_formatter env; *)
-  let ckouts = lookup_clock env node.outputs in
-  let t = Arrow(gen_instance ckins, gen_instance ckouts) in
-  let tt = generalise_type !global_typing_env t in
-  global_typing_env := ((node.name,tt)::!global_typing_env);
-  (* Format.fprintf Format.std_formatter "global env : %a" print_env !global_typing_env; *)
-  Format.fprintf Format.std_formatter "%a : %a\n"
-    Parsing_ast_printer.print_pattern node.name
-    print_clock_scheme tt
+  let outs = node.outputs in
+  let outs = split_tuple outs in
+  (* let env = env@List.map (fun x -> (x,Forall([],Var (new_varclock ())))) outs in *)
+  let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
+  (* let e = List.hd node.equations in *)
+  (* let env = clocking env e in *)
+  (* print_env Format.std_formatter env; *)
+  let ckins = List.map (fun x -> lookup_clock env x) ins in
+  (* print_env Format.std_formatter env; *)
+  let ckouts = List.map (fun x -> lookup_clock env x) outs in
+  let ckins = List.map gen_instance ckins in
+  let ckins = group_tuple ckins in
+  let ckouts = List.map gen_instance ckouts in
+  let ckouts = group_tuple ckouts in
+  let node_type = Arrow ( ckins, ckouts) in
+  print_clock_scheme Format.std_formatter (generalise_type env node_type);
+  Format.printf "\n___\n"
+
+  (* let ins = split_tuple node.inputs in
+   * let env = !global_typing_env in
+   * let env = List.fold_left (fun acc p ->
+   *       let clk = Var (new_varclock ()) in
+   *       (p,Forall([],clk))::acc) env ins in
+   * let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
+   * let extract_ids pat acc =
+   *   match pat.p_desc with
+   *   | Ident i -> i :: acc
+   *   | _ -> acc
+   * in
+   * let ins_p = List.fold_left (fun acc x -> extract_ids x acc) [] ins in
+   * let ckins = List.map (look_for_ident env) ins_p in
+   * let ckins = List.map (fun (Forall(_,c)) -> c) ckins in
+   * let ckins = CTuple ckins in
+   * let ckins = generalise_type env ckins in
+   * (\* print_env Format.std_formatter env; *\)
+   * let ckouts = lookup_clock env node.outputs in
+   * let t = Arrow(gen_instance ckins, gen_instance ckouts) in
+   * let tt = generalise_type !global_typing_env t in
+   * global_typing_env := ((node.name,tt)::!global_typing_env);
+   * (\* Format.fprintf Format.std_formatter "global env : %a" print_env !global_typing_env; *\)
+   * Format.fprintf Format.std_formatter "%a : %a\n"
+   *   Parsing_ast_printer.print_pattern node.name *)
+    (* print_clock_scheme tt *)
 
 let test () =
       let u = Var (new_varclock ()) in

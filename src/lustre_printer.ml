@@ -1,42 +1,12 @@
 open Parsing_ast
+open Parsing_ast_printer
 
-let print_value fmt v =
-  match v with
-  | Integer i -> Format.fprintf fmt "%d" i
-  | Bool b -> Format.fprintf fmt "%b" b
-  | Float f -> Format.fprintf fmt "%f" f
-  | String str -> Format.fprintf fmt "\"%s\"" str
-  | Nil -> Format.fprintf fmt "nil"
-  | Enum s -> Format.fprintf fmt "%s" s
 
 let rec print_list f fmt l =
   match l with
   | [s] -> Format.fprintf fmt  "%a" f s
-  | h :: t -> Format.fprintf fmt  "%a, " f h ; print_list f fmt t
+  | h :: t -> Format.fprintf fmt  "%a; " f h ; print_list f fmt t
   | _ -> ()
-
-
-let print_ident fmt i = Format.fprintf fmt "%s" i
-
-
-let rec print_pattern fmt p =
-  match p.p_desc with
-  | Ident i -> Format.fprintf fmt "%s" i
-  | Tuple t -> Format.fprintf fmt "(%a)" (print_list print_pattern) t
-  | PUnit -> Format.fprintf fmt "()"
-  | Typed (p,s) -> Format.fprintf fmt "(%a:%s)"
-                     print_pattern p
-                     s
-
-let print_io fmt l =
-    Format.fprintf fmt "(%a)"
-    (print_list (fun fmt io -> print_pattern fmt io)) l
-
-let print_preop fmt op =
-  match op with
-  | Not -> Format.fprintf fmt "not "
-  | Neg -> Format.fprintf fmt "-"
-  | Negf -> Format.fprintf fmt "-."
 
 
 let print_infop fmt op =
@@ -47,10 +17,10 @@ let print_infop fmt op =
   | Div -> Format.fprintf fmt "/"
   | Minus -> Format.fprintf fmt "-"
   | Diff -> Format.fprintf fmt "<>"
-  | Plusf -> Format.fprintf fmt "+."
-  | Timesf -> Format.fprintf fmt "*."
-  | Minusf -> Format.fprintf fmt "-."
-  | Divf -> Format.fprintf fmt "/."
+  | Plusf -> Format.fprintf fmt "+"
+  | Timesf -> Format.fprintf fmt "*"
+  | Minusf -> Format.fprintf fmt "-"
+  | Divf -> Format.fprintf fmt "/"
   | Inf -> Format.fprintf fmt "<"
   | Infe -> Format.fprintf fmt "<="
   | Sup -> Format.fprintf fmt ">"
@@ -58,6 +28,16 @@ let print_infop fmt op =
   | Bor -> Format.fprintf fmt "||"
   | Band -> Format.fprintf fmt "&&"
   | Mod -> Format.fprintf fmt "mod"
+
+let rec print_pattern fmt p =
+  match p.p_desc with
+  | Ident i -> Format.fprintf fmt "%s" i
+  | Tuple t -> Format.fprintf fmt "%a" (print_list print_pattern) t
+  | PUnit -> Format.fprintf fmt ""
+  | Typed (p,s) -> Format.fprintf fmt "%a:%s"
+                     print_pattern p
+                     s
+
 
 let rec print_expression fmt e =
   let rec print_expression_list fmt el =
@@ -94,7 +74,7 @@ let rec print_expression fmt e =
   | Arrow (e1,e2) -> Format.fprintf fmt "(%a -> %a)"
                        print_expression e1
                        print_expression e2
-  | Fby (e1, e2) -> Format.fprintf fmt "(%a fby %a)"
+  | Fby (e1, e2) -> Format.fprintf fmt "(%a -> pre %a)"
                     print_expression e1
                     print_expression e2
   | Unit -> Format.fprintf fmt "()"
@@ -128,9 +108,20 @@ let rec print_equations fmt le =
                print_equation e
                print_equations tl
 
-let print_node fmt n =
-  Format.fprintf fmt  "let_node %a ~inf:%a ~outf:%a = \n%a \n \n"
-    print_pattern n.name
-    print_pattern n.inputs
-    print_pattern n.outputs
-    print_equations n.equations
+let print_condition fmt cond =
+  match cond with
+  | Some x ->
+    Format.fprintf fmt "\n--%%PROPERTY %a;" print_expression x;
+  | None -> ()
+
+let print_node fmt node =
+  Format.fprintf fmt "
+node %a(%a) returns (%a)
+ let
+%a%a
+ tel
+" print_pattern node.name
+    print_pattern node.inputs
+    print_pattern node.outputs
+    print_equations node.equations
+    print_condition node.inv

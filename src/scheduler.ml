@@ -127,11 +127,16 @@ let mk_dep_graph (eqs : equation list) =
   List.map (fun x -> (eq_dep x)) eqs |> List.flatten
 
 let rec print_dep_graph g =
+  let rec print_idents fmt l =
+    match l with
+      [] -> ()
+    | [x] -> Format.fprintf fmt "%a" print_ident x
+    | x::xs -> Format.fprintf fmt "%a, %a" print_ident x print_idents xs in
   let print_one_dep fmt (e,dep) =
     Format.fprintf fmt
-      "\n %a --> "
-    print_ident e ;
-    List.iter (fun s -> print_ident fmt s) dep
+      "%a depends on (%a)\n"
+    print_ident e
+    print_idents dep
   in
   match g with
   | [] -> ()
@@ -143,7 +148,7 @@ let dfs (graph : (ident * ident list) list) visited start_node =
     if List.mem node visited then visited else
       let new_path = node :: path in
       let edges    = try List.assoc node graph
-      with Not_found -> failwith ("Not found : "^node) in
+        with Not_found -> failwith ("Variable not found : "^node);  in
       let visited  = List.fold_left (explore new_path) visited edges in
       node :: visited
   in explore [] visited start_node
