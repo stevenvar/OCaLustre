@@ -167,6 +167,18 @@ let tocaml_outputs node =
   | Tuple t -> [%expr [%e Exp.tuple (aux t) ] ]
   | Typed (p,s) ->  [%expr [%e pexp_of_pat node.i_outputs ]]
 
+
+let tocaml_inputs_expr node =
+  let aux ol =
+    List.map pexp_of_pat ol
+  in
+  match node.i_inputs.p_desc with
+  | PUnit -> [%expr () ]
+  | Ident x  -> [%expr [%e pexp_of_pat node.i_inputs ]]
+  | Tuple t -> [%expr [%e Exp.tuple (aux t) ] ]
+  | Typed (p,s) ->  [%expr [%e pexp_of_pat node.i_inputs ]]
+
+
 let rec pat_of_pattern p =
   match p.p_desc with
   | Ident i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
@@ -290,6 +302,32 @@ let tocaml_step node =
   let ups = tocaml_updates node outs in
   let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in
   tocaml_inputs node pname eqs
+
+let tocaml_main_inputs inode =
+   match inode.i_inputs.p_desc with
+  | PUnit -> [%expr () ]
+  | _ ->
+    [%expr let [%p pat_of_pattern inode.i_inputs] = failwith "FILL HERE" in
+          [%e tocaml_inputs_expr inode ]  ]
+
+     
+  
+
+let tocaml_main inode =
+  let name = str_of_pattern inode.i_name in
+  [%stri    
+    let () =
+      let [%p Pat.var(stringloc_of_ident ~prefix:"input_" name)] = fun () ->
+        [%e tocaml_main_inputs inode ]
+        in
+        let [%p Pat.var(stringloc_of_ident ~prefix:"output_" name)] =
+          fun [%p pat_of_pattern inode.i_outputs] -> failwith "FILL HERE"  in 
+           let main = [%e (Exp.ident (lid_of_ident name))] ()  in
+           while true do 
+           let inputs = [%e Exp.ident (lid_of_ident ~prefix:"input_" name)] () in
+           let outputs = main inputs in
+           [%e Exp.ident (lid_of_ident ~prefix:"output_" name)] outputs
+         done ]
 
 let tocaml_node inode =
   let name = stringloc_of_ident (str_of_pattern inode.i_name) in

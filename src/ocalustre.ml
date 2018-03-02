@@ -23,6 +23,7 @@ let lustre = ref false
 let why = ref false
 let alloc = ref false
 let not_printed_wrapper = ref true
+let main = ref "" 
 let outputs_env = ref []
 
 
@@ -53,24 +54,33 @@ let create_node mapper str =
         let _node = mk_node v.pvb_pat v.pvb_expr in
         let _norm_node = normalize_node _node in
         let _sched_node = schedule _norm_node in
-        if !verbose then
-          print_node Format.std_formatter _sched_node;
-        if !lustre then to_lustre_file _node;
-        if !why then (
-          let whyml = Proof_compiling.pcompile_cnode _sched_node in
-          whyml_node Format.std_formatter whyml);
-        if !clocking then (
-          (* let _ = Clocker.clock_node _sched_node (ref []) (ref true) in *)
-          Clocking_ocl.clock_node _sched_node
-          (* Clocking_ocl.test (); *)
-        );
-        if not !alloc then
-          let _inode = compile_cnode _sched_node in
-          [Extracting.tocaml_node _inode]
-        else
-          let _seq_node = seq_node _sched_node outputs_env in
-          (* print_s_node Format.std_formatter _seq_node; *)
-          tocaml_node _seq_node
+          begin 
+            if !verbose then
+              print_node Format.std_formatter _sched_node;
+            if !lustre then to_lustre_file _node;
+            if !why then (
+              let whyml = Proof_compiling.pcompile_cnode _sched_node in
+              whyml_node Format.std_formatter whyml);
+            if !clocking then (
+              (* let _ = Clocker.clock_node _sched_node (ref []) (ref true) in *)
+              Clocking_ocl.clock_node _sched_node
+              (* Clocking_ocl.test (); *)
+            );
+            if not !alloc then
+              begin 
+                let _inode = compile_cnode _sched_node in
+                let stri = if !main = string_of_pattern _inode.i_name then
+                    [Extracting.tocaml_main _inode]
+                  else
+                    []
+                in 
+              Extracting.tocaml_node _inode::stri
+              end
+            else
+              let _seq_node = seq_node _sched_node outputs_env in
+              (* print_s_node Format.std_formatter _seq_node; *)
+              tocaml_node _seq_node
+          end
       | _ -> Error.syntax_error s.pstr_loc "not a node"
     end
   | x -> [default_mapper.structure_item mapper str]
@@ -91,6 +101,7 @@ let _ =
                   ("-y", Arg.Set why, "Prints whyml code");
                   ("-l", Arg.Set lustre, "Prints lustre node");
                   ("-a", Arg.Set alloc, "Generate non-allocating code (state passing style)");
+                  ("-main", Arg.Set_string main, "Generate main function");
                   ("-i", Arg.Set clocking, "Prints clocks types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;
