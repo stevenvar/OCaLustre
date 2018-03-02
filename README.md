@@ -194,9 +194,11 @@ ocamlc -ppx ocalustre tests/foo.ml
 
 ### Generation of the main loop 
 
-```ocamlfind ppx_tools/rewriter "ocalustre -main my_main_node" ocalustre_file.ml -o ocaml_file.ml```
+```
+ocamlfind ppx_tools/rewriter "ocalustre -main my_main_node" ocalustre_file.ml -o ocaml_file.ml
+```
 
-The ```-main''' option, followed by the name of the principal node, generate the global loop of the program. You'll juste need to fill the correct input/output functions for this node in the generated ocaml file.
+The ```-main``` option, followed by the name of the principal node, generate the global loop of the program. You'll juste need to fill the correct input/output functions for this node in the generated ocaml file.
 
 ## Example
 
