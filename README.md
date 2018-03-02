@@ -17,10 +17,11 @@ let%node example (a,b) ~return:(c) =
   c := a + b
 ```
 
-## Published version
+## Published versions
 
-A more complete description of a previous version of the prototype has been published for the 8th European Congress on Embedded Real Time Software and Systems (ERTS 2016) (read the article at https://hal.archives-ouvertes.fr/hal-01292266/)
+A description of a previous version of the prototype has been published for the 8th European Congress on Embedded Real Time Software and Systems (ERTS 2016) (read the article at https://hal.archives-ouvertes.fr/hal-01292266/)
 
+A french description of a more complete version has been described here : https://hal.archives-ouvertes.fr/hal-01446225/document
 
 ## Complete syntax
 
