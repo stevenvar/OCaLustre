@@ -202,21 +202,39 @@ The ```-main``` option, followed by the name of the principal node, generates th
 
 ## Example
 
-```ocaml
+This OCaLustre code (tests/fibo.ml) :
 
+```ocaml
 
 let%node fibonacci () ~return:(f) =
   f := 0 >>> ((1 >>> f) + f)
 
-let _ =
-  let fibonacci_step = fibonacci ()
-  (* the call to fibonacci () initializes the node and returns the step function *)
-  in
-  for i = 0 to 30 do
-    let v = fibonacci_step () in
-    Printf.printf "%d \n" v
-  done
-
 ```
 
-Displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`
+compiled with :
+
+```
+ocamlfind ppx_tools/rewriter "./ocalustre.native -main fibonacci" tests/fibo.ml -o tests/fibo_generated.ml
+```
+
+generates the following file :
+
+```ocaml
+let fibonacci () =                                                                                                      
+  let st_f = ref 0 in
+  let st__aux_1 = ref 1 in
+  let fibonacci_step () =
+    let _aux_1 = !st__aux_1 in
+    let f = !st_f in st__aux_1 := f; st_f := (_aux_1 + f); f in
+  fibonacci_step
+  
+let () =
+  let input_fibonacci () = () in
+  let output_fibonacci f = failwith "FILL HERE" in
+  let main = fibonacci () in
+  while true do
+    let inputs = input_fibonacci () in
+    let outputs = main inputs in output_fibonacci outputs done
+```
+
+and, by replacing ```failwith "FILL HERE``` by ```print_int f```, we thus get an OCaml program that displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`
