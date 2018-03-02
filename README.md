@@ -237,4 +237,4 @@ let () =
     let outputs = main inputs in output_fibonacci outputs done
 ```
 
-and, by replacing ```failwith "FILL HERE``` by ```print_int f```, we thus get an OCaml program that displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`
+and, by replacing ```failwith "FILL HERE``` with ```print_int f```, we thus get an OCaml program that displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`
