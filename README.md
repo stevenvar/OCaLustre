@@ -6,7 +6,7 @@ Synchronous extension of OCaml in the style of the Lustre synchronous programmin
 
 
 The OCaml language is extended with Lustre "nodes". These nodes can be viewed as synchronous functions,
-which run at every instant. An instant is the atomic unit of time at which a node computes outputs from inputs.
+which run at every instant. An instant is the atomic unit of time at which the main node of the program computes outputs from inputs.
 
 Inputs and outputs are considered as data flows, i.e. streams of values that can change through time. For example, the constant 2 is considered as the flow 2,2,2,2,...
 
