@@ -85,53 +85,57 @@ let buttons_state p m =
   | _ -> kind := Nothing; counter := 0 ; Default
 
 
-let%node update_prop ~i:(wtemp,ctemp) ~o:(prop) =
-  new_prop = 0 ->> ( call (min 100 (max 0 (new_prop + offset)))); 
-  delta = call (min 10 (max (-10) (ctemp-wtemp)));
-  offset = call (min 10 (if delta < 0 then ( (-delta) * delta) else (delta * delta)) ); 
-  prop = new_prop / 10
+let%node update_prop (wtemp,ctemp) ~return:(prop) =
+  new_prop := 0 >>> ( eval (min 100 (max 0 (new_prop + offset)))); 
+  delta := eval (min 10 (max (-10) (ctemp-wtemp)));
+  offset := eval (min 10 (if delta < 0 then ( (-delta) * delta) else (delta * delta)) ); 
+  prop := new_prop / 10
 
-let%node timer ~i:(number) ~o:(alarm) =
-  time = 1 ->> if (time) = 10 then 1 else (time) + 1;
-  alarm = (time < number) 
+let%node timer (number) ~return:(alarm) =
+  time := 1 >>> if (time) = 10 then 1 else (time) + 1;
+  alarm := (time < number) 
 
-let%node heat ~i:(w,c) ~o:(h) =
-  prop = update_prop (w,c);
-  h = timer (prop)
+let%node heat (w,c) ~return:(h) =
+  prop := update_prop (w,c);
+  h := timer (prop)
 
-let%node change_wtemp ~i:(default,state) ~o:(w) = 
-  w = default ->> ( 
+let%node change_wtemp (default,state) ~return:(w) = 
+  w := default --> (0 >>>
       if state = SlowPlus then w - 1 
       else if state = FastPlus then w - 3 
       else if state = SlowMinus then w + 1
       else if state = FastMinus then w + 3 
       else w ) 
 
-let%node thermo_on ~i:(state) ~o:(on) = 
-  on = true ->> (if state = OnOff then not (on) else (on))
+let%node thermo_on (state) ~return:(on) = 
+  on := true >>> (if state = OnOff then not (on) else (on))
 
-let%node save_t ~i:(w) ~o:(save) =
-  pre_w = 0 ->> w; 
-  changed = false ->> (w <> (pre_w));
-  save = if changed then call (save_temp w) else ()
+let%node save_t (w) ~return:(save) =
+  pre_w := 0 >>> w; 
+  changed := false >>> (w <> (pre_w));
+  save := eval (save_temp w) [@ when changed]
 
-let%node thermo ~i:(plus,minus,ctemp) ~o:(wtemp, on, h) =
-  state = call ( buttons_state plus minus );
-  on = thermo_on (state); 
-  wtemp = if on then change_wtemp ( (call (load_temp ()) ),state) else 0; 
-  h = if on then heat (wtemp, ctemp) else false;
-  save = save_t wtemp
+let%node thermo (plus,minus,ctemp) ~return:(wtemp, on, h) =
+  state := eval ( buttons_state plus minus );
+  on := thermo_on (state); 
+  wtemp := change_wtemp ( (eval (load_temp ()) ),state) [@when on]; 
+  h := heat (wtemp, ctemp) [@ when on];
+  save := save_t wtemp
 
-let%node main ~i:() ~o:() =
-  plus = call (test_bit plus_button);
-  minus = call (test_bit minus_button);
-  t = call (read_temp ());
-  (wtemp,on,heat) = thermo (plus,minus,t); 
-  p = call (print_temps (wtemp,t));
-  r = if heat then (call (set_bit output)) else (call (clear_bit output)) 
+let get_plus () = test_bit plus_button
+let get_minus () = test_bit minus_button
+let get_t () = read_temp ()
 
-let _ =
-  let main_step = main () in
-  while true do
-    main_step ();
-  done
+let out_wt wt = print_temps (get_t (), wt)
+let out_heat h = if h then set_bit output else clear_bit output
+
+let get_inputs () = (get_plus (), get_minus (), get_t ())
+let write_outputs (wt,h) = (out_wt wt; out_heat h)
+
+let%node main (plus,minus,t) ~return:(wanted_temp,heat) =
+  (wanted_temp,on,heat) := thermo (plus,minus,t); 
+
+  
+  
+  
+
