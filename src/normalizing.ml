@@ -124,6 +124,7 @@ let norm_exp l exp  =
         let (l'',e') = normalize_exp l e in
         let exp' = { exp with e_desc = Fby (c,e') } in
         l'' , exp'
+      | Call e -> l,exp
       | _ -> Error.syntax_error c.e_loc "A fby can only have a constant on its left part"
     end
   | When (e,i) ->

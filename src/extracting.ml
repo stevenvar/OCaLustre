@@ -303,27 +303,34 @@ let tocaml_step node =
   let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in
   tocaml_inputs node pname eqs
 
+let expr_of_string s =
+  [%expr [%e Exp.ident (lid_of_ident s)] ]
+
 let tocaml_main_inputs inode =
+  let name = (str_of_pattern inode.i_name)^"_inputs" in
    match inode.i_inputs.p_desc with
   | PUnit -> [%expr () ]
   | _ ->
-    [%expr let [%p pat_of_pattern inode.i_inputs] = failwith "FILL HERE" in
+    [%expr let [%p pat_of_pattern inode.i_inputs] =
+             [%e expr_of_string name] () in
           [%e tocaml_inputs_expr inode ]  ]
 
-     
-  
+
+
 
 let tocaml_main inode =
   let name = str_of_pattern inode.i_name in
-  [%stri    
+  let name_outputs = name^"_outputs" in
+  [%stri
     let () =
+      let open IO in
       let [%p Pat.var(stringloc_of_ident ~prefix:"input_" name)] = fun () ->
         [%e tocaml_main_inputs inode ]
         in
         let [%p Pat.var(stringloc_of_ident ~prefix:"output_" name)] =
-          fun [%p pat_of_pattern inode.i_outputs] -> failwith "FILL HERE"  in 
+          fun [%p pat_of_pattern inode.i_outputs] -> [%e expr_of_string name_outputs] [%e tocaml_outputs inode]  in
            let main = [%e (Exp.ident (lid_of_ident name))] ()  in
-           while true do 
+           while true do
            let inputs = [%e Exp.ident (lid_of_ident ~prefix:"input_" name)] () in
            let outputs = main inputs in
            [%e Exp.ident (lid_of_ident ~prefix:"output_" name)] outputs
@@ -353,7 +360,7 @@ let tocaml_node inode =
    *              [%e tocaml_inits inits (tocaml_step inode) ]
    *   ]
    * | Typed (p,s) ->
-   * 
+   *
    *    [%stri let [%p Pat.var name] =
    *            fun [%p pat_of_pattern inode.i_inputs] ->
    *              [%e tocaml_inits inits (tocaml_step inode) ]

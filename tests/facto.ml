@@ -7,8 +7,8 @@ let%node facto_fby () ~return:x =
   x := 1 >>> (x * cpt)
 
 let _ =
-  let f = facto () in 
-  let f' = facto_fby () in 
+  let f = facto () in
+  let f' = facto_fby () in
     for i = 0 to 10 do
       let v = f () in
       let v' = f' () in

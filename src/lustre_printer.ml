@@ -137,7 +137,7 @@ let remove_type x =
 
 let rec print_local_vars fmt l =
   match l with
-  | [] -> () 
+  | [] -> ()
   | x::xs -> Format.fprintf fmt "var %a;\n %a" print_pattern x
                print_local_vars xs
 
@@ -148,12 +148,12 @@ let rec to_string x =
   | PUnit -> "()"
   | Typed(p,t) -> to_string p
   | _ -> failwith "cannot make a string"
-  
+
 let rec remove_var x l =
   match l with
   | [] -> []
   | p::t ->
-    let xname = to_string x in 
+    let xname = to_string x in
     let name = to_string p in
     if xname = name then t else p::remove_var x t
 
@@ -162,7 +162,7 @@ let get_local_vars node =
   let vars =
     List.map (fun eq -> eq.pattern) node.equations
   in
-  let ins = split node.inputs in 
+  let ins = split node.inputs in
   let outs = split node.outputs in
   let vars = List.fold_left (fun acc x -> remove_var x acc) vars outs in
   List.fold_left (fun acc x -> remove_var x acc) vars ins
