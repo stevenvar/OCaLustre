@@ -199,7 +199,7 @@ let make_expression e =
       begin match e with
         | None -> { e_desc = Value (Enum s) ;
                     e_loc = pexp_loc }
-        | _ -> assert false   (* only enum types *)
+        | _ ->  Error.syntax_error pexp_loc "Cannot be something else than an enumerated type"
       end
 
     | { pexp_desc = Pexp_constraint (e,t) ; pexp_loc; pexp_attributes } ->
