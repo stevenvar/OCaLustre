@@ -59,6 +59,7 @@ let checkname_tuple il =
 let rec get_idents l e =
   match e.e_desc with
   | Variable i -> i::l
+  | Array el -> l
   | Call e -> l
   | Application (i,e) ->
     get_idents l e
@@ -112,6 +113,16 @@ let extract_clock attr =
     end
   | _ -> Error.syntax_error sl.loc "wrong attribute"
 
+let get_int = function
+  | { pexp_desc = Pexp_constant c;
+    pexp_loc ;
+    pexp_attributes } ->
+      begin match c with
+        | Pconst_integer (i,s) -> int_of_string i
+        | _ -> Error.syntax_error pexp_loc "not an integer"
+      end
+  | _ -> failwith "not an int"
+
 (* transform expressions to node of the ocalustre AST *)
 let make_expression e =
   (* Get attributes and extract their name and value *)
@@ -128,9 +139,29 @@ let make_expression e =
     | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
     | { pexp_desc = Pexp_tuple el ; pexp_loc ; pexp_attributes} ->
       let l = List.map mk_expr el in
-      { e_desc = ETuple (l) ;
+      { e_desc = ETuple l ;
         e_loc = pexp_loc }
-
+    | [%expr [| [%e? e1] where [%e? e2] |] ] ->
+      mk_expr e1
+    | [%expr [| [%e? e1] ^ [%e? e2] |] ] ->
+      let v= mk_expr e1 in
+      let nb = get_int e2 in
+      let make_list_n v n =
+        let rec loop n acc =
+          if n = 0 then acc
+          else loop (n-1) (v::acc)
+        in
+        loop n []
+      in
+      let l = make_list_n v nb in
+      { e_desc = Array l ;
+        e_loc = e.pexp_loc }
+    | { pexp_desc = Pexp_array el;
+        pexp_loc ;
+        pexp_attributes } ->
+      let l = List.map mk_expr el in
+      { e_desc = Array l ;
+        e_loc = pexp_loc }
     | [%expr [%e? e1] = [%e? e2] ] ->
       { e_desc = InfixOp(Equals, mk_expr e1, mk_expr e2) ;
         e_loc = e.pexp_loc }

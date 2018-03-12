@@ -50,6 +50,7 @@ let rec compile_expression e p =
   match e.e_desc with
   | Value v -> IValue v
   | Variable s -> IVariable s
+  | Array el -> IArray (List.map (fun e -> compile_expression e p) el)
   | Application (i, e) ->
     let num = get_num () in
     (* let name = i^(string_of_int num)^"_step" in *)

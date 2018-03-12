@@ -1,26 +1,26 @@
 
 
 type ident = string
-type condition = expression option
-and node = {
+type  condition = expression option
+and  node = {
   pre : condition;
   post : condition;
   inv : condition;
   name : pattern;
   inputs : pattern;
   outputs : pattern;
-  equations : equation list;
+  equations :  equation list;
 }
-and equation = {
+and  equation = {
   pattern : pattern ;
   expression : expression;
 }
-and constant = Integer of int
-             | Float of float
-             | Bool of bool
-             | String of string
-             | Enum of string
-             | Nil
+and value = Integer of int
+          | Float of float
+          | Bool of bool
+          | String of string
+          | Enum of string
+          | Nil
 
 and expression = {
   e_desc : exp_desc;
@@ -41,8 +41,9 @@ and exp_desc =
   | Application of ident * expression
   | InfixOp of inf_operator * expression * expression
   | PrefixOp of pre_operator * expression
-  | Value of constant
+  | Value of value
   | Variable of ident
+  | Array of expression list
   | Fby of expression * expression
   | When of expression * expression
   | Whennot of expression * expression

@@ -7,9 +7,10 @@ type app_inits = imp_equation list
 and init = imp_equation
 and imp_inits = init list
 and imp_expr =
-  | IValue of constant
+  | IValue of value
   | IConstr of string
   | IVariable of ident
+  | IArray of imp_expr list
   | IApplication of ident * int * imp_expr
   | IApplication_init of ident * imp_expr
   | ICall of Parsetree.expression

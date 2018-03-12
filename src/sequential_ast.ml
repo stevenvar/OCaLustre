@@ -7,7 +7,7 @@ type app_inits = s_equation list
 and init = s_equation
 and s_inits = init list
 and s_expr =
-  | S_Value of constant
+  | S_Value of value
   | S_Constr of string
   | S_Variable of ident
   | S_Application of ident * int * s_expression list

@@ -62,6 +62,7 @@ let rec normalize_exp l exp =
     l', { exp with e_desc = exp' }
   | Value c -> l , exp
   | Variable v -> l, exp
+  | Array el -> l,exp
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in
@@ -117,17 +118,14 @@ let norm_exp l exp  =
     l', { exp with e_desc = exp' }
   | Value c -> l , exp
   | Variable v -> l, exp
+  | Array el -> l,exp
   | Fby (c, e) ->
     begin
       match c.e_desc with
-      | Value _ ->
+      | Value _ | Array _ | Call _ ->
         let (l'',e') = normalize_exp l e in
         let exp' = { exp with e_desc = Fby (c,e') } in
         l'' , exp'
-      | Call _ ->
-        let (l'',e') = normalize_exp l e in
-        let exp' = { exp with e_desc = Fby (c,e') } in
-        l'',exp'
       | _ -> Error.syntax_error c.e_loc "A fby can only have a constant on its left part"
     end
   | When (e,i) ->
@@ -153,7 +151,7 @@ let norm_exp l exp  =
 (* replace every --> and pre with their equivalent with fby *)
   let rec kernalize exp =
     match exp.e_desc with
-    | Value _ | Variable _ | Unit -> exp
+    | Value _ | Variable _ | Unit | Array _ -> exp
     | Pre e ->
       let e = kernalize e in
       { exp with e_desc = Fby({exp with e_desc = Value Nil}, e) }

@@ -22,6 +22,7 @@ let rec get_dep_id e l  =
   | PrefixOp (op, e) ->
     get_dep_id e l
   | Value v -> l
+  | Array el -> l
   | Arrow (e1,e2) ->
     let l = get_dep_id e1 l in
     get_dep_id e2 l

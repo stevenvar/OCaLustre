@@ -30,6 +30,7 @@ let rec tocaml_expression e =
   | IValue (Bool false) -> Exp.construct {txt= Lident "false" ; loc = Location.none } None
   | IETuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
+  | IArray el -> Exp.array (List.map tocaml_expression el)
   | IRef i -> [%expr ![%e Exp.ident (lid_of_ident i) ]  ]
   | IRefDef e -> [%expr ref [%e tocaml_expression e ] ]
   | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e ] ]
@@ -157,7 +158,7 @@ let rec pexp_of_pat p =
                  pexp_attributes = [] }
   | Typed (p,s) -> pexp_of_pat p
 
-let tocaml_outputs node =
+let tocaml_outputs_expr node =
   let aux ol =
     List.map pexp_of_pat ol
   in
@@ -298,7 +299,7 @@ let tocaml_inputs node pname acc =
 
 let tocaml_step node =
   let pname = stringloc_of_ident ~suffix:"_step" (str_of_pattern node.i_name) in
-  let outs = tocaml_outputs node in
+  let outs = tocaml_outputs_expr node in
   let ups = tocaml_updates node outs in
   let eqs = tocaml_eq_list (List.rev node.i_step_fun.i_equations) ups in
   tocaml_inputs node pname eqs
@@ -306,34 +307,16 @@ let tocaml_step node =
 let expr_of_string s =
   [%expr [%e Exp.ident (lid_of_ident s)] ]
 
-let tocaml_main_inputs inode =
-  let name = (str_of_pattern inode.i_name)^"_inputs" in
-   match inode.i_inputs.p_desc with
-  | PUnit -> [%expr () ]
-  | _ ->
-    [%expr let [%p pat_of_pattern inode.i_inputs] =
-             [%e expr_of_string name] () in
-          [%e tocaml_inputs_expr inode ]  ]
-
-
-
-
 let tocaml_main inode =
   let name = str_of_pattern inode.i_name in
-  let name_outputs = name^"_outputs" in
   [%stri
     let () =
       let open IO in
-      let [%p Pat.var(stringloc_of_ident ~prefix:"input_" name)] = fun () ->
-        [%e tocaml_main_inputs inode ]
-        in
-        let [%p Pat.var(stringloc_of_ident ~prefix:"output_" name)] =
-          fun [%p pat_of_pattern inode.i_outputs] -> [%e expr_of_string name_outputs] [%e tocaml_outputs inode]  in
            let main = [%e (Exp.ident (lid_of_ident name))] ()  in
            while true do
-           let inputs = [%e Exp.ident (lid_of_ident ~prefix:"input_" name)] () in
-           let outputs = main inputs in
-           [%e Exp.ident (lid_of_ident ~prefix:"output_" name)] outputs
+           let [%p pat_of_pattern inode.i_inputs ] = [%e Exp.ident (lid_of_ident ~suffix:"_inputs" name)] () in
+           let [%p pat_of_pattern inode.i_outputs ] = main  [%e tocaml_inputs_expr inode ] in
+           [%e Exp.ident (lid_of_ident ~suffix:"_outputs" name)] [%e tocaml_outputs_expr inode ]
          done ]
 
 let tocaml_node inode =
