@@ -57,25 +57,24 @@ let%node right (dir) ~return:ndir =
   ndir := eval (right_of dir)
 
 let%node direction (left,right) ~return:dir =
-  pre_dir := South >>> dir ;
   dir := South --> (if left then
-                      left (pre_dir)
+                      left (pre dir)
                     else
                     if right then
-                      right (pre_dir)
+                      right (pre dir)
                     else
-                       (pre_dir))
+                       (pre dir))
 
 let%node rising_edge i ~return:o =
   o := i && (not (false >>> i))
 
 let%node new_head dir ~return:(x,y) =
-  x := 0 --> nx (dir,pre x);
-  y := 0 --> ny (dir,pre y)
+  x := nx(dir,0 >>> x);
+  y := ny(dir,0 >>> y)
 
 let%node eats_apple snake_head ~return:(apple,eats) =
-  apple := eval (new_position ()) --> (if pre eats then eval (new_position ()) else pre apple);
-  eats := (snake_head) = apple
+  apple := eval (new_position ()) >>> (if eats then eval (new_position ()) else apple);
+  eats := (snake_head = apple)
 
 let%node eats_itself (snake,head,tail) ~return:b =
   b := false --> eval (collides_with_itself (snake,head,tail))
@@ -94,6 +93,6 @@ let%node game_loop (left,right) ~return:(snake,head,tail,apple,lose) =
   lose := eats_itself (snake,head,tail)
 
 let%node main (button1,button2) ~return:(snake,head,tail,apple,lose) =
-  left := false >>> rising_edge(button1);
-  right := false >>> rising_edge(button2);
+  left := rising_edge(button1);
+  right :=rising_edge(button2);
   (snake,head,tail,apple,lose) := game_loop(left,right)
