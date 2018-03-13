@@ -1,0 +1,10 @@
+all : snake.byte
+
+snake.byte : IO.ml snake.ml
+	ocamlc -ppx "ocalustre -m game_loop" graphics.cma unix.cma $? -o $@
+
+run : snake.byte
+	./$<
+
+clean :
+	rm -r *.cmi *.cmo snake.byte

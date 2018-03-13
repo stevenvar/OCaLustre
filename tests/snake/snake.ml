@@ -84,14 +84,13 @@ let%node maj_head (snake,head,new_head) ~return:s =
   s := eval (snake.(head) <- new_head ; snake )
 
 let%node game_loop (left,right) ~return:(snake,head,tail,apple,lose) =
-  (* snake := [(0,0)^100] --> (pre snake where [head ==> new_head dir]); *)
+  snake := [| (0,0)^100 |] --> (pre snake) where (head => nh);
   nh := new_head dir;
+  dir := direction(left,right);
   head := 1 >>> ((head+1) mod 100);
-  snake := eval (Array.make 100 (0,0)) >>> maj_head(snake, head,nh);
-(apple,grows) := eats_apple nh;
+  (apple,grows) := eats_apple nh;
   tail := if not grows then (0 >>> ( (tail+1) mod 100)) else (0 >>> tail);
   size := 2 >>> (if grows then size + 1 else size);
-  dir := direction(left,right);
   lose := eats_itself (snake,head,tail)
 
 let%node main (button1,button2) ~return:(snake,head,tail,apple,lose) =

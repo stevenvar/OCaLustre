@@ -44,6 +44,7 @@ and exp_desc =
   | Value of value
   | Variable of ident
   | Array of expression list
+  | Imperative_update of expression * ((expression * expression) list)
   | Fby of expression * expression
   | When of expression * expression
   | Whennot of expression * expression

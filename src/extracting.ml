@@ -18,8 +18,17 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
     loc = Location.none
   }
 
-
-let rec tocaml_expression e =
+let rec tocaml_imperative_updates e el =
+  let rec loop l =
+    match l with
+    | [] -> e
+    | (e1,e2)::t ->
+      let e1 = tocaml_expression e1 in
+      let e2 = tocaml_expression e2 in
+      Exp.sequence [%expr [%e e].([%e e1]) <- [%e e2]] (loop t)
+  in
+  loop el
+and tocaml_expression e =
   match e with
   | IValue (String s) -> [%expr s ]
   | IValue (Nil) -> [%expr Obj.magic () ]
@@ -31,6 +40,9 @@ let rec tocaml_expression e =
   | IETuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
   | IArray el -> Exp.array (List.map tocaml_expression el)
+  | IImperative_update (e,pe) ->
+    let e = tocaml_expression e in
+    [%expr [%e tocaml_imperative_updates e pe] ]
   | IRef i -> [%expr ![%e Exp.ident (lid_of_ident i) ]  ]
   | IRefDef e -> [%expr ref [%e tocaml_expression e ] ]
   | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e ] ]

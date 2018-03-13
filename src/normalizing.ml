@@ -63,6 +63,10 @@ let rec normalize_exp l exp =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Array el -> l,exp
+  | Imperative_update (e,pe) ->
+    let (l,e) = normalize_exp l e in
+    let exp' = Imperative_update(e,pe) in
+    l, { exp with e_desc = exp' }
   | Fby (c, e) ->
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in
@@ -119,6 +123,10 @@ let norm_exp l exp  =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Array el -> l,exp
+  | Imperative_update (e,pe) ->
+    let (l,e) = normalize_exp l e in
+    let exp' = Imperative_update(e,pe) in
+    l, { exp with e_desc = exp' }
   | Fby (c, e) ->
     begin
       match c.e_desc with
@@ -152,6 +160,9 @@ let norm_exp l exp  =
   let rec kernalize exp =
     match exp.e_desc with
     | Value _ | Variable _ | Unit | Array _ -> exp
+    | Imperative_update (e,pe) ->
+      let e = kernalize e in
+      { exp with e_desc = Imperative_update(e,pe)}
     | Pre e ->
       let e = kernalize e in
       { exp with e_desc = Fby({exp with e_desc = Value Nil}, e) }

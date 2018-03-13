@@ -60,6 +60,7 @@ let rec get_idents l e =
   match e.e_desc with
   | Variable i -> i::l
   | Array el -> l
+  | Imperative_update (e,_) -> get_idents l e
   | Call e -> l
   | Application (i,e) ->
     get_idents l e
@@ -123,6 +124,7 @@ let get_int = function
       end
   | _ -> failwith "not an int"
 
+
 (* transform expressions to node of the ocalustre AST *)
 let make_expression e =
   (* Get attributes and extract their name and value *)
@@ -133,7 +135,12 @@ let make_expression e =
       Some (sl,extract_clock a)
     else None
   in
-  let rec mk_expr e =
+  let rec parse_updates e =
+    match e with
+    | [%expr [%e? e1] => [%e? e2] ] -> [(mk_expr e1,mk_expr e2)]
+    | [%expr [%e? e1] => [%e? e2] ; [%e? e3] ] -> (mk_expr e1,mk_expr e2)::(parse_updates e3)
+    | _ -> Error.print_error e.pexp_loc "Not an array update"
+  and mk_expr e =
     (* List.iter ( fun (sl,p) ->  Format.fprintf Format.std_formatter "=>%s<=\n" sl.txt ) attr; *)
     match e with
     | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
@@ -141,8 +148,9 @@ let make_expression e =
       let l = List.map mk_expr el in
       { e_desc = ETuple l ;
         e_loc = pexp_loc }
-    | [%expr [| [%e? e1] where [%e? e2] |] ] ->
-      mk_expr e1
+    | [%expr [%e? e1] where [%e? e2]  ] ->
+      { e_desc = Imperative_update (mk_expr e1, parse_updates e2);
+        e_loc = e.pexp_loc}
     | [%expr [| [%e? e1] ^ [%e? e2] |] ] ->
       let v= mk_expr e1 in
       let nb = get_int e2 in
