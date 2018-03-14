@@ -192,9 +192,11 @@ let seq_eqs_zero eqs sname env =
            i
            outputs
        with Not_found -> Error.print_error e.e_loc ("unknown node "^i))
-    | Array _ -> sexp
-    | Array_get _ -> sexp
-    | Imperative_update _ -> sexp
+    | Array _
+    | Array_get _
+    | Array_fold _
+    | Array_map _
+    | Imperative_update _ -> failwith "todo"
     | Call e ->
       { sexp with s_e_desc = S_Call e }
     | InfixOp (op,e1,e2) ->
@@ -271,7 +273,7 @@ let rec seq_eqs_next eqs name env =
   let rec seq_exp s e =
     let sexp = { s_e_desc = S_Unit; s_e_loc = e.e_loc } in
     match e.e_desc with
-    | Array _ | Array_get _ | Imperative_update _ -> sexp
+    | Array _ | Array_get _ | Imperative_update _ | Array_fold _ | Array_map _ -> failwith "todo"
     | Value v -> { sexp with s_e_desc = S_Value v}
     | Variable s -> { sexp with s_e_desc = S_Variable s }
     | Application (i, e) ->

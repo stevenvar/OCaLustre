@@ -55,7 +55,7 @@ let rec print_expression fmt e =
     | he::te -> Format.fprintf fmt "%a,%a" print_expression he print_expression_list te
   in
   match e.e_desc with
-  | Array _ | Array_get _ | Imperative_update _ -> Format.fprintf fmt "todo"
+  | Array _ | Array_get _ | Imperative_update _ | Array_fold _ | Array_map _ -> failwith "todo"
   | Variable i -> Format.fprintf fmt "%a"
                     print_ident i
   | Alternative (e1,e2,e3) ->

@@ -51,6 +51,10 @@ let rec compile_expression e p =
   | Value v -> IValue v
   | Variable s -> IVariable s
   | Array el -> IArray (List.map (fun e -> compile_expression e p) el)
+  | Array_fold (e,f,acc) ->
+    IArray_fold (compile_expression e p, f, compile_expression acc p)
+  | Array_map (e,f) ->
+    IArray_map (compile_expression e p, f)
   | Imperative_update (e,pe) ->
     let pe = List.map (fun (e1,e2) -> compile_expression e1 p, compile_expression e2 p) pe in
     IImperative_update (compile_expression e p,pe )

@@ -12,6 +12,8 @@ and imp_expr =
   | IVariable of ident
   | IArray of imp_expr list
   | IArray_get of imp_expr * imp_expr
+  | IArray_fold of imp_expr * Parsetree.expression * imp_expr
+  | IArray_map of imp_expr * Parsetree.expression
   | IImperative_update of imp_expr * ((imp_expr * imp_expr) list)
   | IApplication of ident * int * imp_expr
   | IApplication_init of ident * imp_expr

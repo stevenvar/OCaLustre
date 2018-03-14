@@ -30,24 +30,18 @@ with Break -> false
 let nmod x y =
   (x + y) mod y
 
-let new_x (dir,x) =
-  if dir = West then nmod (x-1) 100
-  else if dir = East then nmod (x+1) 100
-  else x
-
-let new_y (dir,y) =
-  if dir = North then nmod (y-1) 100
-  else if dir = South then nmod (y+1) 100
-  else y
-
 let new_position () =
   (Random.int 100, Random.int 100)
 
 let%node nx (dir,x) ~return:nx =
-  nx := eval (new_x (dir,x))
+  nx := if dir = West then eval (nmod (x-1) 100)
+  else if dir = East then eval (nmod (x+1) 100)
+  else x
 
 let%node ny (dir,y) ~return:ny =
-  ny := eval (new_y (dir,y))
+  ny := if dir = North then eval (nmod (y-1) 100)
+  else if dir = South then eval (nmod (y+1) 100)
+  else y
 
 let%node left (dir) ~return:ndir =
   ndir := eval (left_of dir)
@@ -87,7 +81,7 @@ let%node game_loop (left,right) ~return:(hd,tl,apple,lose) =
   dir := direction(left,right);
   head := 1 >>> ((head+1) mod 100);
   (apple,grows) := eats_apple nh;
-  tail := if not grows then (0 >>> ( (tail+1) mod 100)) else (0 >>> tail);
+  tail := if not grows then (0 >>> ((tail+1) mod 100)) else (0 >>> tail);
   size := 2 >>> (if grows then size + 1 else size);
   lose := eats_itself (snake,head,tail);
   hd := snake.(head);

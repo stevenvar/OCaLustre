@@ -40,6 +40,10 @@ and tocaml_expression e =
   | IETuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
   | IArray el -> Exp.array (List.map tocaml_expression el)
+  | IArray_fold (e,f,acc) ->
+    [%expr Array.fold_left [%e f] [%e tocaml_expression acc] ([%e tocaml_expression e]) ]
+  | IArray_map (e,f) ->
+    [%expr Array.map [%e f] [%e tocaml_expression e] ]
   | IArray_get (e,e') ->
     [%expr [%e tocaml_expression e].([%e tocaml_expression e']) ]
   | IImperative_update (e,pe) ->

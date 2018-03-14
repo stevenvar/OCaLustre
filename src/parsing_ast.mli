@@ -45,6 +45,8 @@ and exp_desc =
   | Variable of ident
   | Array of expression list
   | Array_get of expression * expression
+  | Array_fold of expression * Parsetree.expression * expression
+  | Array_map of expression * Parsetree.expression
   | Imperative_update of expression * ((expression * expression) list)
   | Fby of expression * expression
   | When of expression * expression

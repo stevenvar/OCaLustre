@@ -73,6 +73,15 @@ let rec normalize_exp l exp =
     let (l,e') = normalize_exp l e' in
     let exp' = Array_get(e,e') in
     l, { exp with e_desc = exp'}
+  | Array_fold (e,f,acc) ->
+    let (l,e) = normalize_exp l e in
+    let (l,e') = normalize_exp l acc in
+    let exp' = Array_fold(e,f,e') in
+    l, { exp with e_desc = exp'}
+  | Array_map (e,f) ->
+    let (l,e) = normalize_exp l e in
+    let exp' = Array_map(e,f) in
+    l, { exp with e_desc = exp'}
   | Imperative_update (e,pe) ->
     let (l,e) = normalize_exp l e in
     let exp' = Imperative_update(e,pe) in
@@ -134,6 +143,15 @@ let norm_exp l exp  =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Array el -> l,exp
+  | Array_fold (e,f,e') ->
+    let (l,e) = normalize_exp l e in
+    let (l,e') = normalize_exp l e' in
+    let exp' = Array_fold(e,f,e') in
+    l , {exp with e_desc = exp'}
+  | Array_map (e,f) ->
+    let (l,e) = normalize_exp l e in
+    let exp' = Array_map(e,f) in
+    l, { exp with e_desc = exp' }
   | Array_get (e,e') ->
     let (l,e) = normalize_exp l e in
     let (l,e') = normalize_exp l e' in
@@ -176,6 +194,13 @@ let norm_exp l exp  =
     let e = kernalize e in
     let e' = kernalize e' in
     { exp with e_desc = Array_get(e,e') }
+    | Array_fold(e,f,acc) ->
+      let e = kernalize e in
+      let acc = kernalize acc in
+      { exp with e_desc = Array_fold(e,f,acc)}
+    | Array_map(e,f) ->
+      let e = kernalize e in
+      { exp with e_desc = Array_map(e,f) }
     | Imperative_update (e,pe) ->
       let e = kernalize e in
       { exp with e_desc = Imperative_update(e,pe)}

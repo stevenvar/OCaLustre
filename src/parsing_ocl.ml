@@ -152,6 +152,12 @@ let make_expression e =
       let l = List.map mk_expr el in
       { e_desc = ETuple l ;
         e_loc = pexp_loc }
+    | [%expr [%e? e1].fold([%e? f],[%e? e']) ] ->
+      { e_desc = Array_fold (mk_expr e1, f, mk_expr e');
+        e_loc = e.pexp_loc }
+    | [%expr [%e? e1].map([%e? e2]) ] ->
+      { e_desc = Array_map (mk_expr e1, e2);
+        e_loc = e.pexp_loc }
     | [%expr [%e? e1].([%e? e2]) ] ->
       { e_desc = Array_get (mk_expr e1, mk_expr e2);
         e_loc = e.pexp_loc }

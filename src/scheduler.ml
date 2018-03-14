@@ -23,6 +23,11 @@ let rec get_dep_id e l  =
     get_dep_id e l
   | Value v -> l
   | Array el -> l
+  | Array_fold (e,f,e') ->
+    let l = get_dep_id e l in
+    get_dep_id e' l
+  | Array_map (e,f) ->
+    get_dep_id e l
   | Array_get (e,e') ->
     let l = get_dep_id e l in
     get_dep_id e' l

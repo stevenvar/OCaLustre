@@ -58,6 +58,8 @@ let rec printml_expression fmt exp =
   | IVariable v ->  Format.fprintf fmt "%s" v
   | IArray a -> Format.fprintf fmt "[| %a |]" printml_expressions a
   | IArray_get (e,e') -> Format.fprintf fmt "%a.(%a)" printml_expression e printml_expression e'
+  | IArray_fold (e,f,e') -> Format.fprintf fmt "%a.fold(...,%a)" printml_expression e printml_expression e'
+  | IArray_map (e,f) -> Format.fprintf fmt "%a.map(...)" printml_expression e
   | IImperative_update (e,el) -> Format.fprintf fmt "%a where (...)" printml_expression e
   | IRef v -> Format.fprintf fmt "!%s" v
   | IRefDef e -> Format.fprintf fmt "ref %a" printml_expression e

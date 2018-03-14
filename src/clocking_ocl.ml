@@ -291,6 +291,13 @@ let clock_expr gamma e =
     | Value _ | Unit -> Var (new_varclock ())
     | Array e -> clock_rec (List.hd e)
     | Array_get (e,_) -> clock_rec e
+    | Array_fold (e,_,acc) ->
+      let c1 = clock_rec e in
+      let c2 = clock_rec acc in
+      unify(c1,c2);
+      c1
+    | Array_map (e,_) ->
+      clock_rec e
     | Imperative_update (e,_) -> clock_rec e
     | Variable n ->
       (* get the clock scheme of n in the env *)
