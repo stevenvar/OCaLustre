@@ -279,7 +279,7 @@ let make_expression e =
 
     | _ ->
        let s =
-         Format.asprintf "in %a"
+         Format.asprintf "%a"
            Pprintast.expression e in
        Error.syntax_error e.pexp_loc s
   in

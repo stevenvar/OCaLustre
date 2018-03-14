@@ -30,7 +30,7 @@ let rec tocaml_imperative_updates e el =
   loop el
 and tocaml_expression e =
   match e with
-  | IValue (String s) -> [%expr s ]
+  | IValue (String s) -> Exp.constant (Pconst_string (s,None))
   | IValue (Nil) -> [%expr Obj.magic () ]
   | IValue (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
   | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
