@@ -22,20 +22,19 @@ let main_inputs () =
 let rtail = ref (0,0)
 let rhead = ref (0,0)
 
-
-let main_outputs (snake,head,tail,apple,lose) =
+let main_outputs (head,tail,apple,lose) =
   if lose then exit 0;
   Graphics.set_color (Graphics.red);
   let (x,y) = apple in
   Graphics.fill_rect (x*5) (y*5) 5 5;
   Graphics.set_color (Graphics.black);
-  let (x,y) = snake.(head) in
+  let (x,y) = head in
   let (xt,yt) = !rtail in
   Graphics.fill_rect (x*5) (y*5) 5 5;
   Graphics.set_color (Graphics.white);
   Graphics.fill_rect (xt*5) (yt*5) 5 5;
   Graphics.set_color (Graphics.black);
-  rtail := snake.(tail);
+  rtail := tail;
   let (xt,yt) = !rtail in
   Graphics.fill_rect (xt*5) (yt*5) 5 5;
   Unix.sleepf 0.1;

@@ -54,6 +54,8 @@ let rec compile_expression e p =
   | Imperative_update (e,pe) ->
     let pe = List.map (fun (e1,e2) -> compile_expression e1 p, compile_expression e2 p) pe in
     IImperative_update (compile_expression e p,pe )
+  | Array_get (e,e') ->
+    IArray_get(compile_expression e p, compile_expression e' p)
   | Application (i, e) ->
     let num = get_num () in
     (* let name = i^(string_of_int num)^"_step" in *)

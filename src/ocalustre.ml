@@ -16,6 +16,7 @@ open Sequentialize
 open Codegen
 open Error
 open Compiling
+open Imperative_ast
 
 let verbose = ref false
 let clocking = ref false

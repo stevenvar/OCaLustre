@@ -69,6 +69,9 @@ let rec print_expression fmt e =
   match e.e_desc with
   | Variable i -> Format.fprintf fmt "%a"
                     print_ident i
+  | Array e -> Format.fprintf fmt "[| %a |]" print_expression_list e
+  | Array_get (e,e') -> Format.fprintf fmt "%a.(%a)" print_expression e print_expression e'
+  | Imperative_update (e,el) -> Format.fprintf fmt "%a where (...)" print_expression e
   | Alternative (e1,e2,e3) ->
     Format.fprintf fmt  "(if (%a) then (%a) else (%a))"
       print_expression e1

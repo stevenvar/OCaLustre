@@ -8,6 +8,11 @@ open Parsing_ast
 open Parsing_ocl
 open Error
 
+let check_constant c =
+    match c.e_desc with
+      | Value _ | Array _ | Call _ -> ()
+      | _ -> Error.syntax_error c.e_loc "A fby can only have a constant on its left part"
+
 (* names for the new equations  *)
 let new_name , reset =
   let count = ref 0 in
@@ -63,11 +68,17 @@ let rec normalize_exp l exp =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Array el -> l,exp
+  | Array_get (e,e') ->
+    let (l,e) = normalize_exp l e in
+    let (l,e') = normalize_exp l e' in
+    let exp' = Array_get(e,e') in
+    l, { exp with e_desc = exp'}
   | Imperative_update (e,pe) ->
     let (l,e) = normalize_exp l e in
     let exp' = Imperative_update(e,pe) in
     l, { exp with e_desc = exp' }
   | Fby (c, e) ->
+    check_constant c;
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in
     let exp' = { exp with e_desc = Fby (c',e') } in
@@ -95,7 +106,7 @@ let rec normalize_exp l exp =
 
 (* The algorithm begins with this function, because we don't want normalizing
 at the first-level
-(ex : x = a ->> b; shouldnt create a new equation)  *)
+(ex : x = a >>> b; shouldnt create a new equation)  *)
 
 let norm_exp l exp  =
   match exp.e_desc with
@@ -123,19 +134,20 @@ let norm_exp l exp  =
   | Value c -> l , exp
   | Variable v -> l, exp
   | Array el -> l,exp
+  | Array_get (e,e') ->
+    let (l,e) = normalize_exp l e in
+    let (l,e') = normalize_exp l e' in
+    let exp' = Array_get(e,e') in
+    l, { exp with e_desc = exp' }
   | Imperative_update (e,pe) ->
     let (l,e) = normalize_exp l e in
     let exp' = Imperative_update(e,pe) in
     l, { exp with e_desc = exp' }
   | Fby (c, e) ->
-    begin
-      match c.e_desc with
-      | Value _ | Array _ | Call _ ->
-        let (l'',e') = normalize_exp l e in
-        let exp' = { exp with e_desc = Fby (c,e') } in
-        l'' , exp'
-      | _ -> Error.syntax_error c.e_loc "A fby can only have a constant on its left part"
-    end
+    check_constant c;
+    let (l'',e') = normalize_exp l e in
+    let exp' = { exp with e_desc = Fby (c,e') } in
+    l'' , exp'
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = When (e',i) }
@@ -160,6 +172,10 @@ let norm_exp l exp  =
   let rec kernalize exp =
     match exp.e_desc with
     | Value _ | Variable _ | Unit | Array _ -> exp
+    | Array_get (e,e') ->
+    let e = kernalize e in
+    let e' = kernalize e' in
+    { exp with e_desc = Array_get(e,e') }
     | Imperative_update (e,pe) ->
       let e = kernalize e in
       { exp with e_desc = Imperative_update(e,pe)}

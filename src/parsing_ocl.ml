@@ -61,6 +61,9 @@ let rec get_idents l e =
   | Variable i -> i::l
   | Array el -> l
   | Imperative_update (e,_) -> get_idents l e
+  | Array_get (e,e') ->
+    let l = get_idents l e in
+    get_idents l e'
   | Call e -> l
   | Application (i,e) ->
     get_idents l e
@@ -114,7 +117,8 @@ let extract_clock attr =
     end
   | _ -> Error.syntax_error sl.loc "wrong attribute"
 
-let get_int = function
+let get_int e =
+  match e with
   | { pexp_desc = Pexp_constant c;
     pexp_loc ;
     pexp_attributes } ->
@@ -122,7 +126,7 @@ let get_int = function
         | Pconst_integer (i,s) -> int_of_string i
         | _ -> Error.syntax_error pexp_loc "not an integer"
       end
-  | _ -> failwith "not an int"
+  | _ -> Error.syntax_error e.pexp_loc "not an integer"
 
 
 (* transform expressions to node of the ocalustre AST *)
@@ -148,6 +152,12 @@ let make_expression e =
       let l = List.map mk_expr el in
       { e_desc = ETuple l ;
         e_loc = pexp_loc }
+    | [%expr [%e? e1].([%e? e2]) ] ->
+      { e_desc = Array_get (mk_expr e1, mk_expr e2);
+        e_loc = e.pexp_loc }
+    | [%expr [%e? e1].update([%e? e2])  ] ->
+      { e_desc = Imperative_update (mk_expr e1, parse_updates e2);
+        e_loc = e.pexp_loc}
     | [%expr [%e? e1] where [%e? e2]  ] ->
       { e_desc = Imperative_update (mk_expr e1, parse_updates e2);
         e_loc = e.pexp_loc}
@@ -230,7 +240,7 @@ let make_expression e =
                                   e_loc = e.pexp_loc }
         | Pconst_string (str,s) -> { e_desc = Value (String str);
                                      e_loc = e.pexp_loc }
-        | _ -> assert false   (* only int/float ftm *)
+        | _ -> assert false   (* only int/float /string ftm *)
       end
     | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; loc} ,e);
         pexp_loc ;

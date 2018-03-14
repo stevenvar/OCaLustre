@@ -56,6 +56,9 @@ let rec printml_expression fmt exp =
   match exp with
   | IValue c -> print_value fmt c
   | IVariable v ->  Format.fprintf fmt "%s" v
+  | IArray a -> Format.fprintf fmt "[| %a |]" printml_expressions a
+  | IArray_get (e,e') -> Format.fprintf fmt "%a.(%a)" printml_expression e printml_expression e'
+  | IImperative_update (e,el) -> Format.fprintf fmt "%a where (...)" printml_expression e
   | IRef v -> Format.fprintf fmt "!%s" v
   | IRefDef e -> Format.fprintf fmt "ref %a" printml_expression e
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"

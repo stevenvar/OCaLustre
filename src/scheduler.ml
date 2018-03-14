@@ -23,6 +23,9 @@ let rec get_dep_id e l  =
     get_dep_id e l
   | Value v -> l
   | Array el -> l
+  | Array_get (e,e') ->
+    let l = get_dep_id e l in
+    get_dep_id e' l
   | Imperative_update (e,el) ->
     let l = get_dep_id e l in
     let flat = List.fold_left (fun acc (e1,e2) -> e1::e2::acc) [] el in

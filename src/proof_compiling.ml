@@ -54,7 +54,8 @@ let compile_infop op =
 
 let rec compile_pre_expression e =
    match e.e_desc with
-  | Value v -> S_Value v
+     | Value v -> S_Value v
+     | Array _ | Array_get _ | Imperative_update _ -> failwith "todo"
   | Variable s -> S_Variable ("pre_"^s)
   | Application (i, e) ->
     let num = get_num () in
@@ -94,6 +95,7 @@ let rec compile_pre_expression e =
 
 let rec compile_expression_step e p =
   match e.e_desc with
+  | Array _ | Array_get _ | Imperative_update _ -> failwith "todo"
   | Pre _ -> assert false
   | Value v -> S_Value v
   | Variable s -> S_Variable s

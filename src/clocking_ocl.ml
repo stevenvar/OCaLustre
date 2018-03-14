@@ -289,6 +289,9 @@ let clock_expr gamma e =
   let rec clock_rec e =
     match e.e_desc with
     | Value _ | Unit -> Var (new_varclock ())
+    | Array e -> clock_rec (List.hd e)
+    | Array_get (e,_) -> clock_rec e
+    | Imperative_update (e,_) -> clock_rec e
     | Variable n ->
       (* get the clock scheme of n in the env *)
       let sigma =
@@ -363,8 +366,8 @@ let clock_expr gamma e =
     | ETuple es -> CTuple (List.map clock_rec es)
     | Fby (e1,e2) ->
       let c1 = clock_rec e1 in
-      (* let c2 = clock_rec e2 in *)
-      (* unify(c1,c2); *)
+      let c2 = clock_rec e2 in
+      unify(c1,c2);
       c1
     | PrefixOp (op,e) ->
       let c = clock_rec e in

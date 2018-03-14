@@ -26,7 +26,6 @@ let collides_with_itself (snake,head,tail) =
   done; false
 with Break -> false
    | Lose -> true
-   | Invalid_argument _ -> Printf.printf "i= %d" !i; failwith "fuck"
 
 let nmod x y =
   (x + y) mod y
@@ -42,7 +41,7 @@ let new_y (dir,y) =
   else y
 
 let new_position () =
-  (Random.int 64, Random.int 32)
+  (Random.int 100, Random.int 100)
 
 let%node nx (dir,x) ~return:nx =
   nx := eval (new_x (dir,x))
@@ -80,19 +79,21 @@ let%node eats_itself (snake,head,tail) ~return:b =
   b := false --> eval (collides_with_itself (snake,head,tail))
 
 let%node maj_head (snake,head,new_head) ~return:s =
-  s := eval (snake.(head) <- new_head ; snake )
+  s := snake.update (head => new_head)
 
-let%node game_loop (left,right) ~return:(snake,head,tail,apple,lose) =
-  snake := [| (0,0)^100 |] --> (pre snake) where (head => nh);
+let%node game_loop (left,right) ~return:(hd,tl,apple,lose) =
+  snake := [| (0,0)^100 |] --> (pre snake).update(head => nh);
   nh := new_head dir;
   dir := direction(left,right);
   head := 1 >>> ((head+1) mod 100);
   (apple,grows) := eats_apple nh;
   tail := if not grows then (0 >>> ( (tail+1) mod 100)) else (0 >>> tail);
   size := 2 >>> (if grows then size + 1 else size);
-  lose := eats_itself (snake,head,tail)
+  lose := eats_itself (snake,head,tail);
+  hd := snake.(head);
+  tl := snake.(tail)
 
-let%node main (button1,button2) ~return:(snake,head,tail,apple,lose) =
+let%node main (button1,button2) ~return:(hd,tl,apple,lose) =
   left := rising_edge(button1);
   right :=rising_edge(button2);
-  (snake,head,tail,apple,lose) := game_loop(left,right)
+  (hd,tl,apple,lose) := game_loop(left,right)
