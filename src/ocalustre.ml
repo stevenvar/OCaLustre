@@ -45,8 +45,7 @@ let to_lustre_file node =
   Format.fprintf fmt "%a" Lustre_printer.print_node  node;
   close_out oc;
   Format.printf "File %s has been written for node %s. \n" name (string_of_pattern node.name)
-
-
+       
 let create_node mapper str =
   match str.pstr_desc with
   | Pstr_extension (({txt="node";_},PStr [s]),_) ->
@@ -75,18 +74,21 @@ let create_node mapper str =
                   else
                     []
                 in
-              Extracting.tocaml_node _inode::stri
+                let str = Extracting.tocaml_node _inode::stri in
+                Print_type.print_type str;
+                str
               end
             else
               let _seq_node = seq_node _sched_node outputs_env in
               (* print_s_node Format.std_formatter _seq_node; *)
-              tocaml_node _seq_node
+              let str = tocaml_node _seq_node in
+              str
           end
       | _ -> Error.syntax_error s.pstr_loc "not a node"
     end
-  | x -> [default_mapper.structure_item mapper str]
+  | x -> Print_type.print_type [str]; [default_mapper.structure_item mapper str]
 
-
+          
 (* maps structure (i.e list of structure_items) *)
 let lustre_mapper argv =
 

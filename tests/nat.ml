@@ -1,5 +1,5 @@
-let%node incr x ~return:y =
+let%node inc x ~return:y =
   y := x + 1
 
 let%node nat () ~return:n =
-   n := 0 >>> incr n
+   n := 0 >>> inc 2
