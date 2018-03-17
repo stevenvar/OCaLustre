@@ -27,7 +27,6 @@ let not_printed_wrapper = ref true
 let main = ref ""
 let outputs_env = ref []
 
-
 (* maps structure_items of the form :
 
    let%node NAME (IN1,IN2,...) ~return:(OUT1, OUT2, ...) =
@@ -45,7 +44,7 @@ let to_lustre_file node =
   Format.fprintf fmt "%a" Lustre_printer.print_node  node;
   close_out oc;
   Format.printf "File %s has been written for node %s. \n" name (string_of_pattern node.name)
-       
+
 let create_node mapper str =
   match str.pstr_desc with
   | Pstr_extension (({txt="node";_},PStr [s]),_) ->
@@ -75,7 +74,8 @@ let create_node mapper str =
                     []
                 in
                 let str = Extracting.tocaml_node _inode::stri in
-                Print_type.print_type str;
+                if !verbose then
+                  Print_type.print_type str;
                 str
               end
             else
@@ -86,9 +86,9 @@ let create_node mapper str =
           end
       | _ -> Error.syntax_error s.pstr_loc "not a node"
     end
-  | x -> Print_type.print_type [str]; [default_mapper.structure_item mapper str]
+  | x -> [default_mapper.structure_item mapper str]
 
-          
+
 (* maps structure (i.e list of structure_items) *)
 let lustre_mapper argv =
 

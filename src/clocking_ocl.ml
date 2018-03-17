@@ -116,6 +116,28 @@ let cvar_name n =
     if q = 0 then s else (name_of q)^s
   in "'"^(name_of n)
 
+let rec print_clock fmt t =
+  match t with
+    | Var { index = n ; value = Unknown } ->
+       let name = string_of_int n in
+       Format.fprintf fmt "%s" name
+    | Var { index = _ ; value = t } ->
+      Format.fprintf fmt "#%a" print_clock t
+    | Arrow(t1,t2) ->
+      Format.fprintf fmt "(%a -> %a)" print_clock t1 print_clock t2
+    | CTuple ts ->
+      let rec print_list fmt l =
+        match l with
+          [] -> Format.fprintf fmt ""
+        | [x] -> Format.fprintf fmt "%a" print_clock x
+        | x::xs -> Format.fprintf fmt "%a * %a" print_clock x print_list xs
+      in
+      Format.fprintf fmt "(%a)" print_list ts
+    | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_clock c s
+    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_clock c s
+    | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_clock c
+    | Unknown -> Format.fprintf fmt  "?"
+
 (* Printing schemes  *)
 let print_clock_scheme fmt (Forall(gv,t)) =
   (* Each bounded var gets a name *)
@@ -128,14 +150,13 @@ let print_clock_scheme fmt (Forall(gv,t)) =
   let cvar_names = List.combine (List.rev gv) names in
   let rec print_rec fmt = function
     | Var { index = n ; value = Unknown } ->
-      (* let name =
-       *   (try List.assoc n cvar_names
-       *    with  Not_found ->
-       *      (\* failwith ("non generic var :"^string_of_int n) *\)
-       *      string_of_int n
-       *   )
-       * in *)
-      let name = string_of_int n in
+      let name =
+        (try List.assoc n cvar_names
+         with  Not_found ->
+           failwith ("non generic var :"^string_of_int n)
+        )
+      in
+
       Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
       Format.fprintf fmt "%a" print_rec t
@@ -157,8 +178,11 @@ let print_clock_scheme fmt (Forall(gv,t)) =
   let rec print_list fmt l =
     match l with
     | [] -> Format.fprintf fmt ""
-    | [x] -> Format.fprintf fmt "%s" (List.assoc x cvar_names)
-    | x::xs -> Format.fprintf fmt "%s,%a" (List.assoc x cvar_names) print_list xs
+    | [x] -> Format.fprintf fmt "%s"
+               (List.assoc x cvar_names)
+    | x::xs -> Format.fprintf fmt "%s,%a"
+                 (List.assoc x cvar_names)
+                 print_list xs
   in
   Format.fprintf fmt "forall %a.%a" print_list (List.rev gv)  print_rec t
 
@@ -177,7 +201,8 @@ let rec unify (tau1,tau2) =
     Var { index = m; value = Unknown} ->
     (* two unknown variables *)
     (* tv1 -> tv2 -> <?> : every modif of tau2.value will modify tv1 *)
-    if n <> m then tv1.value <- tau2;
+     if n <> m then
+       tv1.value <- tau2;
   | _ , Var ({index = _ ; value = Unknown} as tv) ->
     if not (occurs tv tau1) then tv.value <- tau1
     else (raise (ClockClash (tau1,tau2)))
@@ -196,11 +221,12 @@ let rec unify (tau1,tau2) =
   | Carrier (s,c) , Carrier (s',d) ->
     unify(c,d);
   | _ , Carrier (s,c) ->
-    unify(tau1,c)
+    (* unify(tau1,c) *) ()
   | Carrier (s,c) , _ ->
-    unify(c,tau2)
+    (* unify(c,tau2) *) ()
   | _ -> raise (ClockClash (tau1,tau2))
   end
+(* ; *)
   (* Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
   (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
   (* print_clock_scheme (generalise_type !global_typing_env tau2) *)
@@ -231,7 +257,7 @@ let gen_instance (Forall(gv,tau)) =
   let rec ginstance t =
     match t with
     | Var { index = n; value = Unknown } ->
-      (* If the variable is generic get its corresponding unkown *)
+      (* If the variable is generic get its corresponding unknown *)
       begin
         try
           List.assoc n unknowns
@@ -324,13 +350,18 @@ let clock_expr gamma e =
       unify(c2,c3);
       c3
     | Application(id,e') ->
-      let u = Var (new_varclock ()) in
-      let c1 = clock_lookup id !global_typing_env in
-      let c1 = gen_instance c1 in
-      let c2 = clock_rec e' in
-      let t = Arrow (c2,u) in
-      unify(c1,t);
-      u
+       begin
+       try
+         let fun_ck = clock_lookup id !global_typing_env in
+         let fun_ck = gen_instance fun_ck in
+         let arg_ck = clock_rec e' in
+         let u = Var (new_varclock ()) in
+         let t = Arrow (arg_ck,u) in
+         unify(t,fun_ck);
+         u
+       with Not_found ->
+             Error.print_error e.e_loc "Node not found"
+       end
     | When (e,c) ->
       let c1 = clock_rec e in
       let c2 = clock_rec c in
@@ -412,7 +443,10 @@ let split_tuple p =
   | _ -> [p]
 
 let group_tuple pl =
-  CTuple pl
+  match pl with
+  | [] -> Unknown
+  | [x] -> x
+  | _ -> CTuple pl
 
 (* Helper function that computes the position of an element in a list *)
 let get_position y l =
@@ -492,14 +526,14 @@ let rec lookup_clock env p =
    *   generalise_type env clk
    * | _ -> Format.fprintf Format.std_formatter "(%a)" Parsing_ast_printer.print_pattern p ;  failwith "Don't know what to do with : " *)
 
-
 let clock_node node =
+  (* print_env Format.std_formatter !global_typing_env; *)
   reset_varclocks ();
   (* "Uncurrying" inputs and outputs ...   *)
   let ins = node.inputs in
   let ins = split_tuple ins in
   let env = List.map (fun x -> (x,Forall([],Var (new_varclock ())))) ins in
-  (* print_env Format.std_formatter env; *)
+  let env = !global_typing_env @ env in
   let outs = node.outputs in
   let outs = split_tuple outs in
   (* let env = env@List.map (fun x -> (x,Forall([],Var (new_varclock ())))) outs in *)
@@ -515,7 +549,10 @@ let clock_node node =
   let ckouts = List.map gen_instance ckouts in
   let ckouts = group_tuple ckouts in
   let node_type = Arrow ( ckins, ckouts) in
-  print_clock_scheme Format.std_formatter (generalise_type env node_type);
+  let scheme = generalise_type [] node_type in
+  print_clock_scheme Format.std_formatter scheme;
+  global_typing_env := (node.name,scheme)::!global_typing_env;
+  (* print_env Format.std_formatter !global_typing_env; *)
   Format.printf "\n___\n"
 
   (* let ins = split_tuple node.inputs in

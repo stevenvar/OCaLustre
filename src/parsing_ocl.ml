@@ -60,6 +60,11 @@ let rec get_idents l e =
   match e.e_desc with
   | Variable i -> i::l
   | Array el -> l
+  | Array_map (e,f) ->
+     get_idents l e
+  | Array_fold (e,f,e') ->
+     let l = get_idents l e  in
+     get_idents l e'
   | Imperative_update (e,_) -> get_idents l e
   | Array_get (e,e') ->
     let l = get_idents l e in
@@ -131,14 +136,6 @@ let get_int e =
 
 (* transform expressions to node of the ocalustre AST *)
 let make_expression e =
-  (* Get attributes and extract their name and value *)
-  let attr = e.pexp_attributes in
-  let clk = if attr <> [] then
-      let a = List.hd attr in
-      let (sl,pl) = a in
-      Some (sl,extract_clock a)
-    else None
-  in
   let rec parse_updates e =
     match e with
     | [%expr [%e? e1] => [%e? e2] ] -> [(mk_expr e1,mk_expr e2)]
@@ -146,7 +143,14 @@ let make_expression e =
     | _ -> Error.print_error e.pexp_loc "Not an array update"
   and mk_expr e =
     (* List.iter ( fun (sl,p) ->  Format.fprintf Format.std_formatter "=>%s<=\n" sl.txt ) attr; *)
-    match e with
+    let attr = e.pexp_attributes in
+    let clk = if attr <> [] then
+                let a = List.hd attr in
+                let (sl,pl) = a in
+                Some (sl,extract_clock a)
+              else None
+    in
+  let exp = match e with
     | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
     | { pexp_desc = Pexp_tuple el ; pexp_loc ; pexp_attributes} ->
       let l = List.map mk_expr el in
@@ -289,7 +293,6 @@ let make_expression e =
            Pprintast.expression e in
        Error.syntax_error e.pexp_loc s
   in
-  let exp = mk_expr e in
   match clk with
   |  Some (sl,clk) ->
     begin
@@ -300,6 +303,8 @@ let make_expression e =
       | _ -> Error.print_error clk.pexp_loc "Wrong attribute"
     end
   | None -> exp
+  in
+  mk_expr e
 
 let id_of_lid lid =
   match lid with

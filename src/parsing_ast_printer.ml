@@ -66,25 +66,31 @@ let rec print_expression fmt e =
     | [e] -> Format.fprintf fmt "%a" print_expression e
     | he::te -> Format.fprintf fmt "%a,%a" print_expression he print_expression_list te
   in
+ let rec print_update_list fmt el =
+    match el with
+    | [] -> ()
+    | [(e,e')] -> Format.fprintf fmt "%a => %a" print_expression e print_expression e'
+    | (he,he')::te -> Format.fprintf fmt "(%a => %a),%a" print_expression he print_expression he' print_update_list te
+  in
   match e.e_desc with
   | Variable i -> Format.fprintf fmt "%a"
                     print_ident i
   | Array e -> Format.fprintf fmt "[| %a |]" print_expression_list e
   | Array_get (e,e') -> Format.fprintf fmt "%a.(%a)" print_expression e print_expression e'
-  | Array_fold (e,f,acc) -> Format.fprintf fmt "%a.fold(...,%a)" print_expression e print_expression acc
-  | Array_map (e,f) ->Format.fprintf fmt "%a.map(...)" print_expression e
-  | Imperative_update (e,el) -> Format.fprintf fmt "%a where (...)" print_expression e
+  | Array_fold (e,f,acc) -> Format.fprintf fmt "%a.fold(%a,%a)" print_expression e Pprintast.expression f print_expression acc
+  | Array_map (e,f) ->Format.fprintf fmt "%a.map(%a)" print_expression e Pprintast.expression f
+  | Imperative_update (e,el) -> Format.fprintf fmt "%a where (%a)" print_expression e print_update_list el
   | Alternative (e1,e2,e3) ->
     Format.fprintf fmt  "(if (%a) then (%a) else (%a))"
       print_expression e1
       print_expression e2
       print_expression e3
   | Application (i, e) ->
-     Format.fprintf fmt "(%a (%a))"
+     Format.fprintf fmt "(%a %a)"
                     print_ident i
                     print_expression e
   | Call (e) ->
-     Format.fprintf fmt "(eval ...)"
+     Format.fprintf fmt "(eval (%s))" (Pprintast.string_of_expression e)
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
@@ -103,7 +109,7 @@ let rec print_expression fmt e =
                     print_expression e1
                     print_expression e2
   | Unit -> Format.fprintf fmt "()"
-  | When (e1,e2) -> Format.fprintf fmt "( %a when %a )"
+  | When (e1,e2) -> Format.fprintf fmt "(%a when %a)"
                     print_expression e1
                     print_expression e2
   | Whennot (e1,e2) -> Format.fprintf fmt "( %a whennot %a )"
@@ -134,7 +140,7 @@ let rec print_equations fmt le =
                print_equations tl
 
 let print_node fmt n =
-  Format.fprintf fmt  "let_node %a ~inf:%a ~outf:%a = \n%a \n \n"
+  Format.fprintf fmt  "let_node %a %a ~return:%a = \n%a \n \n"
     print_pattern n.name
     print_pattern n.inputs
     print_pattern n.outputs

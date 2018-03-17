@@ -30,15 +30,15 @@ let rec tocaml_imperative_updates e el =
   loop el
 and tocaml_expression e =
   match e with
-  | IValue (String s) -> Exp.constant (Pconst_string (s,None))
+  | IValue (String s) -> Ast_convenience.str s
   | IValue (Nil) -> [%expr Obj.magic () ]
-  | IValue (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
-  | IValue (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
-  | IValue (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
-  | IValue (Bool true) -> Exp.construct {txt= Lident "true" ; loc = Location.none } None
-  | IValue (Bool false) -> Exp.construct {txt= Lident "false" ; loc = Location.none } None
-  | IETuple t -> Exp.tuple (List.map (fun i -> tocaml_expression i) t)
-  | IVariable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
+  | IValue (Enum s) -> Ast_convenience.constr s []
+  | IValue (Integer i) -> Ast_convenience.int i
+  | IValue (Float f) -> Ast_convenience.float f
+  | IValue (Bool true) -> Ast_convenience.constr "true" []
+  | IValue (Bool false) ->  Ast_convenience.constr "false" []
+  | IETuple t -> Ast_convenience.tuple (List.map (fun i -> tocaml_expression i) t)
+  | IVariable i -> Ast_convenience.evar i
   | IArray el -> Exp.array (List.map tocaml_expression el)
   | IArray_fold (e,f,acc) ->
     [%expr Array.fold_left [%e f] [%e tocaml_expression acc] ([%e tocaml_expression e]) ]
