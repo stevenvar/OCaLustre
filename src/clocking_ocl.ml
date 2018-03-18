@@ -526,67 +526,32 @@ let rec lookup_clock env p =
    *   generalise_type env clk
    * | _ -> Format.fprintf Format.std_formatter "(%a)" Parsing_ast_printer.print_pattern p ;  failwith "Don't know what to do with : " *)
 
+
+let get_all_vars node =
+  let vars =
+    List.map (fun eq -> eq.pattern) node.equations
+  in
+  let ins = split_tuple node.inputs in
+  let outs = split_tuple node.outputs in
+  vars@ins@outs
+
+
 let clock_node node =
-  (* print_env Format.std_formatter !global_typing_env; *)
   reset_varclocks ();
-  (* "Uncurrying" inputs and outputs ...   *)
-  let ins = node.inputs in
-  let ins = split_tuple ins in
-  let env = List.map (fun x -> (x,Forall([],Var (new_varclock ())))) ins in
-  let env = !global_typing_env @ env in
-  let outs = node.outputs in
-  let outs = split_tuple outs in
-  (* let env = env@List.map (fun x -> (x,Forall([],Var (new_varclock ())))) outs in *)
+  let vars = get_all_vars node in
+  (* vars_of_clock ?  *)
+  let vars_clocks = List.map (fun x -> (x,Forall([],Var(new_varclock())))) vars in
+  let env = vars_clocks@(!global_typing_env) in
   let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
-  (* let e = List.hd node.equations in *)
-  (* let env = clocking env e in *)
-  (* print_env Format.std_formatter env; *)
-  let ckins = List.map (fun x -> lookup_clock env x) ins in
-  (* print_env Format.std_formatter env; *)
-  let ckouts = List.map (fun x -> lookup_clock env x) outs in
+  let ckins = List.map (fun x -> lookup_clock env x) (split_tuple node.inputs) in
+  let ckouts = List.map (fun x -> lookup_clock env x) (split_tuple node.outputs) in
   let ckins = List.map gen_instance ckins in
   let ckins = group_tuple ckins in
   let ckouts = List.map gen_instance ckouts in
   let ckouts = group_tuple ckouts in
   let node_type = Arrow ( ckins, ckouts) in
   let scheme = generalise_type [] node_type in
-  print_clock_scheme Format.std_formatter scheme;
-  global_typing_env := (node.name,scheme)::!global_typing_env;
-  (* print_env Format.std_formatter !global_typing_env; *)
-  Format.printf "\n___\n"
-
-  (* let ins = split_tuple node.inputs in
-   * let env = !global_typing_env in
-   * let env = List.fold_left (fun acc p ->
-   *       let clk = Var (new_varclock ()) in
-   *       (p,Forall([],clk))::acc) env ins in
-   * let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
-   * let extract_ids pat acc =
-   *   match pat.p_desc with
-   *   | Ident i -> i :: acc
-   *   | _ -> acc
-   * in
-   * let ins_p = List.fold_left (fun acc x -> extract_ids x acc) [] ins in
-   * let ckins = List.map (look_for_ident env) ins_p in
-   * let ckins = List.map (fun (Forall(_,c)) -> c) ckins in
-   * let ckins = CTuple ckins in
-   * let ckins = generalise_type env ckins in
-   * (\* print_env Format.std_formatter env; *\)
-   * let ckouts = lookup_clock env node.outputs in
-   * let t = Arrow(gen_instance ckins, gen_instance ckouts) in
-   * let tt = generalise_type !global_typing_env t in
-   * global_typing_env := ((node.name,tt)::!global_typing_env);
-   * (\* Format.fprintf Format.std_formatter "global env : %a" print_env !global_typing_env; *\)
-   * Format.fprintf Format.std_formatter "%a : %a\n"
-   *   Parsing_ast_printer.print_pattern node.name *)
-    (* print_clock_scheme tt *)
-
-let test () =
-      let u = Var (new_varclock ()) in
-      let v = Var (new_varclock ()) in
-      let a = Var (new_varclock ()) in
-      let t0 = Arrow(a,a) in
-      let t1 = Arrow(u,v) in
-      unify(t0,t1);
-      Format.fprintf Format.std_formatter "=> \n %a \n \n"
-        print_clock_scheme (generalise_type !global_typing_env t1);
+  Format.fprintf Format.std_formatter "%a :: %a\n"
+    print_pattern node.name
+    print_clock_scheme scheme;
+  global_typing_env := (node.name,scheme)::!global_typing_env
