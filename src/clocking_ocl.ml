@@ -1,16 +1,6 @@
 open Parsing_ast
+open Clocking_ast
 open Error
-
-type clock = Unknown
-           | Var of varclock
-           | CTuple of clock list
-           | Arrow of clock * clock
-           | On of clock * ident
-           | Onnot of clock * ident
-           | Carrier of ident * clock (* clocks with a name like c :: 'a *)
-
-and varclock = { index : int ; mutable value : clock }
-type clock_scheme = Forall of int list * clock
 
 (* The env is made of (name,type) couples for each variable *)
 type env_elem = (pattern * clock_scheme)
@@ -117,12 +107,21 @@ let cvar_name n =
   in "'"^(name_of n)
 
 let rec print_clock fmt t =
+  let genvars = vars_of_clock t in
+  let genvars = make_set genvars in
+ let names =
+    let rec names_of = function
+      | (n,[]) -> []
+      | (n, (_::xs)) -> (cvar_name n)::(names_of (n+1,xs))
+    in
+    names_of (1,genvars) in
+ let cvar_names = List.combine (List.rev genvars) names in
   match t with
     | Var { index = n ; value = Unknown } ->
-       let name = string_of_int n in
+       let name = List.assoc n cvar_names  in
        Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
-      Format.fprintf fmt "#%a" print_clock t
+      Format.fprintf fmt "%a" print_clock t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock t1 print_clock t2
     | CTuple ts ->
@@ -416,8 +415,6 @@ let clock_expr gamma e =
     | Pre _ | Arrow _ -> failwith "shouldn't happen"
   in
   clock_rec e
-
-
 
 let clocking gamma ({ pattern = p; expression = e}) =
   let tau =

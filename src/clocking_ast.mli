@@ -1,44 +1,60 @@
 open Parsing_ast
 
+type clock = Unknown
+           | Var of varclock
+           | CTuple of clock list
+           | Arrow of clock * clock
+           | On of clock * ident
+           | Onnot of clock * ident
+           | Carrier of ident * clock (* clocks with a name like c :: 'a *)
 
-type clock =
-  | Clock_exp of ct
-  | Clock_scheme of scheme
-and
-  ct =
-  | CtUnknown
-  | CVar of varclock
-  | CTuple of ct list
-  | CTyped of ct * string
-  | Arrow of ct * ct
-  | On of ct * carrier
-  | Onnot of ct * carrier
-  | Carrier of carrier * ct
-and varclock = { c_index : int ; mutable c_value : ct }
-and scheme = Forall of int list * string list *  ct (* arrow ? *)
-(* and carrier = { carr_index : int ; mutable carr_value : ct } *)
-and carrier = string
+and cexp_desc =
+  | CAlternative of cexpression * cexpression * cexpression
+  | CApplication of ident * cexpression
+  | CInfixOp of inf_operator * cexpression * cexpression
+  | CPrefixOp of pre_operator * cexpression
+  | CValue of value
+  | CVariable of ident
+  | CArray of cexpression list
+  | CArray_get of cexpression * cexpression
+  | CArray_fold of cexpression * Parsetree.expression * cexpression
+  | CArray_map of cexpression * Parsetree.expression
+  | CImperative_update of cexpression * ((cexpression * cexpression) list)
+  | CFby of cexpression * cexpression
+  | CWhen of cexpression * cexpression
+  | CWhennot of cexpression * cexpression
+  | CETuple of cexpression list
+  | CPre of cexpression
+  | CArrow of cexpression * cexpression
+  | CMerge of cexpression * cexpression * cexpression
+  | CCall of Parsetree.expression
+  | CUnit
+
+
+and varclock = { index : int ; mutable value : clock }
+and clock_scheme = Forall of int list * clock
 
 and cnode = {
-  cname : pattern;
-  cinputs : cpattern;
-  coutputs : cpattern;
-  cequations : cequation list;
+    cnode_clock : clock_scheme;
+    cname : pattern;
+    cinputs : pattern;
+    coutputs : pattern;
+    cequations : cequation list;
 }
 and cequation = {
-  cpattern : cpattern;
+  cpattern : pattern;
   cexpression : cexpression
 }
 
 and cexpression = {
-  ce_desc : exp_desc ;
+  ce_desc : cexp_desc ;
   ce_loc : Location.t;
   ce_clock : clock
 }
 and cpattern = {
   cp_desc : cpatt_desc;
   cp_loc : Location.t;
-  cp_clock : clock
+  cp_clock : clock_scheme
 }
 and cpatt_desc =
   | CkIdent of ident
