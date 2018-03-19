@@ -335,7 +335,7 @@ let rec pat_of_pexp p =
 (* creates equation node in the AST *)
 let mk_equation eq =
   match eq with
-  | [%expr [%e? p] := [%e? e] ] ->
+  | [%expr [%e? p] := [%e? e] ] | [%expr [%e? p] = [%e? e] ] ->
     begin
       match p.pexp_desc with
     | Pexp_ident _ ->

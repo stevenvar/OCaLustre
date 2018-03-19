@@ -92,7 +92,7 @@ let rec printml_expression fmt exp =
 let printml_updates fmt il =
   let aux fmt { i_pattern = s ; i_expression = e} =
     match e with
-    | x -> Format.fprintf fmt "%a := %a;\n"
+    | x -> Format.fprintf fmt "\t%a := %a;\n"
              print_pattern s
              printml_expression x
   in
@@ -100,7 +100,7 @@ let printml_updates fmt il =
 
 let printml_equations fmt el =
   let printml_equation fmt e =
-    Format.fprintf fmt "let %a = %a in \n"
+    Format.fprintf fmt "\tlet %a = %a in \n"
       print_pattern e.i_pattern
       printml_expression e.i_expression
   in
@@ -117,19 +117,17 @@ let rec printml_io fmt il =
    *)
 
 let printml_step fmt node =
-  Format.fprintf fmt "let %a_step (%a) = \n%a%a(%a) \n in %a_step "
-    print_pattern node.i_name
+  Format.fprintf fmt "fun %a -> \n%a%a\t%a\n "
     print_pattern node.i_inputs
     printml_equations node.i_step_fun.i_equations
     printml_updates node.i_step_fun.i_updates
     print_pattern node.i_outputs
-    print_pattern node.i_name
 
 
 let printml_inits fmt il =
   let printml_init fmt { i_pattern = s ; i_expression = e} =
     begin match e with
-      | x -> Format.fprintf fmt "let %a = %a in\n"
+      | x -> Format.fprintf fmt "\tlet %a = %a in\n"
                print_pattern s
                printml_expression x
     end
@@ -137,7 +135,7 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "let %a %a =\n %a \n%a \n\n"
+  Format.fprintf fmt "\nlet %a %a =\n%a%a\n\n"
     print_pattern node.i_name
     print_pattern node.i_inputs
     printml_inits node.i_inits

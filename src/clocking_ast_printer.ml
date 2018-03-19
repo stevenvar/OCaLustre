@@ -4,15 +4,15 @@ open Parsing_ast_printer
 open Clocking_ast
 open Clocking_ocl
 
-let rec print_expression fmt (ce:cexpression) =
+let rec print_expression fmt (ce,vars) =
   let rec print_list fmt l =
     match l with
     | [] -> ()
-    | [x] -> print_expression fmt x
-    | h::t -> Format.fprintf fmt "%a,%a" print_expression h print_list t
+    | [x] -> print_expression fmt (x,vars)
+    | h::t -> Format.fprintf fmt "%a,%a" print_expression (h,vars) print_list t
   in
   let print_rec fmt ce =
-    let p = print_expression in
+    let p fmt x= print_expression fmt (x,vars) in
     let ff = Format.fprintf in
     (match ce.ce_desc with
      | Clocking_ast.CAlternative (e1,e2,e3) ->
@@ -60,22 +60,24 @@ let rec print_expression fmt (ce:cexpression) =
   | CETuple _ ->   Format.fprintf fmt "%a" print_rec ce
   | _ ->
      Format.fprintf fmt "(%a :: \027[32m%a\027[0m)" print_rec ce
-  print_clock ce.ce_clock
+  print_clock (ce.ce_clock,vars)
 
-let print_equation fmt eq =
+let print_equation fmt (eq,vars) =
   Format.fprintf fmt "\t %a = %a;\n" print_pattern eq.cpattern
-  print_expression eq.cexpression
+  print_expression (eq.cexpression,vars)
 
-let rec print_equations fmt eqs =
+let rec print_equations fmt (eqs,vars) =
   match eqs with
   | [] -> ()
-  | [x] -> print_equation fmt x
-  | h::t -> Format.fprintf fmt "%a%a" print_equation h print_equations t
+  | [x] -> print_equation fmt (x,vars)
+  | h::t -> Format.fprintf fmt "%a%a" print_equation (h,vars) print_equations (t,vars)
 
 let print_node fmt node =
-  Format.fprintf fmt "node %a %a returns:%a = \n%a"
+  let cs = node.cnode_clock in
+  let Forall(gv,t) = cs in
+  Format.fprintf fmt "node %a %a returns:%a :: \027[32m%a\027[0m = \n%a"
     print_pattern node.cname
     print_pattern node.cinputs
     print_pattern node.coutputs
-    (* Clocking_ocl.print_clock_scheme node.cnode_clock *)
-    print_equations node.cequations
+    Clocking_ocl.print_clock_scheme cs
+    print_equations (node.cequations,gv)

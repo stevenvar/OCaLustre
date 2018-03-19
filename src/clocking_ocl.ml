@@ -106,35 +106,36 @@ let cvar_name n =
     if q = 0 then s else (name_of q)^s
   in "'"^(name_of n)
 
-let rec print_clock fmt t =
-  let genvars = vars_of_clock t in
-  let genvars = make_set genvars in
- let names =
+let rec print_clock fmt (t,v) =
+    let names =
     let rec names_of = function
       | (n,[]) -> []
       | (n, (_::xs)) -> (cvar_name n)::(names_of (n+1,xs))
     in
-    names_of (1,genvars) in
- let cvar_names = List.combine (List.rev genvars) names in
+    names_of (1,v) in
+  let cvar_names = List.combine (List.rev v) names in
   match t with
     | Var { index = n ; value = Unknown } ->
-       let name = List.assoc n cvar_names  in
+      let name =
+        try
+          List.assoc n cvar_names
+        with Not_found -> "*" in
        Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
-      Format.fprintf fmt "%a" print_clock t
+      Format.fprintf fmt "%a" print_clock (t,v)
     | Arrow(t1,t2) ->
-      Format.fprintf fmt "(%a -> %a)" print_clock t1 print_clock t2
+      Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
       let rec print_list fmt l =
         match l with
           [] -> Format.fprintf fmt ""
-        | [x] -> Format.fprintf fmt "%a" print_clock x
-        | x::xs -> Format.fprintf fmt "%a * %a" print_clock x print_list xs
+        | [x] -> Format.fprintf fmt "%a" print_clock (x,v)
+        | x::xs -> Format.fprintf fmt "%a * %a" print_clock (x,v) print_list xs
       in
       Format.fprintf fmt "(%a)" print_list ts
-    | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_clock c s
-    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_clock c s
-    | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_clock c
+    | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_clock (c,v) s
+    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_clock (c,v) s
+    | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_clock (c,v)
     | Unknown -> Format.fprintf fmt  "?"
 
 (* Printing schemes  *)
@@ -152,7 +153,8 @@ let print_clock_scheme fmt (Forall(gv,t)) =
       let name =
         (try List.assoc n cvar_names
          with  Not_found ->
-           failwith ("non generic var :"^string_of_int n)
+           (* failwith ("non generic var :"^string_of_int n) *)
+           string_of_int n
         )
       in
 
@@ -529,7 +531,8 @@ let get_all_vars node =
     List.map (fun eq -> eq.pattern) node.equations
   in
   let ins = split_tuple node.inputs in
-  let outs = split_tuple node.outputs in
+  (* let outs = split_tuple node.outputs in *)
+  let outs = [] in
   vars@ins@outs
 
 

@@ -23,9 +23,13 @@ let clocking = ref false
 let lustre = ref false
 let why = ref false
 let alloc = ref false
+let typing = ref false
 let not_printed_wrapper = ref true
 let main = ref ""
 let outputs_env = ref []
+
+
+let env = ref []
 
 (* maps structure_items of the form :
 
@@ -61,26 +65,27 @@ let create_node mapper str =
               let whyml = Proof_compiling.pcompile_cnode _sched_node in
               whyml_node Format.std_formatter whyml);
             if !clocking then (
-              let _cnode = Clocking.clock_node [] _sched_node in
+              let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
+              env := new_env;
               Clocking_ast_printer.print_node Format.std_formatter _cnode;
-              Clocking_ocl.clock_node _sched_node
             );
             if not !alloc then
               begin
                 let _inode = compile_cnode _sched_node in
+                if !verbose then Imperative_ast_printer.printml_node Format.std_formatter _inode;
                 let stri = if !main = string_of_pattern _inode.i_name then
                     [Extracting.tocaml_main _inode]
                   else
                     []
                 in
                 let str = Extracting.tocaml_node _inode::stri in
-                if !verbose then
+                if !typing then
                   Print_type.print_type str;
                 str
               end
             else
               let _seq_node = seq_node _sched_node outputs_env in
-              (* print_s_node Format.std_formatter _seq_node; *)
+              if !verbose then print_s_node Format.std_formatter _seq_node;
               let str = tocaml_node _seq_node in
               str
           end
@@ -105,7 +110,8 @@ let _ =
                   ("-l", Arg.Set lustre, "Prints lustre node");
                   ("-a", Arg.Set alloc, "Generate non-allocating code (state passing style)");
                   ("-m", Arg.Set_string main, "Generate main function");
-                  ("-i", Arg.Set clocking, "Prints clocks types");]
+                  ("-i", Arg.Set clocking, "Prints node clocks");
+                  ("-t", Arg.Set typing, "Prints node types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;
   register "ocalustre" lustre_mapper

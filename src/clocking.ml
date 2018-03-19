@@ -62,7 +62,7 @@ let clock_expr gamma (e:expression) =
     | Application(id,e') ->
        begin
        try
-         let fun_ck = Clocking_ocl.clock_lookup id !Clocking_ocl.global_typing_env in
+         let fun_ck = Clocking_ocl.clock_lookup id gamma in
          let fun_ck = Clocking_ocl.gen_instance fun_ck in
          let e' = clock_rec e' in
          let u = Var (Clocking_ocl.new_varclock ()) in
@@ -70,7 +70,8 @@ let clock_expr gamma (e:expression) =
          Clocking_ocl.unify(t,fun_ck);
          { ce_desc = CApplication(id,e'); ce_loc = e.e_loc; ce_clock = u}
        with Not_found ->
-             Error.print_error e.e_loc "Node not found"
+         let s = Format.asprintf "Clock of node not found : %s" id in
+         Error.print_error e.e_loc s
        end
     | When (e',c) ->
       let s = Clocking_ocl.get_ident c in
@@ -127,39 +128,37 @@ let clock_expr gamma (e:expression) =
   in
   clock_rec e
 
-  (* let sigma = clock_e gamma e in *)
-  (* { ce_desc = e.e_desc; *)
-    (* ce_loc = e.e_loc; *)
-    (* ce_clock = sigma} *)
 
 let clock_equation gamma {pattern; expression} =
-  let expression = clock_expr gamma expression
-  in { cpattern = pattern; cexpression = expression}
+  let expression = clock_expr gamma expression in
+  let pck = List.assoc pattern gamma in
+  let open Clocking_ocl in
+  (* need to unify clock of pattern and expression *)
+  unify(gen_instance pck,expression.ce_clock);
+  { cpattern = pattern; cexpression = expression}
 
 let clock_equations gamma eqs =
-  let aux eqs gamma x =
-    let e = clock_equation gamma x in
-    let clk = e.cexpression.ce_clock in
-    (e::eqs,(e.cpattern,Clocking_ocl.generalise_type gamma clk)::gamma)
-  in
-  List.fold_left (fun (eqs,gamma) x -> aux eqs gamma x) ([],gamma) eqs
+  List.map (clock_equation gamma) eqs
 
 let clock_node gamma node =
   let open Clocking_ocl in
+  reset_varclocks () ;
   let vars = get_all_vars node in
-  let vars_clocks =  List.map (fun x -> (x,generalise_type gamma (Var(new_varclock())))) vars in
+  let vars_clocks =  List.map (fun x -> (x,Forall([],Var(new_varclock())))) vars in
   let env = vars_clocks@gamma in
-  let (eqs,gamma) = clock_equations env node.equations in
+  let eqs = clock_equations env node.equations in
   let ckins = List.map (fun x -> lookup_clock env x) (split_tuple node.inputs) in
   let ckouts = List.map (fun x -> lookup_clock env x) (split_tuple node.outputs) in
   let ckins = List.map gen_instance ckins in
   let ckins = group_tuple ckins in
   let ckouts = List.map gen_instance ckouts in
   let ckouts = group_tuple ckouts in
-  let node_clock = generalise_type gamma (Arrow(ckins,ckouts)) in
+  let node_clock = generalise_type [] (Arrow(ckins,ckouts)) in
+  let new_env = (node.name,node_clock)::gamma in
+  (new_env,
   {
     cnode_clock = node_clock;
     cname = node.name;
     cinputs = node.inputs;
     coutputs = node.outputs;
-    cequations = eqs }
+    cequations = eqs })
