@@ -170,9 +170,9 @@ let seq_exp_list e name =
         | e::t ->
           List.fold_left (fun acc e -> seq_exp_list e acc) ((seq_exp e)::acc) t
       end
-    | _ ->
-      Parsing_ast_printer.print_expression Format.std_formatter e;
-      raise @@ Invalid_argument "seq_exp_list"
+    | _ -> (seq_exp e)::acc
+      (* Parsing_ast_printer.print_expression Format.std_formatter e; *)
+      (* raise @@ Invalid_argument "seq_exp_list" *)
   in
   seq_exp_list e [] |> List.rev
 

@@ -83,6 +83,7 @@ let clock_expr gamma (e:expression) =
       let s = Clocking_ocl.get_ident c in
       let e' = clock_rec e' in
       let c =  clock_rec c in
+      (* Clocking_ocl.unify(e'.ce_clock,c.ce_clock); *)
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
       let a = Var (Clocking_ocl.new_varclock ()) in
       let tt = (Arrow (a,Arrow(a,On(a,s)))) in

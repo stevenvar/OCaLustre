@@ -21,9 +21,5 @@ let%node watch () ~return:(h,m,s) =
   m := merge seconds_ok minute 0;
   h := merge seconds_ok (merge minutes_ok hour 0) 0
 
-(* shouldnt work ... *)
-let%node watch2 (sec,sixty) ~return:(h,m,s) =
-  s := sec;
-  m := s [@when sixty];
-  h := s [@when m];
-  k := s [@when h];
+
+

@@ -217,7 +217,8 @@ let rec unify (tau1,tau2) =
     else (raise (ClockClash (tau1,tau2)))
   | Var ({index = m ; value = Unknown} as tv), _ ->
     if not (occurs tv tau2) then
-             tv.value <- tau2
+      tv.value <- tau2
+    else (raise (ClockClash (tau1,tau2)))
   | Arrow(t1,t2), Arrow(t1',t2') ->
     unify(t1,t1');
     unify(t2,t2')
