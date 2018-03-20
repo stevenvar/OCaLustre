@@ -36,7 +36,8 @@ and cexp_desc =
 
 
 and varclock = { index : int ; mutable value : clock }
-and clock_scheme = Forall of int list * clock
+(* clocks vars * carriers vars * clock *)
+and clock_scheme = Forall of int list * int list * clock
 
 and cnode = {
     cnode_clock : clock_scheme;

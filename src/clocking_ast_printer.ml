@@ -80,7 +80,7 @@ let rec print_equations fmt (eqs,vars) =
 
 let print_node fmt (node,verbose) =
   let cs = node.cnode_clock in
-  let Forall(gv,t) = cs in
+  let Forall(gv,gc,t) = cs in
   if verbose then
   Format.fprintf fmt "node %a %a returns:%a :: \027[32m%a\027[0m = \n%a"
     print_pattern node.cname
@@ -89,4 +89,4 @@ let print_node fmt (node,verbose) =
     Clocking_ocl.print_clock_scheme cs
     print_equations (node.cequations,gv)
   else
-    Format.fprintf fmt "%a :: %a\n%!" print_pattern node.cname Clocking_ocl.print_clock_scheme cs
+    Format.fprintf fmt "%a :: \027[32m%a\027[0m\n%!" print_pattern node.cname Clocking_ocl.print_clock_scheme cs

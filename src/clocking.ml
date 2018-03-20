@@ -86,6 +86,7 @@ let clock_expr gamma (e:expression) =
     | When (e',c) ->
       let e' = clock_rec e' in
       let c =  clock_rec c in
+      (* let c = Var(Clocking_ocl.new_varclock ()) in *)
       (* Clocking_ocl.unify(e'.ce_clock,c.ce_clock); *)
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
       let a = Var (Clocking_ocl.new_varclock ()) in
@@ -142,11 +143,12 @@ let clock_expr gamma (e:expression) =
   with Clocking_ocl.ClockClash (c1,c2) ->
     begin
       let open Clocking_ocl in
-      let vars = (vars_of_clock c1)@(vars_of_clock c2) in
+      let vars1 = (vars_of_clock c1) in
+      let vars2 = (vars_of_clock c2) in
       let s1 = Format.asprintf
                  "Clock clash between %a and %a"
-                 print_clock_scheme (Forall(vars,c1))
-                 print_clock_scheme (Forall(vars,c2)) in
+                 print_clock_scheme (Forall(vars1,[],c1))
+                 print_clock_scheme (Forall(vars2,[],c2)) in
       Error.print_error e.e_loc s1
     end
 
@@ -165,7 +167,7 @@ let clock_node gamma node =
   let open Clocking_ocl in
   reset_varclocks () ;
   let vars = get_all_vars node in
-  let vars_clocks =  List.map (fun x -> (x,Forall([],Var(new_varclock())))) vars in
+  let vars_clocks =  List.map (fun x -> (x,Forall([],[],Var(new_varclock())))) vars in
   let env = vars_clocks@gamma in
   (* print_env Format.std_formatter env; *)
   (* Clocking_ocl.print_env Format.std_formatter env; *)

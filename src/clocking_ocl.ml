@@ -23,6 +23,35 @@ let new_varcar, reset_varcar =
   ),
   fun () -> cpt := 0
 
+
+(* Harvest all the carriers in tau  *)
+let carriers_of_clock tau =
+  let rec cars vs t =
+    match t with
+    | UnknownCar -> failwith "cars_of_clock"
+    | VarCar { cindex = n ; cvalue = UnknownCar } ->
+      (* if the variable is already in the list, don't add *)
+      if List.mem n vs then vs else n::vs
+    | VarCar { cindex = _ ; cvalue = t } ->
+      (* follow the indirection  *)
+      cars vs t
+  in
+  let rec aux vs t =
+    match t with
+    | Var { index = n ; value = Unknown } -> []
+    | Var { index = _ ; value = t } -> aux vs t
+    | Arrow(t1,t2) ->
+       aux (aux vs t1) t2
+    | CTuple [] -> []
+    | CTuple (t::ts) ->
+       List.fold_left (fun acc t -> aux acc t) (aux vs t) ts
+    | On (c,s) -> cars (aux vs c) s
+    | Onnot (c,s) -> cars (aux vs c) s
+    | Carrier (s,c) -> cars vs s
+    | Unknown -> failwith "vars_of_clock"
+  in
+  aux [] tau
+
 (* Harvest all the unknown variables in tau  *)
 let vars_of_clock tau =
   let rec vars vs t =
@@ -55,7 +84,7 @@ let unknowns_of_type t bv =
 
 (* Get all the free vars in a type env  *)
 let unknowns_of_type_env env =
-  List.flatten (List.map (function Forall(gv,t) -> unknowns_of_type t gv) env)
+  List.flatten (List.map (function Forall(gv,gc,t) -> unknowns_of_type t gv) env)
 
 (* We're working with sets  *)
 let rec make_set l =
@@ -75,8 +104,10 @@ let global_typing_env : env_elem list ref = ref []
 let generalise_type gamma tau =
   let gamma = List.map (fun (a,b) -> b) gamma in
   let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
+  let gencars = carriers_of_clock tau in
   let genvars = make_set genvars in
-  Forall(genvars,tau)
+  let gencars = make_set gencars in
+  Forall(genvars,gencars,tau)
 
 
 (* Shorten variables (follow indirection) *)
@@ -95,7 +126,6 @@ let rec shorten t =
   | Unknown -> failwith "shorten"
   | _ -> t
 
-
 (* Printing variables  *)
 let cvar_name n =
   let rec name_of n =
@@ -108,9 +138,9 @@ let cvar_name n =
 let car_name n =
   let rec name_of n =
     let q,r = (n/26), (n mod 26) in
-    let s = String.make 1 (char_of_int (98+r)) in
+    let s = String.make 1 (char_of_int (65+r)) in
     if q = 0 then s else (name_of q)^s
-  in (name_of n)
+  in "ck"^(name_of n)
 
 let rec print_carrier fmt c =
   match c with
@@ -135,7 +165,7 @@ let rec print_clock fmt (t,v) =
         with Not_found -> string_of_int n in
        Format.fprintf fmt "%s" name
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%a" print_clock (t,v)
+      Format.fprintf fmt "*%a" print_clock (t,v)
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
@@ -152,7 +182,7 @@ let rec print_clock fmt (t,v) =
     | Unknown -> Format.fprintf fmt  "?"
 
 (* Printing schemes  *)
-let print_clock_scheme fmt (Forall(gv,t)) =
+let print_clock_scheme fmt (Forall(gv,gc,t)) =
   (* Each bounded var gets a name *)
   let names =
     let rec names_of = function
@@ -261,13 +291,14 @@ let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
   (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
-  (* print_clock (tau1,[]) *)
-  (* print_clock (tau2,[]); *)
+  (* print_clock (tau1,vars_of_clock tau1) *)
+  (* print_clock (tau2,vars_of_clock tau2); *)
   begin
     match tau1, tau2 with
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
+
     | Var ({ index = n; value = Unknown} as tv1),
       Var { index = m; value = Unknown} ->
       (* two unknown variables *)
@@ -289,16 +320,13 @@ let rec unify (tau1,tau2) =
     | Onnot (c,x) , Onnot (d,y) ->
       unify_carriers(x,y);
       unify(c,d)
-    | _ , Carrier (s,c) ->
-      unify(tau1,c);
-    | Carrier (s,c) , _ ->
-      unify(c,tau2)
     | On (c,x) , On (d,y) ->
       unify_carriers(x,y);
       unify(c,d);
-
-
-    | _ -> raise (ClockClash (tau1,tau2))
+    | Carrier (s,c) , _ ->
+       unify(c,tau2)
+    | _ , Carrier (s,c) -> unify(tau1,c)
+   | _ -> raise (ClockClash (tau1,tau2))
   end
 
   (* Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
@@ -312,7 +340,7 @@ let unknowns_of_type t bv =
 
 (* Get all the free vars in a type env  *)
 let unknowns_of_type_env env =
-  List.flatten (List.map (function Forall(gv,t) -> unknowns_of_type t gv) env)
+  List.flatten (List.map (function Forall(gv,gc,t) -> unknowns_of_type t gv) env)
 
 (* We're working with sets  *)
 let rec make_set l =
@@ -325,9 +353,17 @@ let rec make_set l =
       x :: (make_set xs)
 
 (* Create an instance of its type_env argument *)
-let gen_instance (Forall(gv,tau)) =
+let gen_instance (Forall(gv,gc,tau)) =
   (* Each generic variables get unknown *)
   let unknowns = List.map (fun n -> n, Var(new_varclock ())) gv in
+  let cunknowns = List.map (fun n -> n, VarCar(new_varcar ())) gc in
+  let rec carinstance c =
+    match c with
+    | VarCar { cindex = n; cvalue = UnknownCar } ->
+       (try List.assoc n cunknowns with Not_found -> c)
+    | VarCar { cindex = _ ; cvalue = t } -> carinstance t
+    | UnknownCar -> failwith "car instance"
+  in
   let rec ginstance t =
     match t with
     | Var { index = n; value = Unknown } ->
@@ -343,9 +379,9 @@ let gen_instance (Forall(gv,tau)) =
       ginstance t
     | Arrow(t1,t2) -> Arrow(ginstance t1, ginstance t2)
     | CTuple ts -> CTuple (List.map ginstance ts)
-    | On (c,s) -> On (ginstance c,s)
-    | Onnot (c,s) -> Onnot (ginstance c,s)
-    | Carrier (s,c) -> Carrier (s,ginstance c)
+    | On (c,s) -> On (ginstance c,carinstance s)
+    | Onnot (c,s) -> Onnot (ginstance c,carinstance s)
+    | Carrier (s,c) -> Carrier (carinstance s,ginstance c)
     | Unknown -> failwith "gen_instance"
   in
   ginstance tau
@@ -444,8 +480,6 @@ let clock_expr gamma e =
       let c1 = clock_rec e in
       let c2 = clock_rec c in
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
-      (* let s = get_ident c in *)
-      (* let s = "clk_"^s in *)
       let a = Var (new_varclock ()) in
       let s = VarCar(new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
@@ -502,11 +536,12 @@ let clocking gamma ({ pattern = p; expression = e}) =
     try clock_expr gamma e
     with ClockClash (c1,c2) ->
       begin
-        let vars = (vars_of_clock c1)@(vars_of_clock c2) in
+        let vars1 = (vars_of_clock c1)
+        in let vars2 = (vars_of_clock c2) in
         let s1 = Format.asprintf
         "Clock clash between %a and %a"
-          print_clock_scheme (Forall(vars,c1))
-          print_clock_scheme (Forall(vars,c2)) in
+          print_clock_scheme (Forall(vars1,[],c1))
+          print_clock_scheme (Forall(vars2,[],c2)) in
         Error.print_error e.e_loc s1
       end
   in
@@ -561,7 +596,7 @@ let rec look_for_ident (env : env_elem list) i =
           try
             let n = get_position (Ident i) tl in
             match s with
-            | Forall(g,CTuple l) -> Forall(g,List.nth l n)
+            | Forall(g,c,CTuple l) -> Forall(g,c,List.nth l n)
             | _ -> failwith "look for ident"
           with Not_found ->
             look_for_ident xs i
@@ -639,15 +674,14 @@ let get_all_vars node =
   let vars = List.flatten vars in
   let ins = split_tuple node.inputs in
   (* let outs = split_tuple node.outputs in *)
-  let outs = [] in
-  vars@ins@outs
+  make_set (vars@ins)
 
 
 let clock_node node =
   reset_varclocks ();
   let vars = get_all_vars node in
   (* vars_of_clock ?  *)
-  let vars_clocks = List.map (fun x -> (x,Forall([],Var(new_varclock())))) vars in
+  let vars_clocks = List.map (fun x -> (x,Forall([],[],Var(new_varclock())))) vars in
   let env = vars_clocks@(!global_typing_env) in
   let env = List.fold_left (fun acc eq -> clocking acc eq) env node.equations in
   let ckins = List.map (fun x -> lookup_clock env x) (split_tuple node.inputs) in
@@ -662,3 +696,13 @@ let clock_node node =
     print_pattern node.name
     print_clock_scheme scheme;
   global_typing_env := (node.name,scheme)::!global_typing_env
+
+(* let _ =
+ *   let a = Var(new_varclock ()) in
+ *   let b = Var(new_varclock ()) in
+ *   let c = VarCar(new_varcar ()) in
+ *   let a = On(a,c) in
+ *   let d = Carrier(VarCar(new_varcar ()), b) in
+ *   Format.printf "Before : %a and %a \n" print_clock (a,[])  print_clock (d,[]);
+ *   unify(a,d);
+ *   Format.printf "After : %a and %a \n" print_clock (a,[])  print_clock (d,[]); *)

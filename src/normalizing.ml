@@ -26,9 +26,9 @@ let new_name , reset =
 (* new variable from new names  *)
 let new_eq_var e =
   let name = new_name () in
-  let pat = { p_desc = Ident name ; p_loc = Location.none} in
+  let pat = { p_desc = Ident name ; p_loc = e.e_loc} in
   { pattern = pat  ; expression = e } ,
-  { e_desc = Variable name ; e_loc = Location.none }
+  { e_desc = Variable name ; e_loc = e.e_loc }
 
 (* string_of_variable *)
 let get_ident e =
@@ -96,7 +96,10 @@ let rec normalize_exp l exp =
     l''' , y
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
-    l' , { exp with e_desc = When (e',i) }
+    let exp' =  { exp with e_desc = When (e',i) } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l = eq_y::l' in
+    l,y
   | Whennot (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = Whennot (e',i) }
@@ -110,7 +113,10 @@ let rec normalize_exp l exp =
     let (l2,e2') = normalize_exp l1 e2 in
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Merge (e1',e2',e3') in
-    l3, { exp with e_desc =  exp' }
+    let exp' = { exp with e_desc =  exp' } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l = eq_y::l3 in
+    l,y
   | Pre _ | Arrow _ -> assert false
 
 (* The algorithm begins with this function, because we don't want normalizing
