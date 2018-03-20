@@ -68,6 +68,7 @@ let create_node mapper str =
               let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
               env := new_env;
               Clocking_ast_printer.print_node Format.std_formatter _cnode;
+              Clocking_ocl.test ();
             );
             if not !alloc then
               begin

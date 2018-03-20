@@ -86,7 +86,7 @@ let clock_expr gamma (e:expression) =
       (* Clocking_ocl.unify(e'.ce_clock,c.ce_clock); *)
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
       let a = Var (Clocking_ocl.new_varclock ()) in
-      let tt = (Arrow (a,Arrow(a,On(a,s)))) in
+      let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocking_ocl.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in

@@ -201,46 +201,46 @@ let occurs { index = n ; value = _ } t =
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
-  (* print_clock (tau1,[]) *)
-  (* print_clock (tau2,[]); *)
+  Format.fprintf Format.std_formatter "Unifying %a and %a \n%!"
+  print_clock (tau1,[])
+  print_clock (tau2,[]);
   begin
     match tau1, tau2 with
-  | Var ({ index = n; value = Unknown} as tv1),
-    Var { index = m; value = Unknown} ->
-    (* two unknown variables *)
-    (* tv1 -> tv2 -> <?> : every modif of tau2.value will modify tv1 *)
-     if n <> m then
-       tv1.value <- tau2;
-  | _ , Var ({index = _ ; value = Unknown} as tv) ->
-    if not (occurs tv tau1) then tv.value <- tau1
-    else (raise (ClockClash (tau1,tau2)))
-  | Var ({index = m ; value = Unknown} as tv), _ ->
-    if not (occurs tv tau2) then
-      tv.value <- tau2
-    else (raise (ClockClash (tau1,tau2)))
-  | Arrow(t1,t2), Arrow(t1',t2') ->
-    unify(t1,t1');
-    unify(t2,t2')
-  | CTuple tl1, CTuple tl2 ->
-    List.iter2 (fun a b -> unify(a,b)) tl1 tl2;
-  | Onnot (c,x) , Onnot (d,y) when x = y ->
-    unify(c,d)
-  | On (c,x) , On (d,y) when x = y ->
-    (* We can only unify values sampled with the same clock *)
-    unify(c,d);
-  | Carrier (s,c) , Carrier (s',d) ->
-    unify(c,d);
-  | _ , Carrier (s,c) ->
-    (* unify(tau1,c); *) ()
-  | Carrier (s,c) , _ ->
-    (* unify(c,tau2) *) ()
-  | _ -> raise (ClockClash (tau1,tau2))
+    | Carrier (s,c) , Carrier (s',d) ->
+      unify(c,d);
+    | _ , Carrier (s,c) ->
+      unify(tau1,c);
+    | Carrier (s,c) , _ ->
+      unify(c,tau2)
+    | Var ({ index = n; value = Unknown} as tv1),
+      Var { index = m; value = Unknown} ->
+      (* two unknown variables *)
+      (* tv1 -> tv2 -> <?> : every modif of tau2.value will modify tv1 *)
+      if n <> m then
+        tv1.value <- tau2;
+    | _ , Var ({index = _ ; value = Unknown} as tv) ->
+      if not (occurs tv tau1) then tv.value <- tau1
+      else (raise (ClockClash (tau1,tau2)))
+    | Var ({index = m ; value = Unknown} as tv), _ ->
+      if not (occurs tv tau2) then
+        tv.value <- tau2
+      else (raise (ClockClash (tau1,tau2)))
+    | Arrow(t1,t2), Arrow(t1',t2') ->
+      unify(t1,t1');
+      unify(t2,t2')
+    | CTuple tl1, CTuple tl2 ->
+      List.iter2 (fun a b -> unify(a,b)) tl1 tl2;
+    | Onnot (c,x) , Onnot (d,y) when x = y ->
+      unify(c,d)
+    | On (c,x) , On (d,y) when x = y ->
+      (* We can only unify values sampled with the same clock *)
+      unify(c,d);
+    | _ -> raise (ClockClash (tau1,tau2))
   end
-(* ; *)
-  (* Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
-  (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
-  (* print_clock_scheme (generalise_type !global_typing_env tau2) *)
+;
+  Format.fprintf Format.std_formatter "After unifying : %a and %a \n"
+  print_clock_scheme (generalise_type !global_typing_env tau1)
+  print_clock_scheme (generalise_type !global_typing_env tau2)
 
 
 (* Returns the variables in t that are not in bv (i.e. the free vars) *)
@@ -583,3 +583,14 @@ let clock_node node =
     print_pattern node.name
     print_clock_scheme scheme;
   global_typing_env := (node.name,scheme)::!global_typing_env
+
+let test () =
+  let a = Var (new_varclock ()) in
+  let b = Carrier("c", Var(new_varclock ())) in
+  Format.fprintf Format.std_formatter "Unifying %a and %a \n%!"
+  print_clock (a,[])
+  print_clock (b,[]);
+  unify(a,b);
+   Format.fprintf Format.std_formatter "After : %a and %a \n%!"
+  print_clock (a,[])
+  print_clock (b,[]);
