@@ -201,9 +201,9 @@ let occurs { index = n ; value = _ } t =
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  Format.fprintf Format.std_formatter "Unifying %a and %a \n%!"
-  print_clock (tau1,[])
-  print_clock (tau2,[]);
+  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
+  (* print_clock (tau1,[]) *)
+  (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
     | Carrier (s,c) , Carrier (s',d) ->
@@ -237,10 +237,10 @@ let rec unify (tau1,tau2) =
       unify(c,d);
     | _ -> raise (ClockClash (tau1,tau2))
   end
-;
-  Format.fprintf Format.std_formatter "After unifying : %a and %a \n"
-  print_clock_scheme (generalise_type !global_typing_env tau1)
-  print_clock_scheme (generalise_type !global_typing_env tau2)
+
+  (* Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
+  (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
+  (* print_clock_scheme (generalise_type !global_typing_env tau2) *)
 
 
 (* Returns the variables in t that are not in bv (i.e. the free vars) *)
