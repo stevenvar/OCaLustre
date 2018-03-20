@@ -17,8 +17,12 @@ let clock_expr gamma (e:expression) =
        let clk = Clocking_ocl.clock_expr gamma e in
        { ce_desc = CUnit ; ce_loc = e.e_loc ; ce_clock = clk}
     | Array e' ->
-       let e' = List.map clock_rec e' in
-       { ce_desc = CArray e' ; ce_loc = e.e_loc; ce_clock = (List.hd e').ce_clock}
+      let clk = Clocking_ocl.(new_varclock ()) in
+      let clk = Var clk in
+        let e' = List.map clock_rec e' in
+        let y = List.hd e' in
+        List.iter (fun x -> Clocking_ocl.unify(x.ce_clock,y.ce_clock)) e';
+       { ce_desc = CArray e' ; ce_loc = e.e_loc; ce_clock = clk}
     | Array_get (e',n) ->
        let e' =  clock_rec e' in
        let n =  clock_rec n in
@@ -80,12 +84,12 @@ let clock_expr gamma (e:expression) =
          Error.print_error e.e_loc s
        end
     | When (e',c) ->
-      let s = Clocking_ocl.get_ident c in
       let e' = clock_rec e' in
       let c =  clock_rec c in
       (* Clocking_ocl.unify(e'.ce_clock,c.ce_clock); *)
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
       let a = Var (Clocking_ocl.new_varclock ()) in
+      let s = VarCar (Clocking_ocl.new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocking_ocl.new_varclock ()) in
@@ -93,25 +97,25 @@ let clock_expr gamma (e:expression) =
       Clocking_ocl.unify(tt,new_type);
       { ce_desc = CWhen(e',c); ce_loc = e.e_loc; ce_clock = u}
     | Whennot (e',c) ->
-      let s = Clocking_ocl.get_ident c in
+      let s = VarCar (Clocking_ocl.new_varcar ()) in
       let e' = clock_rec e' in
       let c = clock_rec c in
       (* Clock of 'whenot' is 'a -> (c :: 'a) -> 'a on (not c) *)
       let a = Var (Clocking_ocl.new_varclock ()) in
-      let tt = (Arrow (a,Arrow(a,Onnot(a,s)))) in
+      let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
       (* clock of result *)
       let u = Var (Clocking_ocl.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
       Clocking_ocl.unify(tt,new_type);
       { ce_desc = CWhennot(e',c); ce_loc = e.e_loc; ce_clock = u}
     | Merge (c,e1,e2) ->
-      let s = Clocking_ocl.get_ident c in
+      let s = VarCar (Clocking_ocl.new_varcar ()) in
       let c = clock_rec c in
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       (* Clock of 'whenot' is clk:'a -> 'a on c -> 'a on (not c) -> 'a *)
       let a = Var(Clocking_ocl.new_varclock () ) in
-      let tt = Arrow(a, Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
+      let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
       let u = Var (Clocking_ocl.new_varclock () ) in
       let new_type = Arrow(c.ce_clock,Arrow(e1.ce_clock,Arrow(e2.ce_clock,u))) in
       Clocking_ocl.unify(tt,new_type);

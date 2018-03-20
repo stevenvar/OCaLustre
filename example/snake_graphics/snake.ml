@@ -44,16 +44,16 @@ let%node ny (dir,y) ~return:ny =
   else y
 
 let%node left (dir) ~return:ndir =
-  ndir := eval (left_of dir)
+  ndir := dir --> eval (left_of dir)
 
 let%node right (dir) ~return:ndir =
-  ndir := eval (right_of dir)
+  ndir := dir --> eval (right_of dir)
 
-let%node direction (left,right) ~return:dir =
-  dir := South --> (if left then
+let%node direction (l,r) ~return:dir =
+  dir := South --> (if l then
                       left (pre dir)
                     else
-                    if right then
+                    if r then
                       right (pre dir)
                     else
                        (pre dir))
@@ -75,10 +75,10 @@ let%node eats_itself (snake,head,tail) ~return:b =
 let%node maj_head (snake,head,new_head) ~return:s =
   s := snake.update (head => new_head)
 
-let%node game_loop (left,right) ~return:(hd,tl,apple,lose) =
+let%node game_loop (l,r) ~return:(hd,tl,apple,lose) =
   snake := [| (0,0)^100 |] --> (pre snake).update(head => nh);
   nh := new_head dir;
-  dir := direction(left,right);
+  dir := direction(l,r);
   head := 1 >>> ((head+1) mod 100);
   (apple,grows) := eats_apple nh;
   tail := if not grows then (0 >>> ((tail+1) mod 100)) else (0 >>> tail);

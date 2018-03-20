@@ -15,6 +15,14 @@ let new_varclock, reset_varclocks =
   fun () -> cpt := 0
 
 
+let new_varcar, reset_varcar =
+  let cpt = ref 0 in
+  (fun () ->
+    incr cpt;
+    { cindex = !cpt ; cvalue = UnknownCar}
+  ),
+  fun () -> cpt := 0
+
 (* Harvest all the unknown variables in tau  *)
 let vars_of_clock tau =
   let rec vars vs t =
@@ -96,6 +104,21 @@ let cvar_name n =
     if q = 0 then s else (name_of q)^s
   in "'"^(name_of n)
 
+(* Printing carriers *)
+let car_name n =
+  let rec name_of n =
+    let q,r = (n/26), (n mod 26) in
+    let s = String.make 1 (char_of_int (98+r)) in
+    if q = 0 then s else (name_of q)^s
+  in (name_of n)
+
+let rec print_carrier fmt c =
+  match c with
+  | UnknownCar -> Format.fprintf fmt "?"
+  | VarCar { cindex = n; cvalue = UnknownCar} -> Format.fprintf fmt "%s" (car_name n)
+  | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "%a" print_carrier c
+
+
 let rec print_clock fmt (t,v) =
     let names =
     let rec names_of = function
@@ -123,9 +146,9 @@ let rec print_clock fmt (t,v) =
         | x::xs -> Format.fprintf fmt "%a * %a" print_clock (x,v) print_list xs
       in
       Format.fprintf fmt "(%a)" print_list ts
-    | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_clock (c,v) s
-    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_clock (c,v) s
-    | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_clock (c,v)
+    | On (c,s) -> Format.fprintf fmt "(%a on %a)" print_clock (c,v) print_carrier s
+    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %a)" print_clock (c,v) print_carrier s
+    | Carrier (s,c) -> Format.fprintf fmt "(%a:%a)" print_carrier s print_clock (c,v)
     | Unknown -> Format.fprintf fmt  "?"
 
 (* Printing schemes  *)
@@ -151,7 +174,7 @@ let print_clock_scheme fmt (Forall(gv,t)) =
     | Var { index = _ ; value = t } ->
       Format.fprintf fmt "%a" print_rec t
     | Arrow(t1,t2) ->
-      Format.fprintf fmt "(%a -> %a)" print_rec t1 print_rec t2
+      Format.fprintf fmt "%a -> %a" print_rec t1 print_rec t2
     | CTuple ts ->
       let rec print_list fmt l =
         match l with
@@ -160,9 +183,9 @@ let print_clock_scheme fmt (Forall(gv,t)) =
         | x::xs -> Format.fprintf fmt "%a * %a" print_rec x print_list xs
       in
       Format.fprintf fmt "(%a)" print_list ts
-    | On (c,s) -> Format.fprintf fmt "(%a on %s)" print_rec c s
-    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %s)" print_rec c s
-    | Carrier (s,c) -> Format.fprintf fmt "(%s:%a)" s print_rec c
+    | On (c,s) -> Format.fprintf fmt "(%a on %a)" print_rec c print_carrier s
+    | Onnot (c,s) -> Format.fprintf fmt "(%a on not %a)" print_rec c print_carrier s
+    | Carrier (s,c) -> Format.fprintf fmt "(%a:%a)" print_carrier s print_rec c
     | Unknown -> Format.fprintf fmt  "?"
   in
   let rec print_list fmt l =
@@ -174,10 +197,34 @@ let print_clock_scheme fmt (Forall(gv,t)) =
                  (List.assoc x cvar_names)
                  print_list xs
   in
-  Format.fprintf fmt "forall %a.%a" print_list (List.rev gv)  print_rec t
+  Format.fprintf fmt "forall %a. %a" print_list (List.rev gv)  print_rec t
 
 (* Unification function : unifies types tau1 and tau2 *)
 exception ClockClash of clock * clock
+
+
+
+(* Shorten variables (follow indirection) *)
+let rec car_shorten c =
+  match c with
+  | VarCar { cindex = _ ; cvalue = UnknownCar } -> c
+  | VarCar { cindex = _ ; cvalue = (VarCar { cindex = m ; cvalue = UnknownCar}) as tv } ->
+    tv
+  | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
+    tv2.cvalue <- tv1.cvalue; car_shorten c
+  | UnknownCar -> failwith "shorten"
+
+
+let caroccurs { cindex = n ; cvalue = _ } c =
+  let rec occrec c =
+    Format.fprintf Format.std_formatter "Occurs %d in %a ? \n%!"
+      n
+      print_carrier c;
+    let c = car_shorten c in
+  match c with
+    | VarCar { cindex = m ; cvalue = _} -> (n = m)
+    | UnknownCar -> failwith "occurs"
+  in occrec c
 
 
 (* Check if a variable occurs in a type  *)
@@ -197,6 +244,18 @@ let occurs { index = n ; value = _ } t =
     | Unknown -> failwith "occurs"
   in occrec t
 
+let unify_carriers (c1,c2) =
+  let c1,c2 = car_shorten c1, car_shorten c2 in
+  match c1,c2 with
+  | VarCar ({ cindex = n; cvalue = UnknownCar } as cv1), VarCar { cindex = m ; cvalue = UnknownCar } ->
+    if n <> m then cv1.cvalue <- c2
+  | _ , VarCar ({cindex = _; cvalue = UnknownCar} as cv) ->
+    if not (caroccurs cv c1) then cv.cvalue <- c1
+    else failwith "caroccurs"
+  | VarCar ({cindex = _; cvalue = UnknownCar} as cv), _ ->
+    if not (caroccurs cv c2) then cv.cvalue <- c2
+    else failwith "carrocurs"
+  | _ -> failwith "unify_carriers"
 
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
@@ -207,11 +266,8 @@ let rec unify (tau1,tau2) =
   begin
     match tau1, tau2 with
     | Carrier (s,c) , Carrier (s',d) ->
+      unify_carriers(s,s');
       unify(c,d);
-    | _ , Carrier (s,c) ->
-      unify(tau1,c);
-    | Carrier (s,c) , _ ->
-      unify(c,tau2)
     | Var ({ index = n; value = Unknown} as tv1),
       Var { index = m; value = Unknown} ->
       (* two unknown variables *)
@@ -230,11 +286,18 @@ let rec unify (tau1,tau2) =
       unify(t2,t2')
     | CTuple tl1, CTuple tl2 ->
       List.iter2 (fun a b -> unify(a,b)) tl1 tl2;
-    | Onnot (c,x) , Onnot (d,y) when x = y ->
+    | Onnot (c,x) , Onnot (d,y) ->
+      unify_carriers(x,y);
       unify(c,d)
-    | On (c,x) , On (d,y) when x = y ->
-      (* We can only unify values sampled with the same clock *)
+    | _ , Carrier (s,c) ->
+      unify(tau1,c);
+    | Carrier (s,c) , _ ->
+      unify(c,tau2)
+    | On (c,x) , On (d,y) ->
+      unify_carriers(x,y);
       unify(c,d);
+
+
     | _ -> raise (ClockClash (tau1,tau2))
   end
 
@@ -297,7 +360,11 @@ let clock_lookup (n:string) (gamma: env_elem list) =
        (get_idents xs)
   in
   let gamma = get_idents gamma in
-  List.assoc n gamma
+  try
+    List.assoc n gamma
+  with Not_found ->
+    let s = Format.asprintf "Not found : %s" n in
+    Error.print_error Location.none s
 
 let print_env fmt (env : env_elem list) =
   let rec print_list fmt l =
@@ -377,9 +444,10 @@ let clock_expr gamma e =
       let c1 = clock_rec e in
       let c2 = clock_rec c in
       (* Clock of 'when' is 'a -> (c :: 'a) -> 'a on c *)
-      let s = get_ident c in
+      (* let s = get_ident c in *)
       (* let s = "clk_"^s in *)
       let a = Var (new_varclock ()) in
+      let s = VarCar(new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (new_varclock ()) in
@@ -390,9 +458,10 @@ let clock_expr gamma e =
       let c1 = clock_rec e in
       let c2 = clock_rec c in
       (* Clock of 'whenot' is 'a -> (c :: 'a) -> 'a on (not c) *)
-      let s = get_ident c in
+      (* let s = get_ident c in *)
       (* let s = "clk_"^s in *)
       let a = Var (new_varclock ()) in
+      let s = VarCar(new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
       (* clock of result *)
       let u = Var (new_varclock ()) in
@@ -403,10 +472,10 @@ let clock_expr gamma e =
       let cc = clock_rec c in
       let c1 = clock_rec e1 in
       let c2 = clock_rec e2 in
-      let s = get_ident c in
       (* let s = "clk_"^s in *)
       (* Clock of 'whenot' is clk:'a -> 'a on c -> 'a on (not c) -> 'a *)
       let a = Var(new_varclock () ) in
+      let s = VarCar(new_varcar ()) in
       let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
       let u = Var (new_varclock () ) in
       let new_type = Arrow(cc,Arrow(c1,Arrow(c2,u))) in
@@ -446,10 +515,15 @@ let clocking gamma ({ pattern = p; expression = e}) =
   (p,sigma)::gamma
 
 
+let remove_types p =
+  match p.p_desc with
+  | Typed(p,s) -> p
+  | _ -> p
+
 let split_tuple p =
   match p.p_desc with
-  | Tuple pl -> pl
-  | _ -> [p]
+  | Tuple pl -> List.map remove_types pl
+  | _ -> [remove_types p]
 
 let group_tuple pl =
   match pl with
@@ -521,14 +595,19 @@ let rec lookup_clock env p =
   | Ident i ->
      (try
         assoc_env p env
-      with Not_found -> Error.print_error p.p_loc ("Not found : "^i))
+      with Not_found ->
+        (* generalise_type env (Var (new_varclock ()))) *)
+        Error.print_error p.p_loc ("Not found : "^i))
   | Tuple t ->
      let clocks = List.map (lookup_clock env) t in
      let clocks = List.map gen_instance clocks in
      let clk = CTuple clocks in
      generalise_type env clk
   | PUnit -> assoc_env p env
-  | Typed (p,t) -> assoc_env p env
+  | Typed (p,t) -> try assoc_env p env with
+    Not_found ->
+    let s = Format.asprintf "Not found : %a"  print_pattern p in
+    Error.print_error p.p_loc s
   (* | _ -> *)
      (* let s = Format.asprintf "%a" print_pattern p in *)
      (* Error.print_error p.p_loc s *)
@@ -583,14 +662,3 @@ let clock_node node =
     print_pattern node.name
     print_clock_scheme scheme;
   global_typing_env := (node.name,scheme)::!global_typing_env
-
-let test () =
-  let a = Var (new_varclock ()) in
-  let b = Carrier("c", Var(new_varclock ())) in
-  Format.fprintf Format.std_formatter "Unifying %a and %a \n%!"
-  print_clock (a,[])
-  print_clock (b,[]);
-  unify(a,b);
-   Format.fprintf Format.std_formatter "After : %a and %a \n%!"
-  print_clock (a,[])
-  print_clock (b,[]);

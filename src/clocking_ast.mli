@@ -1,12 +1,16 @@
 open Parsing_ast
 
+type carrier = UnknownCar | VarCar of varcar
+
+and varcar = { cindex : int; mutable cvalue : carrier }
+
 type clock = Unknown
            | Var of varclock
            | CTuple of clock list
            | Arrow of clock * clock
-           | On of clock * ident
-           | Onnot of clock * ident
-           | Carrier of ident * clock (* clocks with a name like c :: 'a *)
+           | On of clock * carrier
+           | Onnot of clock * carrier
+           | Carrier of carrier * clock (* clocks with a name like c :: 'a *)
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
