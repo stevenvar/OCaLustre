@@ -300,6 +300,7 @@ let make_expression e =
       | "when" -> { exp with e_desc = When (exp,mk_expr clk)}
       | "whenot" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
       | "whennot" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
+      | "when_not" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
       | _ -> Error.print_error clk.pexp_loc "Wrong attribute"
     end
   | None -> exp

@@ -66,7 +66,9 @@ let create_node mapper str =
               whyml_node Format.std_formatter whyml);
             if !clocking then (
               let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
+              (* Clocking_ocl.print_env Format.std_formatter new_env; *)
               env := new_env;
+              (* Format.printf "new env = %a" Clocking_ocl.print_env new_env; *)
               Clocking_ast_printer.print_node Format.std_formatter _cnode;
             );
             if not !alloc then
@@ -87,6 +89,8 @@ let create_node mapper str =
               let _seq_node = seq_node _sched_node outputs_env in
               if !verbose then print_s_node Format.std_formatter _seq_node;
               let str = tocaml_node _seq_node in
+              if !typing then
+                Print_type.print_type str;
               str
           end
       | _ -> Error.syntax_error s.pstr_loc "not a node"

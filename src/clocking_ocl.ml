@@ -81,21 +81,11 @@ let rec shorten t =
     tv2.value <- tv1.value;
     shorten t
   | Var { index = _ ; value = t' } -> t'
+  | Carrier (s,c) -> Carrier(s,shorten c)
+  | On (c,s) -> On(shorten c,s)
+  | Onnot (c,s) -> Onnot(shorten c,s)
   | Unknown -> failwith "shorten"
   | _ -> t
-
-(* Check if a variable occurs in a type  *)
-let occurs { index = n ; value = _ } t =
-  let rec occrec = function
-    (* The variables have been shortened prior to calling this function *)
-    | Var { index = m ; value = _} -> (n = m)
-    | Arrow (t1,t2) -> (occrec t1) || (occrec t2)
-    | CTuple ts -> List.fold_left (fun acc t -> acc || occrec t) false ts
-    | On (c,s) -> occrec c
-    | Onnot (c,s) -> occrec c
-    | Carrier (s,c) -> occrec c
-    | Unknown -> failwith "occurs"
-  in occrec t
 
 
 (* Printing variables  *)
@@ -119,9 +109,9 @@ let rec print_clock fmt (t,v) =
       let name =
         try
           List.assoc n cvar_names
-        with Not_found -> "*" in
+        with Not_found -> string_of_int n in
        Format.fprintf fmt "%s" name
-    | Var { index = _ ; value = t } ->
+    | Var { index = m ; value = t } ->
       Format.fprintf fmt "%a" print_clock (t,v)
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
@@ -157,7 +147,6 @@ let print_clock_scheme fmt (Forall(gv,t)) =
            string_of_int n
         )
       in
-
       Format.fprintf fmt "%s" name
     | Var { index = _ ; value = t } ->
       Format.fprintf fmt "%a" print_rec t
@@ -190,12 +179,31 @@ let print_clock_scheme fmt (Forall(gv,t)) =
 (* Unification function : unifies types tau1 and tau2 *)
 exception ClockClash of clock * clock
 
+
+(* Check if a variable occurs in a type  *)
+let occurs { index = n ; value = _ } t =
+  let rec occrec c =
+    (* Format.fprintf Format.std_formatter "Occurs %d in %a ? \n%!" *)
+      (* n *)
+      (* print_clock (c,[]); *)
+    let c = shorten c in
+  match c with
+    | Var { index = m ; value = _} -> (n = m)
+    | Arrow (t1,t2) -> (occrec t1) || (occrec t2)
+    | CTuple ts -> List.fold_left (fun acc t -> acc || occrec t) false ts
+    | On (c,s) -> occrec c
+    | Onnot (c,s) -> occrec c
+    | Carrier (s,c') -> occrec c'
+    | Unknown -> failwith "occurs"
+  in occrec t
+
+
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n" *)
-  (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
-  (* print_clock_scheme (generalise_type !global_typing_env tau2); *)
+  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
+  (* print_clock (tau1,[]) *)
+  (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
   | Var ({ index = n; value = Unknown} as tv1),
@@ -207,8 +215,9 @@ let rec unify (tau1,tau2) =
   | _ , Var ({index = _ ; value = Unknown} as tv) ->
     if not (occurs tv tau1) then tv.value <- tau1
     else (raise (ClockClash (tau1,tau2)))
-  | Var ({index = _ ; value = Unknown} as tv), _ ->
-    if not (occurs tv tau2) then tv.value <- tau2
+  | Var ({index = m ; value = Unknown} as tv), _ ->
+    if not (occurs tv tau2) then
+             tv.value <- tau2
   | Arrow(t1,t2), Arrow(t1',t2') ->
     unify(t1,t1');
     unify(t2,t2')
@@ -222,7 +231,7 @@ let rec unify (tau1,tau2) =
   | Carrier (s,c) , Carrier (s',d) ->
     unify(c,d);
   | _ , Carrier (s,c) ->
-    (* unify(tau1,c) *) ()
+    (* unify(tau1,c); *) ()
   | Carrier (s,c) , _ ->
     (* unify(c,tau2) *) ()
   | _ -> raise (ClockClash (tau1,tau2))
@@ -493,7 +502,9 @@ let rec pattern_equal p1 p2 =
   match p1.p_desc, p2.p_desc with
   | Ident i, Ident j -> i = j
   | Typed (pi,_) , Typed (pj,_) -> pattern_equal pi pj
-  | Tuple pi, Tuple pj -> failwith "tuple"
+  | Tuple pi, Tuple pj ->
+     let l = List.map2 (fun i j -> (i,j)) pi pj in
+     List.fold_left (fun acc (x,y) -> (pattern_equal x y) && acc) true l
   | PUnit, PUnit -> true
   | _ -> false
 
@@ -505,12 +516,27 @@ let rec assoc_env p env =
 
 (* Function for finding clock in an env *)
 let rec lookup_clock env p =
-  try
-    let x = assoc_env p env in
-    x
-  with Not_found ->
-    raise (Location.Error (Location.error ~loc:p.p_loc "Cannot find clock"))
-    (* failwith "lookup_clock" *)
+  match p.p_desc with
+  | Ident i ->
+     (try
+        assoc_env p env
+      with Not_found -> Error.print_error p.p_loc ("Not found : "^i))
+  | Tuple t ->
+     let clocks = List.map (lookup_clock env) t in
+     let clocks = List.map gen_instance clocks in
+     let clk = CTuple clocks in
+     generalise_type env clk
+  | PUnit -> assoc_env p env
+  | Typed (p,t) -> assoc_env p env
+  (* | _ -> *)
+     (* let s = Format.asprintf "%a" print_pattern p in *)
+     (* Error.print_error p.p_loc s *)
+  (* try
+   *   let x = assoc_env p env in
+   *   x
+   * with Not_found ->
+   *   raise (Location.Error (Location.error ~loc:p.p_loc "Cannot find clock"))
+   *   (\* failwith "lookup_clock" *\) *)
   (* match p.p_desc with
    * | Ident i ->
    *   begin
@@ -528,8 +554,9 @@ let rec lookup_clock env p =
 
 let get_all_vars node =
   let vars =
-    List.map (fun eq -> eq.pattern) node.equations
+    List.map (fun eq -> split_tuple eq.pattern) node.equations
   in
+  let vars = List.flatten vars in
   let ins = split_tuple node.inputs in
   (* let outs = split_tuple node.outputs in *)
   let outs = [] in

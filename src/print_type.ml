@@ -39,7 +39,14 @@ let env_growing = ref []
   let print_type st =
     let env = Compmisc.initial_env () in
     let env = List.fold_left (fun acc x -> Env.add_signature x acc) env !env_growing in
-    let (tf,ts,_) =Typemod.type_structure env  st Location.none in
+    (* Pprintast.structure Format.std_formatter st; *)
+    let (tf,ts,_) = try Typemod.type_structure env st Location.none
+                      with Ctype.Unify x ->
+                        let (x,y) = List.hd x in
+                        let s = Format.asprintf "Unification error between %a and %a"
+                              Printtyp.type_expr x Printtyp.type_expr y in
+                        Error.print_error Location.none s
+ in
     (* Printtyped.implementation Format.std_formatter tf; *)
     Format.fprintf Format.std_formatter "%a\n" Printtyp.signature ts;
     env_growing := ts::!env_growing ;

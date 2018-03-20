@@ -14,6 +14,6 @@ end
  *   a := [| 2 ^ 10 |] >>> (a.map(fun x -> x + 1));
  *   k := a.fold((+),0) *)
 
-let%node mk_array(x,n) ~return:(k,a) =
+let%node mk_array(x) ~return:(a,k) =
   a := [| 10 ^ 10 |] --> ( (pre a) where (0 => x));
   k := a.(0)
