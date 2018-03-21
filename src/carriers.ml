@@ -40,25 +40,25 @@ let carriers_of_clock tau =
 let car_name n =
   let rec name_of n =
     let q,r = (n/26), (n mod 26) in
-    let s = String.make 1 (char_of_int (65+r)) in
+    let s = String.make 1 (char_of_int (64+r)) in
     if q = 0 then s else (name_of q)^s
   in "ck"^(name_of n)
 
 let rec print_carrier fmt c =
   match c with
   | UnknownCar -> Format.fprintf fmt "?"
-  | VarCar { cindex = n; cvalue = UnknownCar} -> Format.fprintf fmt "%s" (car_name n)
+  | VarCar { cindex = n; cvalue = UnknownCar} -> Format.fprintf fmt "%s"  (car_name n)
   | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "%a" print_carrier c
 
 (* Shorten variables (follow indirection) *)
-let rec car_shorten c =
-  match c with
-  | VarCar { cindex = _ ; cvalue = UnknownCar } -> c
-  | VarCar { cindex = _ ; cvalue = (VarCar { cindex = m ; cvalue = UnknownCar}) as tv } ->
-    tv
-  | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
-    tv2.cvalue <- tv1.cvalue; car_shorten c
-  | UnknownCar -> failwith "shorten"
+let rec car_shorten c = c
+  (* match c with *)
+  (* | VarCar { cindex = _ ; cvalue = UnknownCar } -> c *)
+  (* | VarCar { cindex = _ ; cvalue = (VarCar { cindex = m ; cvalue = UnknownCar}) as tv } -> *)
+    (* tv *)
+  (* | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) -> *)
+    (* tv2.cvalue <- tv1.cvalue; car_shorten c *)
+  (* | UnknownCar -> failwith "shorten" *)
 
 let caroccurs { cindex = n ; cvalue = _ } c =
   let rec occrec c =
@@ -71,8 +71,7 @@ let caroccurs { cindex = n ; cvalue = _ } c =
     | UnknownCar -> failwith "occurs"
   in occrec c
 
-let carinstance c gc =
-    let cunknowns = List.map (fun n -> n, VarCar(new_varcar ())) gc in
+let carinstance c cunknowns =
     let rec aux c =
       match c with
       | VarCar { cindex = n; cvalue = UnknownCar } ->
@@ -84,6 +83,9 @@ let carinstance c gc =
 
 let unify_carriers (c1,c2) =
   let c1,c2 = car_shorten c1, car_shorten c2 in
+   (* Format.fprintf Format.std_formatter "Unifying carriers %a and %a \n%!" *)
+  (* print_carrier c1 *)
+  (* print_carrier c2; *)
   match c1,c2 with
   | VarCar ({ cindex = n; cvalue = UnknownCar } as cv1), VarCar { cindex = m ; cvalue = UnknownCar } ->
     if n <> m then cv1.cvalue <- c2

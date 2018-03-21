@@ -185,8 +185,8 @@ let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
   (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
-  (* print_clock (tau1,vars_of_clock tau1) *)
-  (* print_clock (tau2,vars_of_clock tau2); *)
+  (* print_clock (tau1,[]) *)
+  (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
     | Carrier (s,c) , Carrier (s',d) ->
@@ -242,6 +242,7 @@ let rec make_set l =
 
 (* Create an instance of its type_env argument *)
 let gen_instance (Forall(gv,gc,tau)) =
+  let cunknowns = List.map (fun n -> n, VarCar(new_varcar ())) gc in
   let unknowns = List.map (fun n -> n, Var(new_varclock ())) gv in
   let rec ginstance t =
     match t with
@@ -258,9 +259,9 @@ let gen_instance (Forall(gv,gc,tau)) =
       ginstance t
     | Arrow(t1,t2) -> Arrow(ginstance t1, ginstance t2)
     | CTuple ts -> CTuple (List.map ginstance ts)
-    | On (c,s) -> On (ginstance c,carinstance s gc)
-    | Onnot (c,s) -> Onnot (ginstance c,carinstance s gc)
-    | Carrier (s,c) -> Carrier (carinstance s gc,ginstance c)
+    | On (c,s) -> On (ginstance c,carinstance s cunknowns)
+    | Onnot (c,s) -> Onnot (ginstance c,carinstance s cunknowns)
+    | Carrier (s,c) -> Carrier (carinstance s cunknowns,ginstance c)
     | Unknown -> failwith "gen_instance"
   in
   ginstance tau

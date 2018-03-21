@@ -163,7 +163,8 @@ let clock_equations gamma eqs =
 
 let clock_node gamma node =
   let open Clocks in
-  reset_varclocks () ;
+  reset_varclocks ();
+  reset_varcar ();
   let vars = get_all_vars node in
   let vars_clocks =  List.map (fun x -> (x,Forall([],[],Var(new_varclock())))) vars in
   let env = vars_clocks@gamma in

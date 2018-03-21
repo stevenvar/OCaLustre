@@ -11,4 +11,4 @@ let%node sample (c,y) ~return:k =
 
 let%node unif (a,b,d,x) ~return:(y,p) =
   p := b && a;
-  y := x [@ when b]
+  y := x [@ when p]
