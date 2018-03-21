@@ -2,7 +2,7 @@
 open Parsing_ast
 open Parsing_ast_printer
 open Clocking_ast
-open Clocking_ocl
+open Clocks
 
 let rec print_expression fmt (ce,vars) =
   let rec print_list fmt l =
@@ -86,7 +86,7 @@ let print_node fmt (node,verbose) =
     print_pattern node.cname
     print_pattern node.cinputs
     print_pattern node.coutputs
-    Clocking_ocl.print_clock_scheme cs
+    Clocks.print_clock_scheme cs
     print_equations (node.cequations,gv)
   else
-    Format.fprintf fmt "%a :: \027[32m%a\027[0m\n%!" print_pattern node.cname Clocking_ocl.print_clock_scheme cs
+    Format.fprintf fmt "%a :: \027[32m%a\027[0m\n%!" print_pattern node.cname Clocks.print_clock_scheme cs
