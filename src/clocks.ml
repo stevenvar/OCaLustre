@@ -103,7 +103,7 @@ let rec print_clock fmt (t,v) =
         with Not_found -> string_of_int n in
        Format.fprintf fmt "%s" name
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%d->%a" m print_clock (t,v)
+      Format.fprintf fmt "%a" print_clock (t,v)
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->

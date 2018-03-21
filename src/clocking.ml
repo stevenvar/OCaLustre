@@ -2,6 +2,11 @@ open Parsing_ast
 open Clocking_ast
 open Carriers
 
+let put_carrier (s,c) =
+  match c.ce_clock with
+  | Var k -> k.value <- Carrier(s,c.ce_clock)
+  | _ -> ()
+
 let clock_expr gamma (e:expression) =
   let rec clock_rec e =
     match e.e_desc with
@@ -80,14 +85,14 @@ let clock_expr gamma (e:expression) =
        end
     | When (e',c) ->
       let e' = clock_rec e' in
-      let c =  clock_rec c in
+      let c = clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
       let s = VarCar (Carriers.new_varcar ()) in
-      Format.printf "%a is on carrier %a" Clocks.print_clock (c.ce_clock,[]) Carriers.print_carrier s;
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
+      (* put_carrier(s,c); *)
       Clocks.unify(tt,new_type);
       { ce_desc = CWhen(e',c); ce_loc = e.e_loc; ce_clock = u}
     | Whennot (e',c) ->
