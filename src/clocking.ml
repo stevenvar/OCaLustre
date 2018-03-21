@@ -83,6 +83,7 @@ let clock_expr gamma (e:expression) =
       let c =  clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
       let s = VarCar (Carriers.new_varcar ()) in
+      Format.printf "%a is on carrier %a" Clocks.print_clock (c.ce_clock,[]) Carriers.print_carrier s;
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
