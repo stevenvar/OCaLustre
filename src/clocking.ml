@@ -51,7 +51,8 @@ let clock_expr gamma (e:expression) =
         begin
           try Clocks.clock_lookup n gamma
           with Not_found ->
-            Error.print_error e.e_loc ("Unbound variable "^n)
+            Forall([],[],Var(Clocks.new_varclock()))
+            (* Error.print_error e.e_loc ("Unbound variable "^n) *)
         end
         (* instantiate it *)
       in
@@ -77,7 +78,7 @@ let clock_expr gamma (e:expression) =
          let e' = clock_rec e' in
          let u = Var (Clocks.new_varclock ()) in
          let t = Arrow (e'.ce_clock,u) in
-         Clocks.unify(t,fun_ck);
+         Clocks.unify_with_carriers(t,fun_ck);
          { ce_desc = CApplication(id,e'); ce_loc = e.e_loc; ce_clock = u}
        with Not_found ->
          let s = Format.asprintf "Clock of node not found : %s" id in
@@ -150,27 +151,119 @@ let clock_expr gamma (e:expression) =
       Error.print_error e.e_loc s1
     end
 
+
+let rec string_of_pat p =
+  match p.p_desc with
+  | Ident i -> i
+  | Typed(p,t) -> string_of_pat p
+  | PUnit -> "()"
+  | _ -> failwith "sop"
+
+
+let rec lookup env p =
+   match p.p_desc with
+  | Ident i ->
+     (try
+        List.assoc i env
+      with Not_found ->
+        Error.print_error p.p_loc ("Not found : "^i))
+  | Tuple t ->
+     let clocks = List.map (lookup env) t in
+     let clocks = List.map Clocks.gen_instance clocks in
+     let clk = CTuple clocks in
+     Clocks.generalise_type env clk
+  | PUnit -> failwith "unit"
+  | Typed (p,t) -> lookup env p
+
+let split_clock clock =
+  match clock with
+  | CTuple t -> t
+  | _ -> [clock]
+
+let split_pattern pat =
+  match pat.p_desc with
+  | Tuple p -> p
+  | _ -> [pat]
+
 let clock_equation gamma {pattern; expression} =
   let expression = clock_expr gamma expression in
-  let pck = Clocks.lookup_clock gamma pattern in
+  (* let pck = lookup gamma pattern in *)
   let open Clocks in
   (* need to unify clock of pattern and expression *)
-  unify(gen_instance pck,expression.ce_clock);
-  { cpattern = pattern; cexpression = expression}
+  (* unify(gen_instance pck,expression.ce_clock); *)
+  let names = split_pattern pattern in
+  let names = List.map string_of_pat names in 
+  let clocks = split_clock (Clocks.shorten(expression.ce_clock)) in
+  let new_elem = List.map2 (fun x y -> (x,Forall([],[],y))) names clocks in
+  (new_elem@gamma),{ cpattern = pattern; cexpression = expression}
 
 let clock_equations gamma eqs =
-  List.map (clock_equation gamma) eqs
+  (* List.map (clock_equation gamma) eqs *)
+  List.fold_left (fun (env,eqs) eq ->
+    let (new_env,e) = clock_equation (List.rev env) eq in (new_env,e::eqs)) (gamma,[]) eqs
+
+        
+let remove_types p =
+  match p.p_desc with
+  | Typed(p,s) -> p
+  | _ -> p
+
+let split_tuple p =
+  match p.p_desc with
+  | Tuple pl -> List.map remove_types pl
+  | _ -> [remove_types p]
+
+let group_tuple pl =
+  match pl with
+  | [] -> Unknown
+  | [x] -> x
+  | _ -> CTuple pl
+
+
+
+let get_all_vars node =
+  let vars =
+    List.map (fun eq -> split_tuple eq.pattern) node.equations
+  in
+  (* let vars = List.flatten vars in *)
+  let vars = [] in
+  let ins = split_tuple node.inputs in
+  (* let outs = split_tuple node.outputs in *)
+  Clocks.make_set (vars@ins)
+
+let get_all_carriers node =
+  let extract_carrier exp l =
+    match exp.e_desc with
+    | When(e1,e2) -> e2::l
+    | _ -> l
+  in
+  let eqs = node.equations in
+  let exps = List.map (fun x -> x.expression) eqs in
+  let carriers = List.fold_left (fun acc x -> extract_carrier x acc) [] exps in
+  carriers
+
+let get_ident e =
+  match e.e_desc with
+  | Variable x -> x
+  | _ -> failwith "get_ident"
 
 let clock_node gamma node =
   let open Clocks in
   reset_varclocks ();
   reset_varcar ();
   let vars = get_all_vars node in
+  let vars = List.map string_of_pat vars in 
+  (* let vars = List.map string_of_pat vars in *)
+  let cars = get_all_carriers node in
+  let cars = List.map get_ident cars in
+  List.iter print_string cars;
+  let cars_clocks = List.map (fun x -> (x,Forall([],[],Carrier(VarCar(new_varcar()),Var(new_varclock()))))) cars in
   let vars_clocks =  List.map (fun x -> (x,Forall([],[],Var(new_varclock())))) vars in
-  let env = vars_clocks@gamma in
+  
+  let env = cars_clocks@vars_clocks@gamma in
   (* print_env Format.std_formatter env; *)
   (* Clocks.print_env Format.std_formatter env; *)
-  let eqs = clock_equations env node.equations in
+  let (env,eqs) = clock_equations env node.equations in
   let ckins = List.map (fun x -> lookup_clock env x) (split_tuple node.inputs) in
   let ckouts = List.map (fun x -> lookup_clock env x) (split_tuple node.outputs) in
   let ckins = List.map gen_instance ckins in
@@ -178,7 +271,7 @@ let clock_node gamma node =
   let ckouts = List.map gen_instance ckouts in
   let ckouts = group_tuple ckouts in
   let node_clock = generalise_type [] (Arrow(ckins,ckouts)) in
-  let new_env = (node.name,node_clock)::gamma in
+  let new_env = (string_of_pat node.name,node_clock)::gamma in
   (new_env,
   {
     cnode_clock = node_clock;
