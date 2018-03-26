@@ -182,7 +182,7 @@ let occurs { index = n ; value = _ } t =
   in occrec t
 
 let rec unify_with_carriers (tau1,tau2) =
-  let unify = unify_with_carriers in 
+  let unify = unify_with_carriers in
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
   (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
@@ -228,8 +228,8 @@ let rec unify (tau1,tau2) =
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
-    | Carrier (s,c) , _ -> unify(c,tau2)
-    | _ , Carrier (s,c) -> unify(tau1,c)
+    (* | Carrier (s,c) , _ -> unify(c,tau2) *)
+    (* | _ , Carrier (s,c) -> unify(tau1,c) *)
 
     | Var ({ index = n; value = Unknown} as tv1),
       Var { index = m; value = Unknown} ->

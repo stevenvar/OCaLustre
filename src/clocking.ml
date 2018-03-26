@@ -113,7 +113,7 @@ let clock_expr gamma (e:expression) =
       let c = clock_rec c in
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
-      (* Clock of 'whenot' is clk:'a -> 'a on c -> 'a on (not c) -> 'a *)
+      (* Clock of 'merge' is clk:'a -> 'a on c -> 'a on (not c) -> 'a *)
       let a = Var(Clocks.new_varclock () ) in
       let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
       let u = Var (Clocks.new_varclock () ) in
@@ -192,7 +192,7 @@ let clock_equation gamma {pattern; expression} =
   (* need to unify clock of pattern and expression *)
   (* unify(gen_instance pck,expression.ce_clock); *)
   let names = split_pattern pattern in
-  let names = List.map string_of_pat names in 
+  let names = List.map string_of_pat names in
   let clocks = split_clock (Clocks.shorten(expression.ce_clock)) in
   let new_elem = List.map2 (fun x y -> (x,Forall([],[],y))) names clocks in
   (new_elem@gamma),{ cpattern = pattern; cexpression = expression}
@@ -202,7 +202,7 @@ let clock_equations gamma eqs =
   List.fold_left (fun (env,eqs) eq ->
     let (new_env,e) = clock_equation (List.rev env) eq in (new_env,e::eqs)) (gamma,[]) eqs
 
-        
+
 let remove_types p =
   match p.p_desc with
   | Typed(p,s) -> p
@@ -219,14 +219,12 @@ let group_tuple pl =
   | [x] -> x
   | _ -> CTuple pl
 
-
-
 let get_all_vars node =
   let vars =
     List.map (fun eq -> split_tuple eq.pattern) node.equations
   in
-  (* let vars = List.flatten vars in *)
-  let vars = [] in
+  let vars = List.flatten vars in
+  (* let vars = [] in *)
   let ins = split_tuple node.inputs in
   (* let outs = split_tuple node.outputs in *)
   Clocks.make_set (vars@ins)
@@ -252,15 +250,15 @@ let clock_node gamma node =
   reset_varclocks ();
   reset_varcar ();
   let vars = get_all_vars node in
-  let vars = List.map string_of_pat vars in 
+  let vars = List.map string_of_pat vars in
   (* let vars = List.map string_of_pat vars in *)
-  let cars = get_all_carriers node in
-  let cars = List.map get_ident cars in
-  List.iter print_string cars;
-  let cars_clocks = List.map (fun x -> (x,Forall([],[],Carrier(VarCar(new_varcar()),Var(new_varclock()))))) cars in
+  (* let cars = get_all_carriers node in *)
+  (* let cars = List.map get_ident cars in *)
+  (* let cars_clocks = List.map (fun x -> (x,Forall([],[],Carrier(VarCar(new_varcar()),Var(new_varclock()))))) cars in *)
   let vars_clocks =  List.map (fun x -> (x,Forall([],[],Var(new_varclock())))) vars in
-  
-  let env = cars_clocks@vars_clocks@gamma in
+
+  (* let env = cars_clocks@vars_clocks@gamma in *)
+  let env = vars_clocks@gamma in
   (* print_env Format.std_formatter env; *)
   (* Clocks.print_env Format.std_formatter env; *)
   let (env,eqs) = clock_equations env node.equations in
