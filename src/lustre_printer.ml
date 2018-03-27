@@ -63,7 +63,7 @@ let rec print_expression fmt e =
       print_expression e1
       print_expression e2
       print_expression e3
-  | Application (i, e) ->
+  | Application (i,num,e) ->
      Format.fprintf fmt "(%a (%a))"
                     print_ident i
                     print_expression e

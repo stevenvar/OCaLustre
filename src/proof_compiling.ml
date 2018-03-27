@@ -57,9 +57,7 @@ let rec compile_pre_expression e =
      | Value v -> S_Value v
      | Array _ | Array_get _ | Imperative_update _ | Array_map _ | Array_fold _ -> failwith "todo"
   | Variable s -> S_Variable ("pre_"^s)
-  | Application (i, e) ->
-    let num = get_num () in
-    (* let name = i^(string_of_int num)^"_step" in *)
+  | Application (i,num, e) ->
     S_Application (i, num, compile_pre_expression e)
   | Call e ->
     S_Call e
@@ -99,9 +97,7 @@ let rec compile_expression_step e p =
   | Pre _ -> assert false
   | Value v -> S_Value v
   | Variable s -> S_Variable s
-  | Application (i, e) ->
-    let num = get_num () in
-    (* let name = i^(string_of_int num)^"_step" in *)
+  | Application (i,num, e) ->
     S_Application (i, num, compile_expression_step e p)
   | Call e ->
     S_Call e
@@ -200,8 +196,7 @@ let compile_equation_init e =
 let generate_app_inits el =
 let rec generate_init e {p_desc ; p_loc} l =
   match e.e_desc with
-  | Application (i,el') ->
-    let num = get_num () in
+  | Application (i,num,el') ->
     let p_desc = Ident (i^(string_of_int num)^"_step") in
     {s_pattern = {p_desc ; p_loc} ; s_expression =  S_Application_init (i,S_Unit)}::l
   | _ -> l

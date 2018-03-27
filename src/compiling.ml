@@ -60,8 +60,7 @@ let rec compile_expression e p =
     IImperative_update (compile_expression e p,pe )
   | Array_get (e,e') ->
     IArray_get(compile_expression e p, compile_expression e' p)
-  | Application (i, e) ->
-    let num = get_num () in
+  | Application (i, num, e) ->
     (* let name = i^(string_of_int num)^"_step" in *)
     IApplication (i, num, compile_expression e p)
   | Call e ->

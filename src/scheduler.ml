@@ -12,7 +12,7 @@ let rec get_dep_id e l  =
     let l' = get_dep_id e1 l in
     let l'' = get_dep_id e2 l' in
     get_dep_id e3 l''
-  | Application (i,e) ->
+  | Application (i,num,e) ->
       get_dep_id e l
   | Call e ->
     l

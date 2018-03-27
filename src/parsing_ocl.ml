@@ -13,6 +13,11 @@ let loc_default = Location.none
 
 let mk_pattern ?(loc=loc_default) v = { p_desc = (Ident v) ; p_loc = loc }
 
+let get_num , reset =
+  let cpt = ref 0 in
+  (fun () -> incr cpt; !cpt) , (fun () -> cpt := 0 )
+
+
 let alternative e1 e2 e3 = Alternative (e1, e2, e3)
 
 let ( +/ ) e1 e2 = InfixOp ( Plus , e1 , e2 )
@@ -70,7 +75,7 @@ let rec get_idents l e =
     let l = get_idents l e in
     get_idents l e'
   | Call e -> l
-  | Application (i,e) ->
+  | Application (i,_,e) ->
     get_idents l e
   | Alternative (e1,e2,e3) ->
     let l = get_idents l e3 in
@@ -271,6 +276,9 @@ let make_expression e =
     | [%expr [%e? e1] fby [%e? e2] ]  ->
       { e_desc = Fby (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
+    | [%expr [%e? e1] ->>> [%e? e2] ]  ->
+      { e_desc = Fby (mk_expr e1 , mk_expr e2);
+        e_loc = e.pexp_loc  }
     | [%expr [%e? e1] ->> [%e? e2] ]  ->
       { e_desc = Fby (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
@@ -284,7 +292,7 @@ let make_expression e =
       let app = Call (e1) in
       { e_desc = app ; e_loc = e.pexp_loc }
     | [%expr [%e? e1] [%e? e2] ] ->
-      let app = Application(checkname_ident e1, mk_expr e2) in
+      let app = Application(checkname_ident e1, get_num(), mk_expr e2) in
       { e_desc = app ; e_loc = e.pexp_loc }
 
     | _ ->

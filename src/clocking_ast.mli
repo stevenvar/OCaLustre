@@ -14,7 +14,8 @@ type clock = Unknown
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
-  | CApplication of ident * cexpression
+  | CCondact of bool * ident * cexpression
+  | CApplication of ident * int * cexpression
   | CInfixOp of inf_operator * cexpression * cexpression
   | CPrefixOp of pre_operator * cexpression
   | CValue of value

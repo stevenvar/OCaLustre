@@ -4,21 +4,29 @@
 
 (* let%node test_call (x,y,c) ~return:(i,j) = *)
   (* (i,j) := test(x,y,c) *)
-  (* k := merge c i j *)
+(* k := merge c i j *)
 
-let%node test (a,b,c) ~return:d =
-  d := merge c a b
+let%node id x ~return:y =
+  y = 0 fby (y+1)
 
-let%node sample (c,y) ~return:k =
-  k := y [@when c]
+let%node fil (c,y) ~return:(z,k,u) =
+  z = id (y [@whennot c]);
+  k = id (y [@when c]);
+  u = merge c k z
 
-let%node call_sample (c,d,y) ~return:(v,k) =
-  v := c [@when d];
-  k := sample(v,y)
-
-let%node unif (a,b,d,x) ~return:(y,p) =
-  p := b && a;
-  y := x [@when p]
-
-let%node call_unif (a,b,d,x) ~return:(y,p) =
-  (y,p) = unif (a,b,d,x)
+(* let%node test (a,b,c) ~return:d =
+ *   d := merge c a b
+ *
+ * let%node sample (c,y) ~return:k =
+ *   k := y [@when c]
+ *
+ * let%node call_sample (c,d,y) ~return:(v,k) =
+ *   v := c [@when d];
+ *   k := sample(v,y)
+ *
+ * let%node unif (a,b,d,x) ~return:(y,p) =
+ *   p := b && a;
+ *   y := x [@when p]
+ *
+ * let%node call_unif (a,b,d,x) ~return:(y,p) =
+ *   (y,p) = unif (a,b,d,x) *)

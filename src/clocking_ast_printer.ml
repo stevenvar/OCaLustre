@@ -22,8 +22,10 @@ let rec print_expression fmt (ce,vars) =
     let ff = Format.fprintf in
     (match ce.ce_desc with
      | Clocking_ast.CAlternative (e1,e2,e3) ->
-        ff fmt "if %a then %a else %a" p e1 p e2 p e3
-     | Clocking_ast.CApplication (id,exp) ->
+       ff fmt "if %a then %a else %a" p e1 p e2 p e3
+     | Clocking_ast.CCondact (b,id,exp) ->
+       ff fmt "if %s = %b then %a else NIL" id b p exp
+     | Clocking_ast.CApplication (id,num,exp) ->
         ff fmt "%s %a" id p exp
      | Clocking_ast.CInfixOp (op,e1,e2) ->
         ff fmt "%a %a %a" p e1 print_infop op p e2

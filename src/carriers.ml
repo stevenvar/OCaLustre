@@ -51,14 +51,14 @@ let rec print_carrier fmt c =
   | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "%a" print_carrier c
 
 (* Shorten variables (follow indirection) *)
-let rec car_shorten c = c
-  (* match c with *)
-  (* | VarCar { cindex = _ ; cvalue = UnknownCar } -> c *)
-  (* | VarCar { cindex = _ ; cvalue = (VarCar { cindex = m ; cvalue = UnknownCar}) as tv } -> *)
-    (* tv *)
-  (* | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) -> *)
-    (* tv2.cvalue <- tv1.cvalue; car_shorten c *)
-  (* | UnknownCar -> failwith "shorten" *)
+let rec car_shorten c =
+  match c with
+  | VarCar { cindex = _ ; cvalue = UnknownCar } -> c
+  | VarCar { cindex = _ ; cvalue = (VarCar { cindex = m ; cvalue = UnknownCar}) as tv } ->
+    tv
+  | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
+    tv2.cvalue <- tv1.cvalue; car_shorten c
+  | UnknownCar -> failwith "shorten"
 
 let caroccurs { cindex = n ; cvalue = _ } c =
   let rec occrec c =

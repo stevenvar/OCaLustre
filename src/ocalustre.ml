@@ -22,7 +22,7 @@ let verbose = ref false
 let clocking = ref false
 let lustre = ref false
 let why = ref false
-let alloc = ref false
+let nonalloc = ref false
 let typing = ref false
 let not_printed_wrapper = ref true
 let main = ref ""
@@ -59,7 +59,9 @@ let create_node mapper str =
         let _sched_node = schedule _norm_node in
           begin
             if !verbose then
-              print_node Format.std_formatter _sched_node;
+              Format.fprintf Format.std_formatter "Before Scheduling : \n %a \nAfter Scheduling : \n %a"
+              print_node _sched_node
+              print_node _sched_node;
             if !lustre then to_lustre_file _node;
             if !why then (
               let whyml = Proof_compiling.pcompile_cnode _sched_node in
@@ -69,8 +71,11 @@ let create_node mapper str =
               env := new_env;
               Clocking_ast_printer.print_node Format.std_formatter (_cnode,!verbose);
               (* Clocking_ocl.test (); *)
+              let _icnode = Compiling_w_clocks.compile_cnode _cnode in
+              Imperative_ast2.printml_node Format.std_formatter _icnode;
             );
-            if not !alloc then
+
+            if not !nonalloc then
               begin
                 let _inode = compile_cnode _sched_node in
                 if !verbose then Imperative_ast_printer.printml_node Format.std_formatter _inode;
@@ -99,7 +104,6 @@ let create_node mapper str =
 
 (* maps structure (i.e list of structure_items) *)
 let lustre_mapper argv =
-
   { default_mapper with
     structure =
       fun mapper st ->
@@ -107,11 +111,12 @@ let lustre_mapper argv =
         List.flatten stl
   }
 
+open Compiling_w_clocks
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                   ("-y", Arg.Set why, "Prints whyml code");
                   ("-l", Arg.Set lustre, "Prints lustre node");
-                  ("-a", Arg.Set alloc, "Generate non-allocating code (state passing style)");
+                  ("-a", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
                   ("-m", Arg.Set_string main, "Generate main function");
                   ("-i", Arg.Set clocking, "Prints node clocks");
                   ("-t", Arg.Set typing, "Prints node types");]

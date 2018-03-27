@@ -2,10 +2,32 @@ open Parsing_ast
 open Clocking_ast
 open Carriers
 
-let put_carrier (s,c) =
-  match c.ce_clock with
-  | Var k -> k.value <- Carrier(s,c.ce_clock)
-  | _ -> ()
+
+let rec extract_cond c =
+  match c with
+  | On (x,c) -> Some (true,c)
+  | Onnot (x,c) -> Some (false,c)
+  | Carrier (x,c) -> extract_cond c
+  | _ -> None
+
+let rec get_cond c1 c2 =
+  let open Clocks in
+  let s = Format.asprintf "get_cond : %a and %a" Clocks.print_clock (c1,[]) Clocks.print_clock (c2,[]) in
+  match c1,c2 with
+  | CTuple tl , CTuple pl ->
+    get_cond (List.hd tl) (List.hd pl)
+  | Var a, Var b -> None
+  | On (a,c), On (b,d) -> get_cond a b
+  | Onnot (a,c), Onnot (b,d) -> get_cond a b
+  | Var a, k -> extract_cond k
+  | _ ->
+    failwith s
+
+let rec left_clock c =
+  match c with
+  | Arrow(a,b) -> a
+  | Var c -> left_clock c.value
+  | _ -> failwith "left_clock"
 
 let clock_expr gamma (e:expression) =
   let rec clock_rec e =
@@ -70,7 +92,7 @@ let clock_expr gamma (e:expression) =
       Clocks.unify(e1.ce_clock,e2.ce_clock);
       Clocks.unify(e2.ce_clock,e3.ce_clock);
       { ce_desc = CAlternative(e1,e2,e3); ce_loc = e.e_loc; ce_clock = e1.ce_clock}
-    | Application(id,e') ->
+    | Application(id,num,e') ->
        begin
        try
          let fun_ck = Clocks.clock_lookup id gamma in
@@ -79,7 +101,16 @@ let clock_expr gamma (e:expression) =
          let u = Var (Clocks.new_varclock ()) in
          let t = Arrow (e'.ce_clock,u) in
          Clocks.unify_with_carriers(t,fun_ck);
-         { ce_desc = CApplication(id,e'); ce_loc = e.e_loc; ce_clock = u}
+         let params = left_clock fun_ck in
+         let c = get_cond params e'.ce_clock in
+         let exp = { ce_desc = CApplication(id,num,e'); ce_loc = e.e_loc; ce_clock = u} in
+         begin
+           match c with
+             None ->  exp
+           | Some (b,x) ->
+             let name = Format.asprintf "%a" Carriers.print_carrier x in
+             { ce_desc = CCondact(b,name,exp) ; ce_loc = e.e_loc ; ce_clock = u}
+         end
        with Not_found ->
          let s = Format.asprintf "Clock of node not found : %s" id in
          Error.print_error e.e_loc s
@@ -135,7 +166,14 @@ let clock_expr gamma (e:expression) =
     | Call e' ->
       let a = Var(Clocks.new_varclock ()) in
       { ce_desc = CCall e'; ce_loc = e.e_loc; ce_clock = a}
-    | Pre _ | Arrow _ -> failwith "shouldn't happen"
+    | Pre e ->
+      let e' = clock_rec e in
+      { ce_desc = CPre e'; ce_loc = e.e_loc; ce_clock = e'.ce_clock }
+    | Arrow (e1,e2) ->
+      let e1 = clock_rec e1 in
+      let e2 = clock_rec e2 in
+      Clocks.unify(e1.ce_clock,e2.ce_clock);
+      { ce_desc = CArrow (e1,e2) ; ce_loc = e.e_loc; ce_clock = e1.ce_clock }
   in
   try
     clock_rec e
@@ -150,7 +188,6 @@ let clock_expr gamma (e:expression) =
                  print_clock_scheme (Forall(vars2,[],c2)) in
       Error.print_error e.e_loc s1
     end
-
 
 let rec string_of_pat p =
   match p.p_desc with
@@ -276,4 +313,4 @@ let clock_node gamma node =
     cname = node.name;
     cinputs = node.inputs;
     coutputs = node.outputs;
-    cequations = eqs })
+    cequations = List.rev eqs })

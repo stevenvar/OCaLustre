@@ -184,7 +184,7 @@ let seq_eqs_zero eqs sname env =
     match e.e_desc with
     | Value v -> { sexp with s_e_desc = S_Value v }
     | Variable s -> { sexp with s_e_desc = S_Variable s }
-    | Application (i, e) ->
+    | Application (i,num,e) ->
       (try
          let outputs = List.assoc i !env in
          mk_outputs
@@ -244,7 +244,7 @@ let seq_eqs_zero eqs sname env =
     | eq::eqs ->
       begin
         match eq.expression.e_desc with
-        | Application (i,e') ->
+        | Application (i,num,e') ->
           incr nb;
           let seq = { s_pattern = eq.pattern ;
                   s_expression = seq_exp eq.expression }
@@ -276,7 +276,7 @@ let rec seq_eqs_next eqs name env =
     | Array _ | Array_get _ | Imperative_update _ | Array_fold _ | Array_map _ -> failwith "todo"
     | Value v -> { sexp with s_e_desc = S_Value v}
     | Variable s -> { sexp with s_e_desc = S_Variable s }
-    | Application (i, e) ->
+    | Application (i, num, e) ->
       (try
          let outputs = List.assoc i !env in
          mk_outputs
@@ -348,7 +348,7 @@ let rec seq_eqs_next eqs name env =
       let s = string_of_pattern eq.pattern in
       begin match eq.expression.e_desc with
         (* For applications, we need to add another line to update the state ...  *)
-        | Application(i,e') ->
+        | Application(i,num, e') ->
           incr nb;
           let seq = { s_pattern = eq.pattern;
                       s_expression = seq_exp s eq.expression } in
@@ -380,7 +380,7 @@ let rec seq_eqs_next eqs name env =
 
 let state_eq e ({pres;calls;outs} as s) =
   match e.expression.e_desc with
-  | Application (i, e) ->
+  | Application (i, num, e) ->
     incr nb;
     { s with calls = (i^string_of_int !nb)::calls }
   | Pre e' ->

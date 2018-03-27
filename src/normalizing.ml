@@ -48,9 +48,9 @@ let rec normalize_exp l exp =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Alternative (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
-  | Application (i,e) ->
+  | Application (i,num,e) ->
     let l',e' = normalize_exp l e in
-    let exp' = { exp with e_desc = Application (i,e') } in
+    let exp' = { exp with e_desc = Application (i,num,e') } in
     let (eq_y,y) = new_eq_var exp' in
     let l' = eq_y::l' in
     l', y
@@ -87,7 +87,7 @@ let rec normalize_exp l exp =
     let exp' = Imperative_update(e,pe) in
     l, { exp with e_desc = exp' }
   | Fby (c, e) ->
-    check_constant c;
+    (* check_constant c; *)
     let (l',c') = normalize_exp l c in
     let (l'',e') = normalize_exp l' e in
     let exp' = { exp with e_desc = Fby (c',e') } in
@@ -102,7 +102,10 @@ let rec normalize_exp l exp =
     l,y
   | Whennot (e,i) ->
     let (l',e') = normalize_exp l e in
-    l' , { exp with e_desc = Whennot (e',i) }
+    let exp' =  { exp with e_desc = Whennot (e',i) } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l = eq_y::l' in
+    l,y
   | Unit -> l , exp
   | ETuple el ->
     let (l',el') = List.fold_right (fun e (_l,_e) ->
@@ -117,7 +120,19 @@ let rec normalize_exp l exp =
     let (eq_y,y) = new_eq_var exp' in
     let l = eq_y::l3 in
     l,y
-  | Pre _ | Arrow _ -> assert false
+  | Pre e ->
+    let l,e = normalize_exp l e in
+    let exp' = { exp with e_desc = Pre e } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l = eq_y::l in
+    l,y
+  | Arrow (e1,e2) ->
+    let (l,e1) = normalize_exp l e1 in
+    let (l,e2) = normalize_exp l e2 in
+    let exp' = { exp with e_desc = Arrow(e1,e2) } in
+    let (eq_y,y) = new_eq_var exp' in
+    let l =eq_y::l in
+    l,y
 
 (* The algorithm begins with this function, because we don't want normalizing
 at the first-level
@@ -131,9 +146,9 @@ let norm_exp l exp  =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Alternative (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
-  | Application (i,e) ->
+  | Application (i,num,e) ->
     let l',e' = normalize_exp l e in
-    let exp' = { exp with e_desc = Application (i,e') } in
+    let exp' = { exp with e_desc = Application (i,num,e') } in
     l', exp'
   | Call e ->
     l, exp
@@ -168,7 +183,7 @@ let norm_exp l exp  =
     let exp' = Imperative_update(e,pe) in
     l, { exp with e_desc = exp' }
   | Fby (c, e) ->
-    check_constant c;
+    (* check_constant c; *)
     let (l'',e') = normalize_exp l e in
     let exp' = { exp with e_desc = Fby (c,e') } in
     l'' , exp'
@@ -189,7 +204,14 @@ let norm_exp l exp  =
     let (l3,e3') = normalize_exp l2 e3 in
     let exp' = Merge (e1',e2',e3') in
     l3, { exp with e_desc =  exp' }
-  | Arrow _ | Pre _ -> assert false
+  | Arrow (e1,e2) ->
+    let (l',e1) = normalize_exp l e1 in
+    let (l'',e2) = normalize_exp l' e2 in
+    let exp' = { exp with e_desc = Arrow (e1,e2) } in
+     l'' , exp'
+  | Pre e ->
+    let (l',e') = normalize_exp l e in
+    l' , { exp with e_desc = Pre e' }
 
 
 (* replace every --> and pre with their equivalent with fby *)
@@ -231,9 +253,9 @@ let norm_exp l exp  =
       let e = kernalize e in
       let e' = kernalize e' in
       { exp with e_desc = Alternative(c,e,e') }
-     | Application (i,e) ->
+     | Application (i,num,e) ->
        let e' = kernalize e in
-       { exp with e_desc = Application (i,e') }
+       { exp with e_desc = Application (i,num,e') }
      | Call e ->
        { exp with e_desc = Call e }
      | InfixOp (op,e1,e2) ->
@@ -278,7 +300,8 @@ let normalize_eqs eqs =
 (* Entry function: normalize a node *)
 let normalize_node node =
   reset ();
-  let eqs = kernalize_eqs node.equations in
+  (* let eqs = kernalize_eqs node.equations in *)
+  let eqs = node.equations in
   let (eqs1,eqs2) = normalize_eqs eqs in
   {
     pre = node.pre;
