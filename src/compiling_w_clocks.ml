@@ -119,23 +119,23 @@ let get_init_fby eqs =
   let aux eq l =
     match eq.cexpression.ce_desc with
     | CFby (e1,e2) -> { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
-                        i_expression = IRefDef(IVariable (get_ident eq.cpattern)); }::l
+                        i_expression = IRefDef(compile_expression_step (get_ident eq.cpattern) e1 ) }::l
     | _ -> l
   in
   List.fold_left (fun acc x -> aux x acc) [] eqs
 
 let get_app_inits eqs =
-   let aux eq l =
-    match eq.cexpression.ce_desc with
-      | CApplication (i,num,e) ->
-        let app = { p_desc = Ident (i^(string_of_int num)^"_app") ; p_loc = eq.cpattern.p_loc }in
-        let output = eq.cpattern in
-        let pat = Tuple [output;app] in
-        { i_pattern = { p_desc = pat ; p_loc = eq.cpattern.p_loc} ;
-                              i_expression = IApplication_init (i,compile_expression_init (get_ident eq.cpattern) e)}::l
+   let rec aux (p,e) l =
+     match e.ce_desc with
+     | CCondact(b,i,e) -> aux (p,e) l
+     | CApplication (i,num,e) ->
+       let app = { p with p_desc = Ident (i^(string_of_int num)^"_app")} in
+       { i_pattern = app ;
+         i_expression =
+           IApplication_init (i,IUnit)}::l
     | _ -> l
   in
-  List.fold_left (fun acc x -> aux x acc) [] eqs
+  List.fold_left (fun acc x -> aux (x.cpattern,x.cexpression) acc) [] eqs
 
 let get_init_pres eqs =
   let aux eq l =
@@ -147,21 +147,16 @@ let get_init_pres eqs =
   List.fold_left (fun acc x -> aux x acc) [] eqs
 
 let compile_cnode cnode =
-  let eqs_cleaned = List.filter (fun x -> match x.cexpression.ce_desc with | CPre _ -> false | CApplication _ -> false | _ -> true) cnode.cequations in
-  let equations_init = List.map compile_equation_init eqs_cleaned in
   let equations_step = List.map compile_equation_step cnode.cequations in
   let fby_updates_step = get_updates_step cnode.cequations in
   let init_fby = get_init_fby cnode.cequations in
-  let init_pres = get_init_pres cnode.cequations in
   let init_apps = get_app_inits cnode.cequations in
   { i_name = cnode.cname;
     i_inputs = cnode.cinputs;
     i_outputs = cnode.coutputs;
     i_init = {
-      i_init_init_apps = init_apps;
-      i_init_equations = equations_init;
-      i_init_init_fby = init_fby;
-      i_init_init_pres = init_pres;
+      i_init_apps = init_apps;
+      i_init_fby = init_fby;
     };
     i_step = {
       i_step_equations = equations_step;

@@ -103,7 +103,7 @@ let rec print_clock fmt (t,v) =
         with Not_found -> string_of_int n in
        Format.fprintf fmt "%s" name
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%a" print_clock (t,v)
+      Format.fprintf fmt "*%a" print_clock (t,v)
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
@@ -228,9 +228,8 @@ let rec unify (tau1,tau2) =
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
-    (* | Carrier (s,c) , _ -> unify(c,tau2) *)
-    (* | _ , Carrier (s,c) -> unify(tau1,c) *)
-
+    | Carrier (s,c) , _ -> unify(c,tau2)
+    | _ , Carrier (s,c) -> unify(tau1,c)
     | Var ({ index = n; value = Unknown} as tv1),
       Var { index = m; value = Unknown} ->
       if n <> m then tv1.value <- tau2;
@@ -252,11 +251,13 @@ let rec unify (tau1,tau2) =
     | On (c,x) , On (d,y) ->
       unify_carriers(x,y);
       unify(c,d);
-     | _ -> raise (ClockClash (tau1,tau2))
+    | Carrier (s,c) , _ -> unify(c,tau2)
+    | _ , Carrier (s,c) -> unify(tau1,c)
+    | _ -> raise (ClockClash (tau1,tau2))
   end
   (* ;Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
-  (* print_clock_scheme (generalise_type !global_typing_env tau1) *)
-  (* print_clock_scheme (generalise_type !global_typing_env tau2) *)
+  (* print_clock (tau1,[]) *)
+  (* print_clock(tau2,[]) *)
 
 
 (* Returns the variables in t that are not in bv (i.e. the free vars) *)

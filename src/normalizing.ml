@@ -238,9 +238,10 @@ let norm_exp l exp  =
     | Arrow (e,e') ->
       let e = kernalize e in
       let e' = kernalize e' in
-      let tf = { exp with e_desc = Fby
-                              ({ exp with e_desc = Value (Bool true) },
-                               { exp with e_desc = Value (Bool false)})
+      let tf = { exp with e_desc = Variable "_init"
+                              (* Fby *)
+                              (* ({ exp with e_desc = Value (Bool true) }, *)
+                               (* { exp with e_desc = Value (Bool false)}) *)
                }
       in
       { exp with e_desc = Alternative(tf,e,e') }
@@ -281,11 +282,21 @@ let norm_exp l exp  =
        { exp with e_desc = Merge(e1,e2,e3) }
 
 let kernalize_eqs eqs =
+  let init = { pattern = {p_desc = Ident "_init" ; p_loc = Location.none };
+      expression =
+        { e_desc = Fby
+              ({ e_desc = Value (Bool true) ; e_loc = Location.none; } ,
+               { e_desc = Value (Bool false) ; e_loc = Location.none; });
+          e_loc = Location.none}
+    } in
   let kernalize_eq eq =
     let exp = eq.expression in
     { pattern = eq.pattern ; expression = kernalize exp }
   in
-  List.map kernalize_eq eqs
+  let new_eqs = List.map kernalize_eq eqs in
+  if new_eqs <> eqs then
+    init::new_eqs
+  else eqs
 
 (* Normalizing an equation *)
 let normalize_eqs eqs =
@@ -300,8 +311,8 @@ let normalize_eqs eqs =
 (* Entry function: normalize a node *)
 let normalize_node node =
   reset ();
-  (* let eqs = kernalize_eqs node.equations in *)
-  let eqs = node.equations in
+  let eqs = kernalize_eqs node.equations in
+  (* let eqs = node.equations in *)
   let (eqs1,eqs2) = normalize_eqs eqs in
   {
     pre = node.pre;

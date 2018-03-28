@@ -1,6 +1,6 @@
 module IO = struct
   let watch_inputs () =
-    1
+    (true)
 
   let watch_outputs (h,m,s) =
     Printf.printf "%d:%d:%d\n" h m s;
@@ -11,13 +11,16 @@ end
 let%node count d ~return:(cpt) =
   cpt := (0 >>> cpt+1) mod d
 
-let%node watch () ~return:(h,m,s) =
-  seconds := count (60);
-  seconds_ok := (seconds = 60);
-  minute := count (60 [@ when seconds_ok]);
-  s := seconds;
-  m := minute;
-  h := 3
+let%node watch (s) ~return:(h,m,sec) =
+  no_s = count (5 [@when s]);
+  min = (no_s = 0);
+  minute := count (5 [@when min]);
+  m := merge min minute ((0 >>> m) [@whennot min]) ;
+  ho := (minute = 0);
+  hour := count (5 [@when ho]);
+  h := merge ho hour ((0>>>h) [@whennot ho]);
+  sec := no_s;
+  (* s := no_s *)
   (* minutes_ok := (minute = 60); *)
   (* hour := count (12 [@ when minutes_ok]); *)
   (* s := seconds; *)

@@ -41,3 +41,67 @@ let rec ident_of_cexpr ce =
   match ce.ce_desc with
   | CVariable s -> s
   | _ -> failwith "ident_of_cexpr"
+
+
+open Parsetree
+open Longident
+open Asttypes
+let stringloc_of_ident ?(prefix="") ?(suffix="") i =
+  {
+    txt = prefix^i^suffix;
+    loc = Location.none;
+  }
+
+
+let lid_of_ident ?(prefix="") ?(suffix="") i =
+  {
+    txt = Lident (prefix^i^suffix);
+    loc = Location.none
+  }
+
+
+
+let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
+  let open Parsing_ast in
+  match p.p_desc with
+  | Ident i ->
+    {
+      txt = prefix^i^suffix;
+      loc = Location.none;
+    }
+  | _ -> failwith "no tuple !"
+
+let rec expr_of_pattern p =
+  let open Parsing_ast in
+  let open Ast_helper in
+  match p.p_desc with
+  | PUnit -> [%expr () ]
+  | Ident x -> Ast_convenience.evar x
+  | Tuple t -> Ast_convenience.tuple (List.map expr_of_pattern t)
+  | Typed (p,s) -> expr_of_pattern p
+
+let rec pat_of_pattern p =
+  let open Parsing_ast in
+  match p.p_desc with
+  | Ident i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
+                 ppat_loc = p.p_loc ;
+                 ppat_attributes = [] }
+  | Tuple t ->
+    let tl = List.map (fun p -> pat_of_pattern p) t in
+    { ppat_desc = Ppat_tuple tl ;
+      ppat_loc = p.p_loc ;
+      ppat_attributes = [] }
+  | PUnit -> { ppat_desc = Ppat_construct (lid_of_ident "()" ,None);
+               ppat_loc = p.p_loc ;
+               ppat_attributes = [] }
+  | Typed (p,s) ->
+    let core_type = {
+       ptyp_desc = Ptyp_constr(lid_of_ident s,[]);
+     ptyp_loc =  p.p_loc ;
+     ptyp_attributes = [];
+    }
+    in
+    {
+      ppat_desc = Ppat_constraint (pat_of_pattern p, core_type) ;
+      ppat_loc = p.p_loc;
+      ppat_attributes = []}

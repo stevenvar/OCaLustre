@@ -60,10 +60,8 @@ and imp_equation =  {
 }
 
 type imp_init = {
-  i_init_init_apps : imp_equation list;
-  i_init_equations : imp_equation list;
-  i_init_init_fby : imp_equation list;
-  i_init_init_pres : imp_equation list;
+  i_init_apps : imp_equation list;
+  i_init_fby : imp_equation list;
 }
 
 type imp_step = {
@@ -164,7 +162,7 @@ let rec printml_expression fmt exp =
   | IConstr s -> Format.fprintf fmt "%s" s
   | IETuple el -> Format.fprintf fmt "(%a)"
                     printml_expressions el
-  | ICondact (b,i,e)  -> Format.fprintf fmt "if %s = %b then %a else nil" i b printml_expression e
+  | ICondact (b,i,e)  -> Format.fprintf fmt "if %s = %b then %a else Obj.magic ()" i b printml_expression e
 
 
 let printml_updates fmt il =
@@ -185,15 +183,11 @@ let printml_equations fmt el =
   List.iter (printml_equation fmt) el
 
 let printml_init fmt init =
-  let initapps = init.i_init_init_apps in
-  let initfby = init.i_init_init_fby in
-  let initpres = init.i_init_init_pres in
-  let equations = init.i_init_equations in
-  Format.fprintf fmt "%a%a%a%a"
+  let initapps = init.i_init_apps in
+  let initfby = init.i_init_fby in
+  Format.fprintf fmt "%a%a"
     printml_equations initapps
-    printml_equations equations
     printml_equations initfby
-    printml_equations initpres
 
 
 let printml_step fmt step =
@@ -214,11 +208,9 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "\nlet %a %a =\n%a\t%a,fun %a -> \n %a\t%a\n"
+  Format.fprintf fmt "\nlet %a () =\n%a\tfun %a -> \n %a\t%a\n"
     print_pattern node.i_name
-    print_pattern node.i_inputs
     printml_init node.i_init
-    print_pattern node.i_outputs
     print_pattern node.i_inputs
     printml_step node.i_step
     print_pattern node.i_outputs

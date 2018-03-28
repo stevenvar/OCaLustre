@@ -6,6 +6,13 @@
   (* (i,j) := test(x,y,c) *)
 (* k := merge c i j *)
 
+module IO = struct
+  let fil_inputs () = (Random.bool (), 1)
+  let fil_outputs (z,k,u) =
+    Unix.sleepf 1.;
+    Format.printf "(%d,%d,%d)\n%!" z k u
+end
+
 let%node id x ~return:y =
   y = 0 fby (y+1)
 
@@ -13,6 +20,8 @@ let%node fil (c,y) ~return:(z,k,u) =
   z = id (y [@whennot c]);
   k = id (y [@when c]);
   u = merge c k z
+
+
 
 (* let%node test (a,b,c) ~return:d =
  *   d := merge c a b

@@ -63,30 +63,29 @@ let create_node mapper str =
               print_node _sched_node
               print_node _sched_node;
             if !lustre then to_lustre_file _node;
-            if !why then (
-              let whyml = Proof_compiling.pcompile_cnode _sched_node in
-              whyml_node Format.std_formatter whyml);
-            if !clocking then (
-              let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
-              env := new_env;
+            (* if !why then ( *)
+              (* let whyml = Proof_compiling.pcompile_cnode _sched_node in *)
+            (* whyml_node Format.std_formatter whyml); *)
+            Format.printf "ENV = %a\n" Clocks.print_env !env;
+            let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
+            env := new_env;
+            if !clocking then
               Clocking_ast_printer.print_node Format.std_formatter (_cnode,!verbose);
-              (* Clocking_ocl.test (); *)
-              let _icnode = Compiling_w_clocks.compile_cnode _cnode in
-              Imperative_ast2.printml_node Format.std_formatter _icnode;
-            );
-
+            let _icnode = Compiling_w_clocks.compile_cnode _cnode in
+            if !verbose then Imperative_ast2.printml_node Format.std_formatter _icnode;
             if not !nonalloc then
               begin
                 let _inode = compile_cnode _sched_node in
-                if !verbose then Imperative_ast_printer.printml_node Format.std_formatter _inode;
+                (* if !verbose then Imperative_ast_printer.printml_node Format.std_formatter _inode; *)
                 let stri = if !main = string_of_pattern _inode.i_name then
-                    [Extracting.tocaml_main _inode]
+                    [Extracting2.tocaml_main _icnode]
                   else
                     []
                 in
-                let str = Extracting.tocaml_node _inode::stri in
-                if !typing then
-                  Print_type.print_type str;
+                let str = Extracting2.tocaml_node _icnode::stri in
+                (* let str = Extracting.tocaml_node _inode::stri in *)
+                (* if !typing then *)
+                  (* Print_type.print_type str; *)
                 str
               end
             else

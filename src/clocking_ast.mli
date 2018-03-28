@@ -55,7 +55,8 @@ and cequation = {
 and cexpression = {
   ce_desc : cexp_desc ;
   ce_loc : Location.t;
-  ce_clock : clock
+  ce_clock : clock;
+  ce_carrier : carrier
 }
 and cpattern = {
   cp_desc : cpatt_desc;
