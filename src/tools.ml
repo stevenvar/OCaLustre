@@ -32,8 +32,9 @@ let rec get_ident p =
   match p.p_desc with
   | Ident i -> i
   | Typed (p,s) -> get_ident p
+  | Tuple t -> "tuple"
   | _ ->
-    let s = Format.asprintf "%a : not an ident" Parsing_ast_printer.print_pattern p in
+    let s = Format.asprintf "get_ident :: %a : not an ident" Parsing_ast_printer.print_pattern p in
     Error.print_error p.p_loc s
 
 let rec ident_of_cexpr ce =

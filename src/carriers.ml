@@ -8,10 +8,19 @@ let new_varcar, reset_varcar =
   ),
   fun () -> cpt := 0
 
+let rec string_of_carrier c =
+  match c with
+  | NameCar s -> s
+  | UnknownCar -> "ukn"
+    (* failwith "string_of_carrier" *)
+  | VarCar { cindex = n; cvalue = t } ->
+    string_of_carrier t
+
 (* Harvest all the carriers in tau  *)
 let carriers_of_clock tau =
   let rec cars vs t =
     match t with
+    | NameCar s -> vs
     | UnknownCar -> failwith "cars_of_clock"
     | VarCar { cindex = n ; cvalue = UnknownCar } ->
       (* if the variable is already in the list, don't add *)
@@ -46,6 +55,7 @@ let car_name n =
 
 let rec print_carrier fmt c =
   match c with
+  | NameCar s -> Format.fprintf fmt "%s" s 
   | UnknownCar -> Format.fprintf fmt "?"
   | VarCar { cindex = n; cvalue = UnknownCar} -> Format.fprintf fmt "%s"  (car_name n)
   | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "%a" print_carrier c
@@ -59,6 +69,7 @@ let rec car_shorten c =
   | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
     tv2.cvalue <- tv1.cvalue; car_shorten c
   | UnknownCar -> failwith "shorten"
+  | _ -> c 
 
 let caroccurs { cindex = n ; cvalue = _ } c =
   let rec occrec c =
@@ -66,7 +77,8 @@ let caroccurs { cindex = n ; cvalue = _ } c =
       n
       print_carrier c;
     let c = car_shorten c in
-  match c with
+    match c with
+    | NameCar s -> false
     | VarCar { cindex = m ; cvalue = _} -> (n = m)
     | UnknownCar -> failwith "occurs"
   in occrec c
@@ -74,6 +86,7 @@ let caroccurs { cindex = n ; cvalue = _ } c =
 let carinstance c cunknowns =
     let rec aux c =
       match c with
+      | NameCar s -> NameCar s
       | VarCar { cindex = n; cvalue = UnknownCar } ->
         (try List.assoc n cunknowns with Not_found -> c)
       | VarCar { cindex = _ ; cvalue = t } -> aux t
@@ -87,6 +100,7 @@ let unify_carriers (c1,c2) =
   (* print_carrier c1 *)
   (* print_carrier c2; *)
   match c1,c2 with
+  | NameCar x, NameCar y -> () 
   | VarCar ({ cindex = n; cvalue = UnknownCar } as cv1), VarCar { cindex = m ; cvalue = UnknownCar } ->
     if n <> m then cv1.cvalue <- c2
   | _ , VarCar ({cindex = _; cvalue = UnknownCar} as cv) ->

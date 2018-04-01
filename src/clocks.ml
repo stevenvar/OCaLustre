@@ -64,7 +64,7 @@ let generalise_type gamma tau =
   Forall(genvars,gencars,tau)
 
 (* Shorten variables (follow indirection) *)
-let rec shorten t =
+let rec shorten t = 
   match t with
   | Var { index = _ ; value = Unknown } -> t
   | Var { index = _ ; value = (Var { index = m ; value = Unknown}) as tv } ->
@@ -72,7 +72,7 @@ let rec shorten t =
   | Var ({ index = _ ; value = Var tv1} as tv2) ->
     tv2.value <- tv1.value;
     shorten t
-  | Var { index = _ ; value = t' } -> t'
+  | Var { index = _ ; value = t' } -> shorten t'
   | Carrier (s,c) -> Carrier(s,shorten c)
   | On (c,s) -> On(shorten c,s)
   | Onnot (c,s) -> Onnot(shorten c,s)
@@ -103,7 +103,7 @@ let rec print_clock fmt (t,v) =
         with Not_found -> string_of_int n in
        Format.fprintf fmt "%s" name
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "*%a" print_clock (t,v)
+      Format.fprintf fmt "%a" print_clock (t,v)
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
@@ -190,15 +190,22 @@ let rec unify_with_carriers (tau1,tau2) =
   (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
-    (* | Carrier (s,c) , Carrier (s',d) -> *)
-      (* unify_carriers(s,s'); *)
-      (* unify(c,d); *)
+    | Carrier (s,c) , Carrier (s',d) ->
+      unify_carriers(s,s');
+      unify(c,d);
     | Var ({ index = n; value = Unknown} as tv1),
       Var { index = m; value = Unknown} ->
       if n <> m then tv1.value <- tau2;
+    | Carrier(s,c) , Var ({index = _ ; value = Unknown} as tv) ->
+      if not (occurs tv tau1) then tv.value <- tau1
+      else (raise (ClockClash (tau1,tau2)))
     | _ , Var ({index = _ ; value = Unknown} as tv) ->
       if not (occurs tv tau1) then tv.value <- tau1
       else (raise (ClockClash (tau1,tau2)))
+    | Var ({index = m ; value = Unknown} as tv), Carrier(s,c) ->
+      (* unify (tau1, c) *)
+      if not (occurs tv tau2) then
+        tv.value <- tau2
     | Var ({index = m ; value = Unknown} as tv), _ ->
       if not (occurs tv tau2) then
         tv.value <- tau2
@@ -211,11 +218,19 @@ let rec unify_with_carriers (tau1,tau2) =
     | Onnot (c,x) , Onnot (d,y) ->
       unify_carriers(x,y);
       unify(c,d)
+    (* | On (c,x), Carrier(s,d) -> *)
+      (* unify(c,tau2); *)
     | On (c,x) , On (d,y) ->
       unify_carriers(x,y);
       unify(c,d);
+    | Carrier (s,c) , _ -> unify(c,tau2)
+    | On(c,x) , Carrier (s,d) ->
+      unify(d,tau1)
      | _ -> raise (ClockClash (tau1,tau2))
   end
+   (* ;Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)
+  (* print_clock (tau1,[]) *)
+  (* print_clock(tau2,[]) *)
 
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
@@ -229,7 +244,11 @@ let rec unify (tau1,tau2) =
       unify_carriers(s,s');
       unify(c,d);
     | Carrier (s,c) , _ -> unify(c,tau2)
-    | _ , Carrier (s,c) -> unify(tau1,c)
+     | Var ({index = n; value= Unknown} as tv), Carrier (s,c) ->
+    (* | _, Carrier (s,c) -> *)
+      if not (occurs tv tau2) then
+      tv.value <- Carrier(s,c)
+      (* unify(tau1,c) *)
     | Var ({ index = n; value = Unknown} as tv1),
       Var { index = m; value = Unknown} ->
       if n <> m then tv1.value <- tau2;
@@ -251,8 +270,8 @@ let rec unify (tau1,tau2) =
     | On (c,x) , On (d,y) ->
       unify_carriers(x,y);
       unify(c,d);
-    | Carrier (s,c) , _ -> unify(c,tau2)
-    | _ , Carrier (s,c) -> unify(tau1,c)
+    (* | Carrier (s,c) , _ -> unify(c,tau2) *)
+    (* | _ , Carrier (s,c) -> unify(tau1,c) *)
     | _ -> raise (ClockClash (tau1,tau2))
   end
   (* ;Format.fprintf Format.std_formatter "After unifying : %a and %a \n" *)

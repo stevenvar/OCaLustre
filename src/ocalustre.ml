@@ -66,7 +66,7 @@ let create_node mapper str =
             (* if !why then ( *)
               (* let whyml = Proof_compiling.pcompile_cnode _sched_node in *)
             (* whyml_node Format.std_formatter whyml); *)
-            Format.printf "ENV = %a\n" Clocks.print_env !env;
+            (* Format.printf "ENV = %a\n" Clocks.print_env !env; *)
             let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
             env := new_env;
             if !clocking then

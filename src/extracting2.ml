@@ -5,6 +5,16 @@ open Imperative_ast2
 open Ast_helper
 open Tools
 
+ let rec tocaml_cond_list cl =
+    match cl with
+    | [] -> [%expr () ]
+    | [(b,x)] -> let b = Ast_convenience.constr (string_of_bool b) [] in
+      let s = Ast_convenience.evar x in 
+      [%expr [%e s] = [%e b] ]
+    | (hb,hx)::t ->
+      let e1 = tocaml_cond_list [(hb,hx)] in
+      let e2 = tocaml_cond_list t in
+      [%expr [%e e1] && [%e e2]]
 
 let rec tocaml_expression e =
   let open Parsing_ast in
@@ -61,11 +71,12 @@ let rec tocaml_expression e =
     let e' = tocaml_expression e in
     let n = string_of_int num in
     [%expr [%e (Exp.ident (lid_of_ident (id^n^"_app")))] [%e e' ]]
-  | ICondact(b,i,e) ->
+  | ICondact(l,e) ->
     let e' = tocaml_expression e in
-    let b' = Ast_convenience.constr (string_of_bool b) [] in
-    let i = Ast_convenience.evar i in
-    [%expr if [%e i] = [%e b'] then [%e e'] else Obj.magic ()]
+    (* let b' = Ast_convenience.constr (string_of_bool b) [] in *)
+    (* let i = Ast_convenience.evar i in *)
+    let cl = tocaml_cond_list l in
+    [%expr if [%e cl] then [%e e'] else Obj.magic ()]
   | IApplication_init (id,e) ->
     let e' = tocaml_expression e in
     [%expr [%e (Exp.ident (lid_of_ident (id)))] [%e e']]
@@ -92,11 +103,13 @@ let tocaml_eq_list el acc =
   List.fold_left (fun l e -> tocaml_eq e l) acc (List.rev el)
 
 let tocaml_updates l acc =
-  let rec aux { i_pattern = p; i_expression = e } acc =
+  let rec aux { i_condition = c; i_pattern = p; i_expression = e } acc =
+    let cond = tocaml_cond_list c in
     let p = expr_of_pattern p in
     let e = tocaml_expression e in
-      [%expr [%e p] := [%e e];
-        [%e acc ]]
+    match c with
+    | [] -> [%expr [%e p] := [%e e]; [%e acc]]
+    | _ -> [%expr if [%e cond] then [%e p] := [%e e]; [%e acc] ]
   in
   List.fold_left (fun acc u -> aux u acc) acc l
 

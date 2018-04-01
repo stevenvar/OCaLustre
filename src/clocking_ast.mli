@@ -1,6 +1,6 @@
 open Parsing_ast
 
-type carrier = UnknownCar | VarCar of varcar
+type carrier = UnknownCar | NameCar of string | VarCar of varcar
 
 and varcar = { cindex : int; mutable cvalue : carrier }
 
@@ -14,7 +14,7 @@ type clock = Unknown
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
-  | CCondact of bool * ident * cexpression
+  | CCondact of (bool*ident) list * cexpression
   | CApplication of ident * int * cexpression
   | CInfixOp of inf_operator * cexpression * cexpression
   | CPrefixOp of pre_operator * cexpression
@@ -56,7 +56,6 @@ and cexpression = {
   ce_desc : cexp_desc ;
   ce_loc : Location.t;
   ce_clock : clock;
-  ce_carrier : carrier
 }
 and cpattern = {
   cp_desc : cpatt_desc;

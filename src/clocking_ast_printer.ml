@@ -17,14 +17,20 @@ let rec print_expression fmt (ce,vars) =
     | [(e,e')] -> Format.fprintf fmt "%a => %a" print_expression (e,vars) print_expression (e',vars)
     | (he,he')::te -> Format.fprintf fmt "(%a => %a),%a" print_expression (he,vars) print_expression (he',vars) print_update_list te
   in
+  let rec print_cond_list fmt cl =
+    match cl with
+    | [] -> ()
+    | [(b,x)] -> Format.fprintf fmt "%s = %b" x b
+    | (hb,hx)::t -> Format.fprintf fmt "%s = %b and %a" hx hb print_cond_list t
+  in
   let print_rec fmt ce =
     let p fmt x= print_expression fmt (x,vars) in
     let ff = Format.fprintf in
     (match ce.ce_desc with
      | Clocking_ast.CAlternative (e1,e2,e3) ->
        ff fmt "if %a then %a else %a" p e1 p e2 p e3
-     | Clocking_ast.CCondact (b,id,exp) ->
-       ff fmt "if %s = %b then %a else NIL" id b p exp
+     | Clocking_ast.CCondact (l,exp) ->
+       ff fmt "if %a then %a else NIL" print_cond_list l p exp
      | Clocking_ast.CApplication (id,num,exp) ->
         ff fmt "%s %a" id p exp
      | Clocking_ast.CInfixOp (op,e1,e2) ->
