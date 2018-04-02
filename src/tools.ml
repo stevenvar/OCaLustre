@@ -68,7 +68,7 @@ let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
   | Ident i ->
     {
       txt = prefix^i^suffix;
-      loc = Location.none;
+      loc = p.p_loc
     }
   | _ -> failwith "no tuple !"
 

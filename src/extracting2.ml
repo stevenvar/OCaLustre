@@ -16,20 +16,40 @@ open Tools
       let e2 = tocaml_cond_list t in
       [%expr [%e e1] && [%e e2]]
 
-let rec tocaml_expression e =
+let rec tocaml_imperative_updates e el =
+  let rec loop l =
+    match l with
+    | [] -> e
+    | (e1,e2)::t ->
+      let e1 = tocaml_expression e1 in
+      let e2 = tocaml_expression e2 in
+      Exp.sequence [%expr tab.([%e e1]) <- [%e e2]] (loop t)
+  in loop el 
+and tocaml_expression e =
   let open Parsing_ast in
-  match e with
-  | IValue (String s) -> Ast_convenience.str s
-  | IValue (Nil) -> [%expr Obj.magic () ]
-  | IValue (Enum s) -> Ast_convenience.constr s []
-  | IValue (Integer i) -> Ast_convenience.int i
-  | IValue (Float f) -> Ast_convenience.float f
-  | IValue (Bool true) -> Ast_convenience.constr "true" []
-  | IValue (Bool false) ->  Ast_convenience.constr "false" []
-  | IETuple t -> Ast_convenience.tuple (List.map (fun i -> tocaml_expression i) t)
-  | IVariable i -> Ast_convenience.evar i
-  | IRef i -> [%expr ![%e Exp.ident (lid_of_ident i) ]  ]
+  match e.i_desc with
+  | IValue (String s) -> Ast_convenience.str ~loc:e.i_loc s
+  | IValue (Nil) -> { [%expr Obj.magic () ] with pexp_loc=e.i_loc}
+  | IValue (Enum s) -> Ast_convenience.constr ~loc:e.i_loc s []
+  | IValue (Integer i) -> Ast_convenience.int ~loc:e.i_loc i
+  | IValue (Float f) -> Ast_convenience.float ~loc:e.i_loc f
+  | IValue (Bool true) -> Ast_convenience.constr ~loc:e.i_loc "true" []
+  | IValue (Bool false) ->  Ast_convenience.constr ~loc:e.i_loc "false" []
+  | IETuple t -> Ast_convenience.tuple ~loc:e.i_loc
+                   (List.map (fun i -> tocaml_expression i) t)
+  | IVariable i -> Ast_convenience.evar ~loc:e.i_loc i
+  | IRef i ->  [%expr ![%e Exp.ident ~loc:e.i_loc (lid_of_ident i) ]  ]
   | IRefDef e -> [%expr ref [%e tocaml_expression e ] ]
+  | IArray el -> Exp.array ~loc:e.i_loc (List.map tocaml_expression el)
+  | IArray_fold (e,f,acc) ->
+    [%expr Array.fold_left [%e f] [%e tocaml_expression acc] ([%e tocaml_expression e]) ]
+  | IArray_map (e,f) ->
+    [%expr Array.map [%e f] [%e tocaml_expression e] ]
+  | IArray_get (e,e') ->
+    [%expr [%e tocaml_expression e].([%e tocaml_expression e']) ]
+  | IImperative_update (e,pe) ->
+    let e = tocaml_expression e in
+    [%expr let tab = Array.copy [%e e] in [%e tocaml_imperative_updates e pe] ; tab ]
   | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e ] ]
   | IPrefixOp (INeg, e) -> [%expr ~- [%e tocaml_expression e ] ]
   | IPrefixOp (INegf, e) -> [%expr ~-. [%e tocaml_expression e ] ]
@@ -91,7 +111,7 @@ let rec tocaml_expression e =
   | IConstr _ -> [%expr ()]
   | ICall e ->
     [%expr [%e e ]]
-  | _ -> failwith "todo"
+  (* | _ -> failwith "todo" *)
 
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =
@@ -147,7 +167,7 @@ let tocaml_main inode =
          done ]
 
 let tocaml_node inode =
-  let name = stringloc_of_ident (get_ident inode.i_name) in
+  let name = stringloc_of_pattern (inode.i_name) in
   let step = tocaml_step inode in
   [%stri let [%p Pat.var name] =
            fun () ->

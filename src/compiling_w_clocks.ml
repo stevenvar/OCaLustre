@@ -6,12 +6,15 @@ open Tools
 let rec get_condition c =
   let open Carriers in
   match c with
+  | Carrier(s,c) -> get_condition c
   | On (c, ck) -> (true,string_of_carrier ck)::get_condition c
   | Onnot (c, ck) -> (false,string_of_carrier ck)::get_condition c
   | CTuple cl -> List.fold_left (fun acc c -> (get_condition c)@acc) [] cl
   | Var { value = Unknown } -> []
   | Var { value = t } -> get_condition t
-  | _ -> failwith "get_condition"
+  | _ ->
+    let s = Format.asprintf "get_condition : %a" Clocks.print_clock (c,[]) in
+    failwith s
 
 let compile_preop op =
   match op with
@@ -40,7 +43,8 @@ let compile_infop op =
 
 let rec compile_expression_init i e =
   let ce = compile_expression_init i in
-  match e.ce_desc with
+  let rec compile_desc d = 
+  match d with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
   | CApplication (i,num, e) -> IApplication(i,num,ce e)
@@ -54,21 +58,24 @@ let rec compile_expression_init i e =
     (* Error.syntax_error e.ce_loc
        "A pre cannot be on the left side of an equation" *)
     IRef("pre_"^i)
-  | CArrow (e1,e2) -> ce e1
-  | CFby (v,e') -> ce v
-  | CWhen (e',i) -> ce e'
+  | CArrow (e1,e2) -> (ce e1).i_desc
+  | CFby (v,e') -> (ce v).i_desc
+  | CWhen (e',i) -> (ce e').i_desc
     (* IAlternative (ce i, ce e', IValue Nil) *)
-  | CWhennot (e',i) -> ce e'
+  | CWhennot (e',i) -> (ce e').i_desc
   (* IAlternative (ce i, IValue Nil, ce e') *)
   | CETuple el ->
     let iel = List.map (fun e -> ce e) el in
     IETuple (iel)
   | CMerge (e1,e2,e3) -> IAlternative (ce e1, ce e2, ce e3)
   | _ -> failwith "todo"
+  in
+  { i_desc = compile_desc e.ce_desc ; i_loc = e.ce_loc }
 
 let rec compile_expression_step i e =
   let ce = compile_expression_step i in
-  match e.ce_desc with
+  let rec compile_desc d = 
+  match d with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
   | CApplication (i,num,e') -> IApplication(i,num,ce e')
@@ -82,19 +89,30 @@ let rec compile_expression_step i e =
     IAlternative (ce e1, ce e2, ce e3)
   | CUnit -> IUnit
   | CPre _ -> IRef ("pre_"^i)
-  | CArrow (_,e2) -> ce e2
+  | CArrow (_,e2) -> (ce e2).i_desc
   | CFby (v,e') -> IRef (i^"_fby")
-  | CWhen (e',i) -> ce e'
+  | CWhen (e',i) -> (ce e').i_desc
     (* IAlternative (ce i, ce e', IValue Nil) *)
   | CWhennot (e',i) ->
-    ce e'
+    (ce e').i_desc
     (* IAlternative (ce i, IValue Nil, ce e') *)
   | CETuple el ->
     let iel = List.map (fun e -> ce e) el in
     IETuple (iel)
   | CMerge (e1,e2,e3) ->
     IAlternative (ce e1, ce e2, ce e3)
-  | _ -> failwith "todo"
+  | CArray el -> IArray (List.map (fun e -> ce e) el)
+  | CArray_fold (e,f,acc) ->
+    IArray_fold (ce e, f, ce acc)
+  | CArray_map (e,f) ->
+    IArray_map (ce e, f)
+  | CImperative_update (e,pe) ->
+    let pe = List.map (fun (e1,e2) -> ce e1, ce e2) pe in
+    IImperative_update (ce e,pe )
+  | CArray_get (e,e') ->
+    IArray_get(ce e, ce e')
+      in
+      { i_desc = compile_desc e.ce_desc ; i_loc = e.ce_loc }
 
 let compile_equation_init eq =
   { i_pattern = eq.cpattern;
@@ -138,9 +156,10 @@ let get_updates_step eqs =
 let get_init_fby eqs =
   let aux eq l =
     match eq.cexpression.ce_desc with
-    | CFby (e1,e2) -> { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
-                        i_expression = IRefDef(compile_expression_step
-                                                 (get_ident eq.cpattern) e1 );
+    | CFby (e1,e2) ->
+      let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e1) in
+      { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
+                        i_expression = { i_desc = desc; i_loc = e1.ce_loc};
                       i_condition = [] }::l
     | _ -> l
   in
@@ -154,7 +173,8 @@ let get_app_inits eqs =
        let app = { p with p_desc = Ident (i^(string_of_int num)^"_app")} in
        { i_pattern = app ;
          i_expression =
-           IApplication_init (i,IUnit);
+           { i_desc = IApplication_init (i,{i_desc = IUnit; i_loc = e.ce_loc});
+             i_loc = e.ce_loc};
          i_condition = [] }::l
     | _ -> l
   in
@@ -163,9 +183,9 @@ let get_app_inits eqs =
 let get_init_pres eqs =
   let aux eq l =
     match eq.cexpression.ce_desc with
-    | CPre e -> { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
-                  i_expression = IRefDef(compile_expression_init
-                                           (get_ident eq.cpattern) e);
+    | CPre e ->  let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e) in
+      { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
+                  i_expression = { i_desc = desc ; i_loc = e.ce_loc };
                   i_condition = [] }::l
     | _ -> l
   in

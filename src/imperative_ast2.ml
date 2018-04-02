@@ -6,7 +6,12 @@ open Tools
 type app_inits = imp_equation list
 and init = imp_equation
 and imp_inits = init list
-and imp_expr =
+    
+and imp_expr = {
+  i_desc : imp_expr_desc;
+  i_loc : Location.t
+}
+and imp_expr_desc =
   | IValue of value
   | IConstr of string
   | IVariable of ident
@@ -134,7 +139,7 @@ let rec printml_expression fmt exp =
                  printml_expressions tl
   in
  
-  match exp with
+  match exp.i_desc with
   | IValue c -> Parsing_ast_printer.print_value fmt c
   | IVariable v ->  Format.fprintf fmt "%s" v
   | IArray a -> Format.fprintf fmt "[| %a |]" printml_expressions a
