@@ -318,7 +318,17 @@ let maj_clocks gamma {cpattern; cexpression} =
   let open Clocks in
   try
     unify(gen_instance pck, cexpression.ce_clock);
-  with _ -> failwith "maj"
+  with  Clocks.ClockClash (c1,c2) ->
+    begin
+      let open Clocks in
+      let vars1 = (vars_of_clock c1) in
+      let vars2 = (vars_of_clock c2) in
+      let s1 = Format.asprintf
+                 "Clock clash between %a and %a"
+                 print_clock (c1,vars1)
+                 print_clock (c2,vars2) in
+      Error.print_error cexpression.ce_loc s1
+    end
 
 let clock_equations gamma eqs =
   List.fold_left (fun (env,eqs) eq ->
