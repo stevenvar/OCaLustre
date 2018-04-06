@@ -6,7 +6,7 @@ open Longident
 open Parsing_ocl
 open Parsing_ast
 open Parsing_ast_printer
-open Clocking_ast
+open Clocking_ast2
 open Scheduler
 open Normalizing
 open Sequential_ast
@@ -30,7 +30,7 @@ let outputs_env = ref []
 
 
 let env = ref []
-
+(* let env2 = ref [] *)
 (* maps structure_items of the form :
 
    let%node NAME (IN1,IN2,...) ~return:(OUT1, OUT2, ...) =
@@ -67,8 +67,10 @@ let create_node mapper str =
               (* let whyml = Proof_compiling.pcompile_cnode _sched_node in *)
             (* whyml_node Format.std_formatter whyml); *)
             (* Format.printf "ENV = %a\n" Clocks.print_env !env; *)
+            (* let (_new_env2,_cnode2) = Clocking2.clock_node !env2 _sched_node in *)
             let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
             env := new_env;
+            (* env2 := _new_env2; *)
             if !clocking then
               Clocking_ast_printer.print_node Format.std_formatter (_cnode,!verbose);
             let _icnode = Compiling_w_clocks.compile_cnode _cnode in

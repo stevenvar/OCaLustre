@@ -1,5 +1,6 @@
 open Clocking_ast
 
+exception CarrierClash of carrier * carrier
 let new_varcar, reset_varcar =
   let cpt = ref 0 in
   (fun () ->
@@ -55,7 +56,7 @@ let car_name n =
 
 let rec print_carrier fmt c =
   match c with
-  | NameCar s -> Format.fprintf fmt "%s" s 
+  | NameCar s -> Format.fprintf fmt "%s" s
   | UnknownCar -> Format.fprintf fmt "?"
   | VarCar { cindex = n; cvalue = UnknownCar} -> Format.fprintf fmt "%s"  (car_name n)
   | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "%a" print_carrier c
@@ -69,7 +70,7 @@ let rec car_shorten c =
   | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
     tv2.cvalue <- tv1.cvalue; car_shorten c
   | UnknownCar -> failwith "shorten"
-  | _ -> c 
+  | _ -> c
 
 let caroccurs { cindex = n ; cvalue = _ } c =
   let rec occrec c =
@@ -100,7 +101,7 @@ let unify_carriers (c1,c2) =
   (* print_carrier c1 *)
   (* print_carrier c2; *)
   match c1,c2 with
-  | NameCar x, NameCar y -> () 
+  | NameCar x, NameCar y -> if not (x = y) then raise (CarrierClash (c1,c2)) else ()
   | VarCar ({ cindex = n; cvalue = UnknownCar } as cv1), VarCar { cindex = m ; cvalue = UnknownCar } ->
     if n <> m then cv1.cvalue <- c2
   | _ , VarCar ({cindex = _; cvalue = UnknownCar} as cv) ->

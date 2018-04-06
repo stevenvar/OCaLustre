@@ -64,7 +64,7 @@ let generalise_type gamma tau =
   Forall(genvars,gencars,tau)
 
 (* Shorten variables (follow indirection) *)
-let rec shorten t = 
+let rec shorten t =
   match t with
   | Var { index = _ ; value = Unknown } -> t
   | Var { index = _ ; value = (Var { index = m ; value = Unknown}) as tv } ->
@@ -268,9 +268,13 @@ let rec unify (tau1,tau2) =
       unify_carriers(x,y);
       unify(c,d)
     | On (c,x) , On (d,y) ->
+      begin
+      try
       unify_carriers(x,y);
       unify(c,d);
-    (* | Carrier (s,c) , _ -> unify(c,tau2) *)
+      with _ -> raise (ClockClash (tau1,tau2))
+    end
+      (* | Carrier (s,c) , _ -> unify(c,tau2) *)
     (* | _ , Carrier (s,c) -> unify(tau1,c) *)
     | _ -> raise (ClockClash (tau1,tau2))
   end

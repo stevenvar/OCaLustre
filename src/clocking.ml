@@ -263,11 +263,20 @@ let clock_expr gamma (e:expression) =
       let vars1 = (vars_of_clock c1) in
       let vars2 = (vars_of_clock c2) in
       let s1 = Format.asprintf
-                 "Clock clash between %a and %a"
+                 "Clocks clash between %a and %a"
                  print_clock (c1,vars1)
                  print_clock (c2,vars2) in
       Error.print_error e.e_loc s1
     end
+      | Carriers.CarrierClash (c1,c2) ->
+        begin
+          let open Carriers in
+          let s1 = Format.asprintf
+              "Carrier clash between %a and %a"
+              print_carrier c1
+              print_carrier c2 in
+          Error.print_error e.e_loc s1
+        end
 
 let rec lookup env p =
    match p.p_desc with
@@ -312,6 +321,15 @@ let clock_equation gamma {pattern; expression} =
                  print_clock (c2,vars2) in
       Error.print_error expression.ce_loc s1;
     end
+      | Carriers.CarrierClash (c1,c2) ->
+        begin
+          let open Carriers in
+          let s1 = Format.asprintf
+              "Carrier clash between %a and %a"
+              print_carrier c1
+              print_carrier c2 in
+          Error.print_error expression.ce_loc s1
+        end
 
 let maj_clocks gamma {cpattern; cexpression} =
   let pck = lookup gamma cpattern in
@@ -329,6 +347,16 @@ let maj_clocks gamma {cpattern; cexpression} =
                  print_clock (c2,vars2) in
       Error.print_error cexpression.ce_loc s1
     end
+      | Carriers.CarrierClash (c1,c2) ->
+        begin
+          let open Carriers in
+          let s1 = Format.asprintf
+              "Carrier clash between %a and %a"
+              print_carrier c1
+              print_carrier c2 in
+          Error.print_error cexpression.ce_loc s1
+        end
+
 
 let clock_equations gamma eqs =
   List.fold_left (fun (env,eqs) eq ->
