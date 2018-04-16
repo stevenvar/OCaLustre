@@ -28,7 +28,8 @@ let vars_of_clock tau =
     | On (c,s) -> vars vs c
     | Onnot (c,s) -> vars vs c
     | Carrier (s,c) -> vars vs c
-    | Unknown -> Error.print_error Location.none "vars_of_clock"
+    | Unknown -> []
+    (* | Unknown -> Error.print_error Location.none "vars_of_clock" *)
   in
   vars [] tau
 
@@ -54,30 +55,46 @@ let rec make_set l =
       else
         x :: (make_set xs)
 
-(* All the unknown vars of tau (except the ones in gamma) get bounded  *)
-let generalise_type gamma tau =
-  let gamma = List.map (fun (a,b) -> b) gamma in
-  let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
-  let gencars = carriers_of_clock tau in
-  let genvars = make_set genvars in
-  let gencars = make_set gencars in
-  Forall(genvars,gencars,tau)
-
-(* Shorten variables (follow indirection) *)
-let rec shorten t =
+let rec full_shorten t =
+  let shorten = full_shorten in 
   match t with
-  | Var { index = _ ; value = Unknown } -> t
-  | Var { index = _ ; value = (Var { index = m ; value = Unknown}) as tv } ->
-    tv
-  | Var ({ index = _ ; value = Var tv1} as tv2) ->
-    tv2.value <- tv1.value;
+  (* | Var { index = _ ; value = Unknown } -> t *)
+  | Unknown -> t
+  | Var { index = _ ; value = t } ->
     shorten t
-  | Var { index = _ ; value = t' } -> shorten t'
   | Carrier (s,c) -> Carrier(s,shorten c)
   | On (c,s) -> On(shorten c,s)
   | Onnot (c,s) -> Onnot(shorten c,s)
-  | Unknown -> failwith "shorten"
-  | _ -> t
+  | Arrow (cin,cout) -> Arrow(shorten cin, shorten cout)
+  | CTuple cks -> CTuple (List.map shorten cks)
+  (* | Unknown -> failwith "shorten" *)
+
+
+
+let rec generalise tau =
+  let v = Var (new_varclock ()) in
+  let rec aux t = 
+   match t with
+     | Unknown -> v
+     | Var { index = _ ; value = t } -> aux t
+     | Arrow(t1,t2) -> Arrow(aux t1, aux t2)
+     | CTuple ct -> CTuple (List.map aux ct)
+     | On (c,s) -> On(aux c,s)
+     | Onnot (c,s) -> Onnot(aux c,s)
+     | Carrier (s,c) -> Carrier(s, aux c)
+  in
+  aux tau
+
+(* All the unknown vars of tau (except the ones in gamma) get bounded  *)
+let generalise_type gamma tau =
+  let gamma = List.map (fun (a,b) -> b) gamma in
+  let tau = generalise (full_shorten tau) in
+  let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
+  let gencars = carriers_of_clock tau in
+  (* let genvars = make_set genvars in *)
+  let gencars = make_set gencars in
+  Forall(genvars,gencars,tau)
+
 
 (* Printing variables  *)
 let cvar_name n =
@@ -88,13 +105,13 @@ let cvar_name n =
   in "'"^(name_of n)
 
 let rec print_clock fmt (t,v) =
-    let names =
-    let rec names_of = function
-      | (n,[]) -> []
-      | (n, (_::xs)) -> (cvar_name n)::(names_of (n+1,xs))
-    in
-    names_of (1,v) in
-  let cvar_names = List.combine (List.rev v) names in
+    (* let names = *)
+    (* let rec names_of = function *)
+      (* | (n,[]) -> [] *)
+      (* | (n, (_::xs)) -> (cvar_name n)::(names_of (n+1,xs)) *)
+    (* in *)
+    (* names_of (1,v) in *)
+  (* let cvar_names = List.combine (List.rev v) names in *)
     match t with
     | Unknown -> Format.fprintf fmt "base"
     (* | Var { index = n ; value = Unknown } ->
@@ -104,7 +121,7 @@ let rec print_clock fmt (t,v) =
      *     with Not_found -> string_of_int n in
      *    Format.fprintf fmt "%s" name *)
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%a" print_clock (t,v)
+      Format.fprintf fmt "%a(%d)" print_clock (t,v) m
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
@@ -118,7 +135,26 @@ let rec print_clock fmt (t,v) =
     | On (c,s) -> Format.fprintf fmt "(%a on %a)" print_clock (c,v) print_carrier s
     | Onnot (c,s) -> Format.fprintf fmt "(%a on not %a)" print_clock (c,v) print_carrier s
     | Carrier (s,c) -> Format.fprintf fmt "(%a:%a)" print_carrier s print_clock (c,v)
-    | Unknown -> Format.fprintf fmt  "?"
+    (* | Unknown -> Format.fprintf fmt  "?" *)
+
+
+(* Shorten variables (follow indirection) *)
+let rec shorten t =
+  match t with
+  | Var { index = _ ; value = Unknown } -> t
+  (* | Unknown -> t *)
+  | Var { index = _ ; value = (Var { index = m ; value = Unknown}) as tv } ->
+    tv
+  | Var ({ index = _ ; value = Var tv1} as tv2) ->
+    tv2.value <- tv1.value;
+    shorten t
+  | Var { index = _ ; value = t' } -> shorten t'
+  | Carrier (s,c) -> Carrier(s,shorten c)
+  | On (c,s) -> On(shorten c,s)
+  | Onnot (c,s) -> Onnot(shorten c,s)
+  | Unknown -> failwith "shorten"
+  | _ -> t
+
 
 (* Printing schemes  *)
 let print_clock_scheme fmt (Forall(gv,gc,t)) =
@@ -131,14 +167,14 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
     names_of (1,gv) in
   let cvar_names = List.combine (List.rev gv) names in
   let rec print_rec fmt = function
-    | Unknown -> Format.fprintf fmt "'a"
-    (* | Var { index = n ; value = Unknown } ->
-     *   let name =
-     *     (try List.assoc n cvar_names
-     *      with  Not_found -> string_of_int n)
-     *   in
-     *   Format.fprintf fmt "%s" name *)
-    | Var { index = _ ; value = t } ->
+    (* | Unknown -> Format.fprintf fmt "base" *)
+    | Var { index = n ; value = Unknown } ->
+      let name =
+        (try List.assoc n cvar_names
+         with  Not_found -> string_of_int n)
+      in
+      Format.fprintf fmt "%s" name
+    | Var { index = m ; value = t } ->
       Format.fprintf fmt "%a" print_rec t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "%a -> %a" print_rec t1 print_rec t2
@@ -155,15 +191,15 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
     | Carrier (s,c) -> Format.fprintf fmt "(%a:%a)" print_carrier s print_rec c
     | Unknown -> Format.fprintf fmt  "?"
   in
-  let rec print_list fmt l =
-    match l with
-    | [] -> Format.fprintf fmt ""
-    | [x] -> Format.fprintf fmt "%s"
-               (List.assoc x cvar_names)
-    | x::xs -> Format.fprintf fmt "%s,%a"
-                 (List.assoc x cvar_names)
-                 print_list xs
-  in
+  (* let rec print_list fmt l = *)
+    (* match l with *)
+    (* | [] -> Format.fprintf fmt "" *)
+    (* | [x] -> Format.fprintf fmt "%s" *)
+               (* (List.assoc x cvar_names) *)
+    (* | x::xs -> Format.fprintf fmt "%s,%a" *)
+                 (* (List.assoc x cvar_names) *)
+                 (* print_list xs *)
+  (* in *)
   (* Format.fprintf fmt "forall %a. %a" print_list (List.rev gv)  print_rec t *)
   Format.fprintf fmt "%a" print_rec t
 
@@ -193,6 +229,7 @@ let rec unify_with_carriers (tau1,tau2) =
   (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
+    | Unknown , Unknown -> ()
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
@@ -243,6 +280,7 @@ let rec unify (tau1,tau2) =
   (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
+    | Unknown , Unknown -> ()
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
@@ -342,10 +380,10 @@ let print_env fmt (env : env_elem list) =
   let rec print_list fmt l =
     match l with
       [] -> Format.fprintf fmt ""
-    | [(p,s)] -> Format.fprintf fmt "(%s:%a)"
+    | [(p,s)] -> Format.fprintf fmt "\t(%s:%a)"
                    p
                    print_clock_scheme s
-    | (p,s)::xs -> Format.fprintf fmt "(%s:%a),%a"
+    | (p,s)::xs -> Format.fprintf fmt "\t(%s:%a)\n%a"
                  p
                  print_clock_scheme s
                  print_list xs

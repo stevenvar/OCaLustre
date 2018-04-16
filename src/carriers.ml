@@ -43,7 +43,8 @@ let carriers_of_clock tau =
     | On (c,s) -> cars (aux vs c) s
     | Onnot (c,s) -> cars (aux vs c) s
     | Carrier (s,c) -> cars vs s
-    | Unknown -> failwith "vars_of_clock"
+    (* | Unknown -> failwith "carriers_of_clock" *)
+    | Unknown -> []
   in
   aux [] tau
 
@@ -53,7 +54,7 @@ let car_name n =
     let q,r = (n/26), (n mod 26) in
     let s = String.make 1 (char_of_int (64+r)) in
     if q = 0 then s else (name_of q)^s
-  in "ck"^(name_of n)
+  in "_c"^(name_of n)
 
 let rec print_carrier fmt c =
   match c with

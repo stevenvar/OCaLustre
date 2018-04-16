@@ -285,6 +285,9 @@ let make_expression e =
     | [%expr [%e? e1] >>> [%e? e2] ]  ->
       { e_desc = Fby (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
+    | [%expr [%e? e1] --< [%e? e2] ]  ->
+      { e_desc = Fby (mk_expr e1 , mk_expr e2);
+        e_loc = e.pexp_loc  }
     | [%expr [%e? e1] --> [%e? e2] ]  ->
       { e_desc = Arrow (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
@@ -294,7 +297,10 @@ let make_expression e =
     | [%expr [%e? e1] [%e? e2] ] ->
       let app = Application(checkname_ident e1, get_num(), mk_expr e2) in
       { e_desc = app ; e_loc = e.pexp_loc }
-
+    | [%expr [%e? e1] --@ not [%e? e2]] ->
+      { e_desc = Whennot (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
+    | [%expr [%e? e1] --@ [%e? e2]] ->
+      { e_desc = When (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
     | _ ->
        let s =
          Format.asprintf "%a"

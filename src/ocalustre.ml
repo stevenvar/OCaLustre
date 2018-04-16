@@ -6,7 +6,6 @@ open Longident
 open Parsing_ocl
 open Parsing_ast
 open Parsing_ast_printer
-open Clocking_ast2
 open Scheduler
 open Normalizing
 open Sequential_ast

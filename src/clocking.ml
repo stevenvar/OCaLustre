@@ -7,11 +7,16 @@ let cars = ref []
 let rec extract_conds c =
   let c = Clocks.shorten c in
   let open Carriers in
-  (* Format.printf "extract cond %a \n" Clocks.print_clock (c,[]); *)
+  Format.printf "extract cond %a \n" Clocks.print_clock (c,[]);
   try
     begin
       match c with
-      | On (x,c) -> (true,List.assoc c !cars)::(extract_conds x)
+      | On (x,c) ->
+        begin try
+        let clk =  List.assoc c !cars in
+        (true,clk)::(extract_conds x)
+          with _ -> failwith "?"; extract_conds x
+        end
       | Onnot (x,c) -> (false,List.assoc c !cars)::(extract_conds x)
       | Carrier (x,c) -> extract_conds c (* ??? *)
       | _ -> []
@@ -169,7 +174,8 @@ let clock_expr gamma (e:expression) =
           let e' = clock_rec e' in
           let u = Var (Clocks.new_varclock ()) in
           let t = Arrow (e'.ce_clock,u) in
-          Clocks.unify_with_carriers(t,fun_ck');
+          (* Clocks.unify_with_carriers(t,fun_ck'); *)
+          Clocks.unify(t,fun_ck');
           (* let params = left_clock (Clocks.gen_instance fun_ck) in *)
           (* let c = get_cond params e'.ce_clock in *)
           (* Format.printf "Conditions for %s (%a) \n" id *)
@@ -187,14 +193,15 @@ let clock_expr gamma (e:expression) =
       let e' = clock_rec e' in
       let c = clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
-      (* let s = NameCar (get_ident c) in *)
-      let s = VarCar (Carriers.new_varcar ()) in
+      let s = NameCar (get_ident c) in
+      (* let s = VarCar (Carriers.new_varcar ()) in *)
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
-      Clocks.unify_with_carriers(new_type,tt);
-      (* Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]); *)
+      (* Clocks.unify_with_carriers(new_type,tt); *)
+      Clocks.unify(new_type,tt);
+      Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]);
       cars := (s,(get_ident c))::!cars;
       { ce_desc = CWhen(e',c);
         ce_loc = e.e_loc;
@@ -202,8 +209,8 @@ let clock_expr gamma (e:expression) =
     | Whennot (e',c) ->
       let e' = clock_rec e' in
       let c = clock_rec c in
-      (* let s = NameCar (get_ident c) in *)
-      let s = VarCar (Carriers.new_varcar ()) in
+      let s = NameCar (get_ident c) in
+      (* let s = VarCar (Carriers.new_varcar ()) in *)
       (* Clock of 'whenot' is 'a -> (c : 'a) -> 'a on (not c) *)
       let a = Var (Clocks.new_varclock ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
@@ -215,8 +222,8 @@ let clock_expr gamma (e:expression) =
         ce_clock = u }
     | Merge (c,e1,e2) ->
       let c = clock_rec c in
-      (* let s = NameCar (get_ident c) in *)
-      let s = VarCar (Carriers.new_varcar ()) in
+      let s = NameCar (get_ident c) in
+      (* let s = VarCar (Carriers.new_varcar ()) in *)
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       (* Clock of 'merge' is (c:'a) -> 'a on c -> 'a on (not c) -> 'a *)
@@ -224,7 +231,8 @@ let clock_expr gamma (e:expression) =
       let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
       let u = Var (Clocks.new_varclock () ) in
       let new_type = Arrow(c.ce_clock,Arrow(e1.ce_clock,Arrow(e2.ce_clock,u))) in
-      Clocks.unify_with_carriers(tt,new_type);
+      (* Clocks.unify_with_carriers(tt,new_type); *)
+      Clocks.unify(tt,new_type);
       { ce_desc = CMerge(c,e1,e2);
         ce_loc = e.e_loc;
         ce_clock = u }
@@ -297,9 +305,9 @@ let rec lookup env p =
         Error.print_error p.p_loc ("Not found : "^i))
   | Tuple t ->
      let clocks = List.map (lookup env) t in
-     let clocks = List.map Clocks.gen_instance clocks in
-     let clk = CTuple clocks in
-     Clocks.generalise_type env clk
+     (* let clocks = List.map Clocks.gen_instance clocks in *)
+     let clk = CTuple clocks in clk
+     (* Clocks.generalise_type env clk *)
   | PUnit -> failwith "unit"
   | Typed (p,t) -> lookup env p
 
@@ -318,7 +326,7 @@ let clock_equation gamma {pattern; expression} =
   (* let pck = lookup gamma pattern in *)
   let open Clocks in
   try
-    (* unify_with_carriers (gen_instance pck, expression.ce_clock); *)
+    (* unify (gen_instance pck, expression.ce_clock); *)
     (gamma),{ cpattern = pattern; cexpression = expression}
   with Clocks.ClockClash (c1,c2) ->
     begin
@@ -342,10 +350,15 @@ let clock_equation gamma {pattern; expression} =
         end
 
 let maj_clocks gamma {cpattern; cexpression} =
-  let pck = lookup gamma cpattern in
   let open Clocks in
+  let gamma = List.map (fun (x,y) -> x, Clocks.gen_instance y) gamma in
+  let pck = lookup gamma cpattern in
   try
-    unify(gen_instance pck, cexpression.ce_clock);
+    (* Format.printf "for %a,trying to unify %a and %a \n" *)
+      (* Parsing_ast_printer.print_pattern cpattern *)
+      (* print_clock (pck,[]) *)
+      (* print_clock (cexpression.ce_clock,[]); *)
+    unify(pck, cexpression.ce_clock);
   with  Clocks.ClockClash (c1,c2) ->
     begin
       let open Clocks in
@@ -425,12 +438,13 @@ let clock_node gamma node =
      Carrier(VarCar(new_varcar()),Var(new_varclock()))))) cars in *)
   let vars_clocks =
     List.map (fun x -> (x,Forall([],[],Var(new_varclock())))) vars in
-  (* let env = cars_clocks@vars_clocks@gamma in *)
   let env = vars_clocks@gamma in
   (* print_env Format.std_formatter env; *)
   (* Clocks.print_env Format.std_formatter env; *)
   let (env,eqs) = clock_equations env node.equations in
+  (* print_env Format.std_formatter env; *)
   List.iter (maj_clocks env) eqs;
+  (* print_env Format.std_formatter env; *)
   let eqs = List.map (get_conds env) eqs in
   let ckins = List.map (fun x -> lookup_clock env x)
       (split_tuple node.inputs) in
@@ -440,7 +454,11 @@ let clock_node gamma node =
   let ckins = group_tuple ckins in
   let ckouts = List.map gen_instance ckouts in
   let ckouts = group_tuple ckouts in
-  let node_clock = generalise_type [] (Arrow(ckins,ckouts)) in
+  let node_clock = Arrow(ckins,ckouts) in
+  let node_clock = Clocks.full_shorten node_clock in
+  (* Format.printf "after shortening %a \n" print_clock (node_clock,[]); *)
+  let node_clock = generalise_type [] node_clock in
+  (* Format.printf "after generalizing %a \n" print_clock_scheme node_clock; *)
   let new_env = (string_of_pat node.name,node_clock)::gamma in
   (new_env,
   {
