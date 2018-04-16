@@ -12,8 +12,9 @@ let new_varcar, reset_varcar =
 let rec string_of_carrier c =
   match c with
   | NameCar s -> s
-  | UnknownCar -> "ukn"
-    (* failwith "string_of_carrier" *)
+  | UnknownCar ->
+    failwith "string_of_carrier"
+  | VarCar { cindex = n; cvalue = UnknownCar } -> string_of_int n
   | VarCar { cindex = n; cvalue = t } ->
     string_of_carrier t
 
@@ -102,8 +103,9 @@ let unify_carriers (c1,c2) =
   (* print_carrier c2; *)
   match c1,c2 with
   | NameCar x, NameCar y -> if not (x = y) then raise (CarrierClash (c1,c2)) else ()
-  | VarCar ({ cindex = n; cvalue = UnknownCar } as cv1), VarCar { cindex = m ; cvalue = UnknownCar } ->
-    if n <> m then cv1.cvalue <- c2
+  | VarCar ({ cindex = n; cvalue = UnknownCar } as cv1),
+    VarCar ({ cindex = m ; cvalue = UnknownCar } as cv2) ->
+    if n <> m then cv2.cvalue <- c1
   | _ , VarCar ({cindex = _; cvalue = UnknownCar} as cv) ->
     if not (caroccurs cv c1) then cv.cvalue <- c1
     else failwith "caroccurs"

@@ -72,11 +72,8 @@ let%node eats_apple snake_head ~return:(apple,eats) =
 let%node eats_itself (snake,head,tail) ~return:b =
   b := false --> eval (collides_with_itself (snake,head,tail))
 
-let%node maj_head (snake,head,new_head) ~return:s =
-  s := snake.update (head => new_head)
-
 let%node game_loop (l,r) ~return:(hd,tl,apple,lose) =
-  snake := [| (0,0)^100 |] --> (pre snake).update(head => nh);
+  snake := [| (0,0)^100 |] --> ( (pre snake) where (head = nh));
   nh := new_head dir;
   dir := direction(l,r);
   head := 1 >>> ((head+1) mod 100);

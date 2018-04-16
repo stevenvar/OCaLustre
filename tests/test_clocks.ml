@@ -15,6 +15,15 @@ let%node ok (x,y,c) ~return:sum =
   b = y [@ when c];
   sum = a + b
 
+let%node merge_all (x,y,c) ~return:m =
+  m = merge c y x
+
+let%node call_merge_all (a,b,d) ~return:m =
+  m = merge_all (a,b,d)
+
+let%node double_merge (a,b,e,f,j,c,d,k) ~return:(m,u,v) =
+  (u,v) = ((merge d a b),(merge k e j));
+  m = merge c u v
 
 (* let%node not_ok (x,y,c,d) ~return:sum =
  *   a = x [@ when c];
@@ -22,13 +31,14 @@ let%node ok (x,y,c) ~return:sum =
  *   sum = a + b *)
 
 (* 'a -> 'b *)
+(* les sorties sont (potentiellement) + rapides que les entrées *)
 let%node trois () ~return:x =
   x = 3
 
 (* (c:'a) -> 'b *)
 let%node call_trois (c) ~return:(x) =
   x = trois ( () [@when c] )
-(* Quand c est faux, x vaut nil, mais on le voit pas dans le type de sortie ... *)
+(* x est censé avoir une valeur que c soit vrai ou non ... mais là il faut nil si c est faux *)
 
 (* Du coup on peut faire des opérations _ + nil ... *)
 (* 'a -> 'a *)

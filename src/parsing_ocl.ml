@@ -143,8 +143,8 @@ let get_int e =
 let make_expression e =
   let rec parse_updates e =
     match e with
-    | [%expr [%e? e1] => [%e? e2] ] -> [(mk_expr e1,mk_expr e2)]
-    | [%expr [%e? e1] => [%e? e2] ; [%e? e3] ] -> (mk_expr e1,mk_expr e2)::(parse_updates e3)
+    | [%expr [%e? e1] = [%e? e2] ] -> [(mk_expr e1,mk_expr e2)]
+    | [%expr [%e? e1] = [%e? e2] ; [%e? e3] ] -> (mk_expr e1,mk_expr e2)::(parse_updates e3)
     | _ -> Error.print_error e.pexp_loc "Not an array update"
   and mk_expr e =
     (* List.iter ( fun (sl,p) ->  Format.fprintf Format.std_formatter "=>%s<=\n" sl.txt ) attr; *)

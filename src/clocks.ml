@@ -95,13 +95,14 @@ let rec print_clock fmt (t,v) =
     in
     names_of (1,v) in
   let cvar_names = List.combine (List.rev v) names in
-  match t with
-    | Var { index = n ; value = Unknown } ->
-      let name =
-        try
-          List.assoc n cvar_names
-        with Not_found -> string_of_int n in
-       Format.fprintf fmt "%s" name
+    match t with
+    | Unknown -> Format.fprintf fmt "base"
+    (* | Var { index = n ; value = Unknown } ->
+     *   let name =
+     *     try
+     *       List.assoc n cvar_names
+     *     with Not_found -> string_of_int n in
+     *    Format.fprintf fmt "%s" name *)
     | Var { index = m ; value = t } ->
       Format.fprintf fmt "%a" print_clock (t,v)
     | Arrow(t1,t2) ->
@@ -130,12 +131,13 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
     names_of (1,gv) in
   let cvar_names = List.combine (List.rev gv) names in
   let rec print_rec fmt = function
-    | Var { index = n ; value = Unknown } ->
-      let name =
-        (try List.assoc n cvar_names
-         with  Not_found -> string_of_int n)
-      in
-      Format.fprintf fmt "%s" name
+    | Unknown -> Format.fprintf fmt "'a"
+    (* | Var { index = n ; value = Unknown } ->
+     *   let name =
+     *     (try List.assoc n cvar_names
+     *      with  Not_found -> string_of_int n)
+     *   in
+     *   Format.fprintf fmt "%s" name *)
     | Var { index = _ ; value = t } ->
       Format.fprintf fmt "%a" print_rec t
     | Arrow(t1,t2) ->
@@ -162,7 +164,8 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
                  (List.assoc x cvar_names)
                  print_list xs
   in
-  Format.fprintf fmt "forall %a. %a" print_list (List.rev gv)  print_rec t
+  (* Format.fprintf fmt "forall %a. %a" print_list (List.rev gv)  print_rec t *)
+  Format.fprintf fmt "%a" print_rec t
 
 (* Unification function : unifies types tau1 and tau2 *)
 exception ClockClash of clock * clock

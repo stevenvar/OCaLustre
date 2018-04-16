@@ -2,16 +2,21 @@ open Parsing_ast
 open Clocking_ast
 open Carriers
 
+let cars = ref []
 
 let rec extract_conds c =
   let c = Clocks.shorten c in
   let open Carriers in
-  (* Format.printf "extract cond %a" Clocks.print_clock (c,[]); *)
-  match c with
-  | On (x,c) -> (true,string_of_carrier c)::(extract_conds x)
-  | Onnot (x,c) -> (false,string_of_carrier c)::(extract_conds x)
-  | Carrier (x,c) -> extract_conds c
-  | _ -> []
+  (* Format.printf "extract cond %a \n" Clocks.print_clock (c,[]); *)
+  try
+    begin
+      match c with
+      | On (x,c) -> (true,List.assoc c !cars)::(extract_conds x)
+      | Onnot (x,c) -> (false,List.assoc c !cars)::(extract_conds x)
+      | Carrier (x,c) -> extract_conds c (* ??? *)
+      | _ -> []
+    end
+  with _ -> failwith "extract_conds"
 
 let rec get_cond c1 c2 : ( (bool * string) list) =
   let open Clocks in
@@ -182,19 +187,23 @@ let clock_expr gamma (e:expression) =
       let e' = clock_rec e' in
       let c = clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
-      let s = NameCar (get_ident c) in
+      (* let s = NameCar (get_ident c) in *)
+      let s = VarCar (Carriers.new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
       Clocks.unify_with_carriers(new_type,tt);
+      (* Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]); *)
+      cars := (s,(get_ident c))::!cars;
       { ce_desc = CWhen(e',c);
         ce_loc = e.e_loc;
         ce_clock = u }
     | Whennot (e',c) ->
       let e' = clock_rec e' in
       let c = clock_rec c in
-      let s = NameCar (get_ident c) in
+      (* let s = NameCar (get_ident c) in *)
+      let s = VarCar (Carriers.new_varcar ()) in
       (* Clock of 'whenot' is 'a -> (c : 'a) -> 'a on (not c) *)
       let a = Var (Clocks.new_varclock ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
@@ -206,7 +215,8 @@ let clock_expr gamma (e:expression) =
         ce_clock = u }
     | Merge (c,e1,e2) ->
       let c = clock_rec c in
-      let s = NameCar (get_ident c) in
+      (* let s = NameCar (get_ident c) in *)
+      let s = VarCar (Carriers.new_varcar ()) in
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       (* Clock of 'merge' is (c:'a) -> 'a on c -> 'a on (not c) -> 'a *)
