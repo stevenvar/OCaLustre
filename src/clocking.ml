@@ -7,21 +7,31 @@ let cars = ref []
 let rec extract_conds c =
   let c = Clocks.shorten c in
   let open Carriers in
-  Format.printf "extract cond %a \n" Clocks.print_clock (c,[]);
-  try
+  cars := List.map (fun (x,y) -> car_shorten x, y) !cars;
+  let s = Format.asprintf "extract cond %a \n" Clocks.print_clock (c,[]) in
+  (* try *)
     begin
       match c with
       | On (x,c) ->
         begin try
-        let clk =  List.assoc c !cars in
-        (true,clk)::(extract_conds x)
-          with _ -> failwith "?"; extract_conds x
+            let clk =  List.assoc (car_shorten c) !cars in
+            (true,clk)::(extract_conds x)
+          with _ ->
+            failwith "?";
+            (* List.iter (fun (x,y) -> Format.printf "%a -> %s\n" Carriers.print_carrier x y) !cars; *)
+            (* Format.printf "What is %a ?" Carriers.print_carrier c; *)
+            extract_conds x
         end
-      | Onnot (x,c) -> (false,List.assoc c !cars)::(extract_conds x)
+      | Onnot (x,c) ->
+        begin try
+            (false,List.assoc c !cars)::(extract_conds x)
+          with _ -> failwith "?";
+            extract_conds x
+        end
       | Carrier (x,c) -> extract_conds c (* ??? *)
       | _ -> []
     end
-  with _ -> failwith "extract_conds"
+  (* with _ -> Format.printf "%s" s ; failwith s *)
 
 let rec get_cond c1 c2 : ( (bool * string) list) =
   let open Clocks in
@@ -63,7 +73,7 @@ let get_conds gamma eq =
           let fun_ck' = Clocks.gen_instance fun_ck in
           let params = left_clock (fun_ck') in
           let c = get_cond params ce'.ce_clock in
-          (* Format.printf "Conditions for %s (%a) \n" id *)
+          (* Format.printf "Conditionsfor %s (%a) \n" id *)
             (* Clocks.print_clock (ce'.ce_clock, []); *)
           (* List.iter (fun (x,y) -> Format.printf "%s = %b \n" y x) c; *)
           match c with
@@ -78,8 +88,8 @@ let get_conds gamma eq =
   { eq with cexpression = { eq.cexpression with ce_desc = aux eq.cexpression}}
 
 let clock_expr gamma (e:expression) =
-  (* Format.printf "Clocking expression %a \n"
-     Parsing_ast_printer.print_expression e; *)
+  (* Format.printf "Clocking expression %a \n" *)
+     (* Parsing_ast_printer.print_expression e; *)
   let rec clock_rec e =
     match e.e_desc with
     | Value v ->
@@ -193,15 +203,16 @@ let clock_expr gamma (e:expression) =
       let e' = clock_rec e' in
       let c = clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
-      let s = NameCar (get_ident c) in
-      (* let s = VarCar (Carriers.new_varcar ()) in *)
+      (* let s = NameCar (get_ident c) in *)
+      let s = VarCar (Carriers.new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
+      (* let tt = (Arrow (a,Arrow(a,On(a,s)))) in *)
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
       (* Clocks.unify_with_carriers(new_type,tt); *)
       Clocks.unify(new_type,tt);
-      Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]);
+      (* Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]); *)
       cars := (s,(get_ident c))::!cars;
       { ce_desc = CWhen(e',c);
         ce_loc = e.e_loc;
@@ -209,11 +220,12 @@ let clock_expr gamma (e:expression) =
     | Whennot (e',c) ->
       let e' = clock_rec e' in
       let c = clock_rec c in
-      let s = NameCar (get_ident c) in
-      (* let s = VarCar (Carriers.new_varcar ()) in *)
+      (* let s = NameCar (get_ident c) in *)
+      let s = VarCar (Carriers.new_varcar ()) in
       (* Clock of 'whenot' is 'a -> (c : 'a) -> 'a on (not c) *)
       let a = Var (Clocks.new_varclock ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
+      (* let tt = (Arrow (a,Arrow(a,Onnot(a,s)))) in *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
       Clocks.unify_with_carriers(new_type,tt);
@@ -222,13 +234,14 @@ let clock_expr gamma (e:expression) =
         ce_clock = u }
     | Merge (c,e1,e2) ->
       let c = clock_rec c in
-      let s = NameCar (get_ident c) in
-      (* let s = VarCar (Carriers.new_varcar ()) in *)
+      (* let s = NameCar (get_ident c) in *)
+      let s = VarCar (Carriers.new_varcar ()) in
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       (* Clock of 'merge' is (c:'a) -> 'a on c -> 'a on (not c) -> 'a *)
       let a = Var(Clocks.new_varclock () ) in
       let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
+      (* let tt = Arrow(a, Arrow(On(a,s),Arrow(Onnot(a,s),a))) in *)
       let u = Var (Clocks.new_varclock () ) in
       let new_type = Arrow(c.ce_clock,Arrow(e1.ce_clock,Arrow(e2.ce_clock,u))) in
       (* Clocks.unify_with_carriers(tt,new_type); *)
@@ -323,11 +336,12 @@ let split_pattern pat =
 
 let clock_equation gamma {pattern; expression} =
   let expression = clock_expr gamma expression in
-  (* let pck = lookup gamma pattern in *)
+  (* let gamma' = List.map (fun (x,y) -> x, Clocks.gen_instance y) gamma in *)
+  (* let pck = lookup gamma' pattern in *)
   let open Clocks in
   try
-    (* unify (gen_instance pck, expression.ce_clock); *)
-    (gamma),{ cpattern = pattern; cexpression = expression}
+    (* unify (pck, expression.ce_clock); *)
+    gamma,{ cpattern = pattern; cexpression = expression}
   with Clocks.ClockClash (c1,c2) ->
     begin
       let open Clocks in

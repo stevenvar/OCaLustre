@@ -14,12 +14,13 @@ open Proof_printer
 open Sequentialize
 open Codegen
 open Error
-open Compiling
+(* open Compiling *)
 open Imperative_ast
 
 let verbose = ref false
 let clocking = ref false
 let lustre = ref false
+let no_auto = ref false
 let why = ref false
 let nonalloc = ref false
 let typing = ref false
@@ -54,8 +55,9 @@ let create_node mapper str =
     begin match s.pstr_desc with
       | Pstr_value (_,[v]) ->
         let _node = mk_node v.pvb_pat v.pvb_expr in
-        let _norm_node = normalize_node _node in
-        let _sched_node = schedule _norm_node in
+        let _norm_node = if !no_auto then _node else normalize_node _node in
+        let _sched_node = if !no_auto then _node else schedule _norm_node in
+
           begin
             if !verbose then
               Format.fprintf Format.std_formatter "Before Scheduling : \n %a \nAfter Scheduling : \n %a"
@@ -76,9 +78,9 @@ let create_node mapper str =
             if !verbose then Imperative_ast2.printml_node Format.std_formatter _icnode;
             if not !nonalloc then
               begin
-                let _inode = compile_cnode _sched_node in
+                (* let _inode = compile_cnode _sched_node in *)
                 (* if !verbose then Imperative_ast_printer.printml_node Format.std_formatter _inode; *)
-                let stri = if !main = string_of_pattern _inode.i_name then
+                let stri = if !main = string_of_pattern _icnode.i_name then
                     [Extracting2.tocaml_main _icnode]
                   else
                     []
@@ -115,6 +117,7 @@ open Compiling_w_clocks
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
                   ("-y", Arg.Set why, "Prints whyml code");
+                  ("-n", Arg.Set no_auto, "Don't normalize, don't schedule");
                   ("-l", Arg.Set lustre, "Prints lustre node");
                   ("-a", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
                   ("-m", Arg.Set_string main, "Generate main function");

@@ -61,14 +61,14 @@ let rec print_carrier fmt c =
   | NameCar s -> Format.fprintf fmt "%s" s
   | UnknownCar -> Format.fprintf fmt "?"
   | VarCar { cindex = n; cvalue = UnknownCar} -> Format.fprintf fmt "%s"  (car_name n)
-  | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "%a" print_carrier c
+  | VarCar { cindex = n; cvalue = c} -> Format.fprintf fmt "*%a" print_carrier c
 
 (* Shorten variables (follow indirection) *)
 let rec car_shorten c =
   match c with
   | VarCar { cindex = _ ; cvalue = UnknownCar } -> c
   | VarCar { cindex = _ ; cvalue = (VarCar { cindex = m ; cvalue = UnknownCar}) as tv } ->
-    tv
+    car_shorten tv
   | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
     tv2.cvalue <- tv1.cvalue; car_shorten c
   | UnknownCar -> failwith "shorten"

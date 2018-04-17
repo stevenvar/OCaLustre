@@ -56,7 +56,7 @@ let rec make_set l =
         x :: (make_set xs)
 
 let rec full_shorten t =
-  let shorten = full_shorten in 
+  let shorten = full_shorten in
   match t with
   (* | Var { index = _ ; value = Unknown } -> t *)
   | Unknown -> t
@@ -73,7 +73,7 @@ let rec full_shorten t =
 
 let rec generalise tau =
   let v = Var (new_varclock ()) in
-  let rec aux t = 
+  let rec aux t =
    match t with
      | Unknown -> v
      | Var { index = _ ; value = t } -> aux t
@@ -121,7 +121,7 @@ let rec print_clock fmt (t,v) =
      *     with Not_found -> string_of_int n in
      *    Format.fprintf fmt "%s" name *)
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%a(%d)" print_clock (t,v) m
+      Format.fprintf fmt "%a" print_clock (t,v)
     | Arrow(t1,t2) ->
       Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->

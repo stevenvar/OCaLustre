@@ -3,18 +3,18 @@ open Imperative_ast2
 open Parsing_ast
 open Tools
 
-let rec get_condition c =
-  let open Carriers in
-  match c with
-  | Carrier(s,c) -> get_condition c
-  | On (c, ck) -> (true,string_of_carrier ck)::get_condition c
-  | Onnot (c, ck) -> (false,string_of_carrier ck)::get_condition c
-  | CTuple cl -> List.fold_left (fun acc c -> (get_condition c)@acc) [] cl
-  | Var { value = Unknown } -> []
-  | Var { value = t } -> get_condition t
-  | _ ->
-    let s = Format.asprintf "get_condition : %a" Clocks.print_clock (c,[]) in
-    failwith s
+let rec get_condition c = Clocking.extract_conds c
+  (* let open Carriers in
+   * match c with
+   * | Carrier(s,c) -> get_condition c
+   * | On (c, ck) -> (true,string_of_carrier ck)::get_condition c
+   * | Onnot (c, ck) -> (false,string_of_carrier ck)::get_condition c
+   * | CTuple cl -> List.fold_left (fun acc c -> (get_condition c)@acc) [] cl
+   * | Var { value = Unknown } -> []
+   * | Var { value = t } -> get_condition t
+   * | _ ->
+   *   let s = Format.asprintf "get_condition : %a" Clocks.print_clock (c,[]) in
+   *   failwith s *)
 
 let compile_preop op =
   match op with
@@ -43,7 +43,7 @@ let compile_infop op =
 
 let rec compile_expression_init i e =
   let ce = compile_expression_init i in
-  let rec compile_desc d = 
+  let rec compile_desc d =
   match d with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
@@ -74,7 +74,7 @@ let rec compile_expression_init i e =
 
 let rec compile_expression_step i e =
   let ce = compile_expression_step i in
-  let rec compile_desc d = 
+  let rec compile_desc d =
   match d with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
