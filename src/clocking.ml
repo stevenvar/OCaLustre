@@ -88,12 +88,14 @@ let get_conds gamma eq =
   { eq with cexpression = { eq.cexpression with ce_desc = aux eq.cexpression}}
 
 let clock_expr gamma (e:expression) =
+  let rec clock_rec e =
+
   (* Format.printf "Clocking expression %a \n" *)
      (* Parsing_ast_printer.print_expression e; *)
-  let rec clock_rec e =
     match e.e_desc with
     | Value v ->
-        let clk = Var (Clocks.new_varclock ()) in
+      (* let clk = Var (Clocks.new_varclock ()) in *)
+      let clk = Base in
         { ce_desc = CValue v ;
           ce_loc = e.e_loc ;
           ce_clock = clk }
@@ -153,6 +155,7 @@ let clock_expr gamma (e:expression) =
         (* instantiate it *)
       in
       let gs = Clocks.gen_instance sigma in
+      (* Format.printf ":: %a\n" Clocks.print_clock (gs,[]); *)
       { ce_desc = CVariable n;
         ce_loc = e.e_loc;
         ce_clock = gs ;
@@ -184,8 +187,8 @@ let clock_expr gamma (e:expression) =
           let e' = clock_rec e' in
           let u = Var (Clocks.new_varclock ()) in
           let t = Arrow (e'.ce_clock,u) in
-          (* Clocks.unify_with_carriers(t,fun_ck'); *)
-          Clocks.unify(t,fun_ck');
+          Clocks.unify_with_carriers(t,fun_ck');
+          (* Clocks.unify(t,fun_ck'); *)
           (* let params = left_clock (Clocks.gen_instance fun_ck) in *)
           (* let c = get_cond params e'.ce_clock in *)
           (* Format.printf "Conditions for %s (%a) \n" id *)
@@ -199,20 +202,22 @@ let clock_expr gamma (e:expression) =
           let s = Format.asprintf "Clock of node not found : %s" id in
           Error.print_error e.e_loc s
       end
+    | Clock e -> clock_rec e
     | When (e',c) ->
       let e' = clock_rec e' in
       let c = clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
-      (* let s = NameCar (get_ident c) in *)
+      let s = NameCar (get_ident c) in
       let s = VarCar (Carriers.new_varcar ()) in
       let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
       (* let tt = (Arrow (a,Arrow(a,On(a,s)))) in *)
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
-      (* Clocks.unify_with_carriers(new_type,tt); *)
-      Clocks.unify(new_type,tt);
+      Clocks.unify_with_carriers(new_type,tt);
+      (* Clocks.unify(new_type,tt); *)
       (* Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]); *)
+      (* Format.printf "the resulting clock of the when is %a \n" Clocks.print_clock (u,[]); *)
       cars := (s,(get_ident c))::!cars;
       { ce_desc = CWhen(e',c);
         ce_loc = e.e_loc;
@@ -220,7 +225,7 @@ let clock_expr gamma (e:expression) =
     | Whennot (e',c) ->
       let e' = clock_rec e' in
       let c = clock_rec c in
-      (* let s = NameCar (get_ident c) in *)
+      let s = NameCar (get_ident c) in
       let s = VarCar (Carriers.new_varcar ()) in
       (* Clock of 'whenot' is 'a -> (c : 'a) -> 'a on (not c) *)
       let a = Var (Clocks.new_varclock ()) in
@@ -234,7 +239,7 @@ let clock_expr gamma (e:expression) =
         ce_clock = u }
     | Merge (c,e1,e2) ->
       let c = clock_rec c in
-      (* let s = NameCar (get_ident c) in *)
+      let s = NameCar (get_ident c) in
       let s = VarCar (Carriers.new_varcar ()) in
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
@@ -244,8 +249,8 @@ let clock_expr gamma (e:expression) =
       (* let tt = Arrow(a, Arrow(On(a,s),Arrow(Onnot(a,s),a))) in *)
       let u = Var (Clocks.new_varclock () ) in
       let new_type = Arrow(c.ce_clock,Arrow(e1.ce_clock,Arrow(e2.ce_clock,u))) in
-      (* Clocks.unify_with_carriers(tt,new_type); *)
-      Clocks.unify(tt,new_type);
+      Clocks.unify_with_carriers(tt,new_type);
+      (* Clocks.unify(tt,new_type); *)
       { ce_desc = CMerge(c,e1,e2);
         ce_loc = e.e_loc;
         ce_clock = u }
@@ -287,7 +292,9 @@ let clock_expr gamma (e:expression) =
         ce_clock = e1.ce_clock }
   in
   try
-    clock_rec e
+    let cd = clock_rec e in
+    (* Format.printf "==> %a\n" Clocks.print_clock (cd.ce_clock,[]); *)
+    cd
   with Clocks.ClockClash (c1,c2) ->
     begin
       let open Clocks in
@@ -341,7 +348,8 @@ let clock_equation gamma {pattern; expression} =
   let open Clocks in
   try
     (* unify (pck, expression.ce_clock); *)
-    gamma,{ cpattern = pattern; cexpression = expression}
+    (* ((string_of_pat pattern,generalise_type gamma pck)::gamma) *)
+  gamma,{ cpattern = pattern; cexpression = expression}
   with Clocks.ClockClash (c1,c2) ->
     begin
       let open Clocks in

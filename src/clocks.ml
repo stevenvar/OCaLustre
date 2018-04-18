@@ -15,6 +15,7 @@ let new_varclock, reset_varclocks =
 let vars_of_clock tau =
   let rec vars vs t =
     match t with
+    | Base -> []
     | Var { index = n ; value = Unknown } ->
       (* if the variable is already in the list, don't add *)
       if List.mem n vs then vs else n::vs
@@ -58,6 +59,7 @@ let rec make_set l =
 let rec full_shorten t =
   let shorten = full_shorten in
   match t with
+  | Base -> t
   (* | Var { index = _ ; value = Unknown } -> t *)
   | Unknown -> t
   | Var { index = _ ; value = t } ->
@@ -74,7 +76,8 @@ let rec full_shorten t =
 let rec generalise tau =
   let v = Var (new_varclock ()) in
   let rec aux t =
-   match t with
+    match t with
+    | Base -> v
      | Unknown -> v
      | Var { index = _ ; value = t } -> aux t
      | Arrow(t1,t2) -> Arrow(aux t1, aux t2)
@@ -107,23 +110,24 @@ let cvar_name n =
 let rec print_clock fmt (t,v) =
     (* let names = *)
     (* let rec names_of = function *)
-      (* | (n,[]) -> [] *)
-      (* | (n, (_::xs)) -> (cvar_name n)::(names_of (n+1,xs)) *)
-    (* in *)
-    (* names_of (1,v) in *)
+  (* | (n,[]) -> [] *)
+  (* | (n, (_::xs)) -> (cvar_name n)::(names_of (n+1,xs)) *)
+  (* in *)
+  (* names_of (1,v) in *)
   (* let cvar_names = List.combine (List.rev v) names in *)
-    match t with
-    | Unknown -> Format.fprintf fmt "base"
-    (* | Var { index = n ; value = Unknown } ->
-     *   let name =
-     *     try
-     *       List.assoc n cvar_names
-     *     with Not_found -> string_of_int n in
-     *    Format.fprintf fmt "%s" name *)
-    | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%a" print_clock (t,v)
-    | Arrow(t1,t2) ->
-      Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
+  match t with
+  | Base -> Format.fprintf fmt "base"
+  | Unknown -> Format.fprintf fmt "?"
+  (* | Var { index = n ; value = Unknown } ->
+   *   let name =
+   *     try
+   *       List.assoc n cvar_names
+   *     with Not_found -> string_of_int n in
+   *    Format.fprintf fmt "%s" name *)
+  | Var { index = m ; value = t } ->
+    Format.fprintf fmt "*(%a)" print_clock (t,v)
+  | Arrow(t1,t2) ->
+    Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
       let rec print_list fmt l =
         match l with
@@ -167,7 +171,7 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
     names_of (1,gv) in
   let cvar_names = List.combine (List.rev gv) names in
   let rec print_rec fmt = function
-    (* | Unknown -> Format.fprintf fmt "base" *)
+    | Base -> Format.fprintf fmt "base"
     | Var { index = n ; value = Unknown } ->
       let name =
         (try List.assoc n cvar_names
@@ -211,6 +215,7 @@ let occurs { index = n ; value = _ } t =
   let rec occrec c =
     let c = shorten c in
     match c with
+    | Base -> false
     | Var { index = m ; value = _} -> (n = m)
     | Arrow (t1,t2) -> (occrec t1) || (occrec t2)
     | CTuple ts -> List.fold_left (fun acc t -> acc || occrec t) false ts
@@ -224,12 +229,13 @@ let rec unify_with_carriers (tau1,tau2) =
   let unify = unify_with_carriers in
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
+  (* Format.fprintf Format.std_formatter "Unifying (with carriers) %a and %a \n%!" *)
   (* print_clock (tau1,[]) *)
   (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
-    | Unknown , Unknown -> ()
+    | Base, Base -> ()
+    | unknown , Unknown -> ()
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
@@ -275,11 +281,12 @@ let rec unify_with_carriers (tau1,tau2) =
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  (* Format.fprintf Format.std_formatter "Unifying %a and %a \n%!" *)
+  (* Format.printf  "Unifying %a and %a \n%!" *)
   (* print_clock (tau1,[]) *)
   (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
+    | Base, Base -> ()
     | Unknown , Unknown -> ()
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
@@ -348,6 +355,7 @@ let gen_instance (Forall(gv,gc,tau)) =
   let unknowns = List.map (fun n -> n, Var(new_varclock ())) gv in
   let rec ginstance t =
     match t with
+    | Base -> Base
     | Var { index = n; value = Unknown } ->
       (* If the variable is generic get its corresponding unknown *)
       begin

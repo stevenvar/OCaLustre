@@ -94,12 +94,16 @@ let rec normalize_exp l exp =
     let (eq_y,y) = new_eq_var exp' in
     let l''' = eq_y::l'' in
     l''' , y
+  | Clock e ->
+     let l,e = normalize_exp l e in
+     let exp' = { exp with e_desc = Clock e } in
+     l,exp'
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     let exp' =  { exp with e_desc = When (e',i) } in
-    (* let (eq_y,y) = new_eq_var exp' in *)
-    (* let l = eq_y::l' in *)
-    l',exp'
+    let (eq_y,y) = new_eq_var exp' in
+    let l = eq_y::l' in
+    l,y
   | Whennot (e,i) ->
     let (l',e') = normalize_exp l e in
     let exp' =  { exp with e_desc = Whennot (e',i) } in
@@ -187,6 +191,10 @@ let norm_exp l exp  =
     let (l'',e') = normalize_exp l e in
     let exp' = { exp with e_desc = Fby (c,e') } in
     l'' , exp'
+  | Clock e ->
+    let l,e = normalize_exp l e in
+    let exp' = { exp with e_desc = Clock e } in
+    l,exp'
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     l' , { exp with e_desc = When (e',i) }
@@ -266,6 +274,9 @@ let norm_exp l exp  =
      | PrefixOp (op,e) ->
        let e = kernalize e in
        { exp with e_desc = PrefixOp(op,e) }
+     | Clock e ->
+       let e = kernalize e in
+       { exp with e_desc = Clock e }
      | When (e,i) ->
        let e = kernalize e in
        { exp with e_desc = When (e,i) }

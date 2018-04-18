@@ -69,11 +69,14 @@ let create_node mapper str =
             (* whyml_node Format.std_formatter whyml); *)
             (* Format.printf "ENV = %a\n" Clocks.print_env !env; *)
             (* let (_new_env2,_cnode2) = Clocking2.clock_node !env2 _sched_node in *)
+            Miniclock.clock_node  _sched_node;
+            (* failwith "ok"; *)
             let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
             env := new_env;
             (* env2 := _new_env2; *)
-            if !clocking then
+            if !clocking then(
               Clocking_ast_printer.print_node Format.std_formatter (_cnode,!verbose);
+            );
             let _icnode = Compiling_w_clocks.compile_cnode _cnode in
             if !verbose then Imperative_ast2.printml_node Format.std_formatter _icnode;
             if not !nonalloc then

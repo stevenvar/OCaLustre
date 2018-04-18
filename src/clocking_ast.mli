@@ -5,6 +5,7 @@ type carrier = UnknownCar | NameCar of string | VarCar of varcar
 and varcar = { cindex : int; mutable cvalue : carrier }
 
 type clock = Unknown
+           | Base
            | Var of varclock
            | CTuple of clock list
            | Arrow of clock * clock

@@ -57,6 +57,7 @@ and exp_desc =
   | Arrow of expression * expression
   | Merge of expression * expression * expression
   | Call of Parsetree.expression
+  | Clock of expression
   | Unit
 and inf_operator =
   | Diff

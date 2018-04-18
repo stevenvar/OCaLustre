@@ -40,6 +40,8 @@ let rec get_dep_id e l  =
     get_dep_id e2 l
   | Pre e ->  l
   | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
+  | Clock e ->
+    get_dep_id e l
   | When (e,i) ->
     let l = get_dep_id i l in
     get_dep_id e l

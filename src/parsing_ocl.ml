@@ -291,6 +291,9 @@ let make_expression e =
     | [%expr [%e? e1] --> [%e? e2] ]  ->
       { e_desc = Arrow (mk_expr e1 , mk_expr e2);
         e_loc = e.pexp_loc  }
+    | [%expr clock [%e? e1]] ->
+      let clock = Clock (mk_expr e1) in
+      { e_desc = clock; e_loc = e.pexp_loc }
     | [%expr eval ([%e? e1]) ] ->
       let app = Call (e1) in
       { e_desc = app ; e_loc = e.pexp_loc }
