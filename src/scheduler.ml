@@ -3,8 +3,11 @@ open Parsing_ocl
 open Parsing_ast_printer
 open Error
 open Imperative_ast
+
+
 exception CycleFound of ident list
 
+(** Get all ids that an expression is dependent on **)
 let rec get_dep_id e l  =
   match e.e_desc with
   | Variable i -> i::l
@@ -39,7 +42,9 @@ let rec get_dep_id e l  =
     let l = get_dep_id e1 l in
     get_dep_id e2 l
   | Pre e ->  l
-  | Fby (v,e) -> get_dep_id v l (* not dependent on e since it appears at the next instant *)
+  | Fby (v,e) ->
+    (* not dependent on e since it appears at the next instant *)
+    get_dep_id v l
   | Clock e ->
     get_dep_id e l
   | When (e,i) ->
@@ -77,12 +82,11 @@ let rec imp_get_dep_id e l  =
   | IRef v -> v::l
   | _ -> l
 
-
 let rec get_id p =
   match p.p_desc with
   | Ident i -> i
-  | Tuple t -> failwith "tuple"
-  | PUnit -> failwith "unit"
+  | Tuple t -> Error.print_error p.p_loc "Not an ident"
+  | PUnit -> Error.print_error p.p_loc "Not an ident"
   | Typed (p,t) -> get_id p
 
 let rec contains e i =
@@ -104,13 +108,16 @@ let rec contains e i =
 let rec icontains e i =
   match e.i_pattern.p_desc with
   | Ident j -> i = j
-  | Tuple t -> List.fold_left
-                 (fun acc p' -> contains { pattern = p' ;
-                                           expression = { e_desc = Unit ;
-                                                          e_loc = Location.none }} i || acc) false t
+  | Tuple t ->
+    List.fold_left
+      (fun acc p -> contains { pattern = p ;
+                               expression = { e_desc = Unit ;
+                                              e_loc = Location.none }} i || acc)
+      false t
   | PUnit -> false
-  | Typed (p,s) -> contains { pattern = p ; expression = { e_desc = Unit ;
-                                                           e_loc = Location.none }} i
+  | Typed (p,s) -> contains { pattern = p ;
+                              expression = { e_desc = Unit ;
+                                             e_loc = Location.none }} i
 
 let rec find_eq_from_id i eqs =
   match eqs with
@@ -122,7 +129,6 @@ let rec find_ieq_from_id i eqs =
   match eqs with
   | [] -> failwith ("no equation : "^i)
   | h::t -> if icontains h i then h else find_ieq_from_id i t
-
 
 let rec get_ids p =
   match p.p_desc with
@@ -162,7 +168,7 @@ let dfs (graph : (ident * ident list) list) visited start_node =
     if List.mem node path    then raise (CycleFound path) else
     if List.mem node visited then visited else
       let new_path = node :: path in
-      let edges    = try List.assoc node graph
+      let edges = try List.assoc node graph
         with Not_found -> failwith ("Variable not found : "^node);  in
       let visited  = List.fold_left (explore new_path) visited edges in
       node :: visited
@@ -209,9 +215,8 @@ let schedule_ieqs ieqs inputs =
   let eqs_sorted= List.map (fun i -> find_ieq_from_id i ieqs) ids_sorted in
   remove_dups eqs_sorted
 
-
 let schedule node =
-  let inputs = get_ids node.inputs  in
+  let inputs = get_ids node.inputs in
   try
   let eqs_sorted = schedule_eqs node.equations inputs in
   {
@@ -224,7 +229,10 @@ let schedule node =
     equations = eqs_sorted
   }
   with CycleFound p ->
-    let vars = List.fold_left (fun acc i -> i^" "^acc) "" p in
-    let name = List.hd (get_ids node.name) in
-        Error.print_error node.name.p_loc
-          ("Causality loop in node "^name^" with these variables : "^vars )
+    let print_vars fmt vs = Tools.print_list fmt (fun s ->
+        (Format.fprintf fmt "%s")) vs in
+    let s = Format.asprintf "Causality loop in node \"%a\" with variables %a"
+        print_pattern node.name
+        print_vars p
+    in
+    Error.print_error node.name.p_loc s

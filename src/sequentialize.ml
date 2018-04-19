@@ -126,7 +126,7 @@ let rec seq_exp e =
                                  seq_exp e3)
     }
   | Unit -> { sexp with s_e_desc = S_Unit }
-  | When (e',i) ->
+  | When (e',i) -> failwith "I don't work with clocks yet"
     { sexp with s_e_desc =
                   S_Alternative (seq_exp i,
                                  seq_exp e',
@@ -134,7 +134,7 @@ let rec seq_exp e =
                                    s_e_loc = Location.none }
                                 )
     }
-  | Whennot (e',i) ->
+  | Whennot (e',i) -> failwith "I don't work with clocks yet"
     { sexp with s_e_desc =
                   S_Alternative (seq_exp i,
                                  {s_e_desc = S_Value Nil;
@@ -144,7 +144,7 @@ let rec seq_exp e =
   | ETuple el ->
     let iel = List.map (fun e -> seq_exp e) el in
     { sexp with s_e_desc = S_ETuple (iel) }
-  | Merge (e1,e2,e3) ->
+  | Merge (e1,e2,e3) -> failwith "I don't work with clocks yet"
     { sexp with s_e_desc = S_Alternative (seq_exp e1,
                                           seq_exp e2,
                                           seq_exp e3)
@@ -215,14 +215,14 @@ let seq_eqs_zero eqs sname env =
     | Arrow (e1,e2) -> seq_exp e1
     | Pre e -> assert false
     | Fby (e,e') -> seq_exp e
-    | When (e',i) ->
+    | When (e',i) -> failwith "I don't work with clocks yet"
       { sexp with s_e_desc =
                     S_Alternative (seq_exp i,
                                    seq_exp e',
                                    { s_e_desc = S_Value Nil;
                                      s_e_loc = Location.none } )
       }
-    | Whennot (e',i) ->
+    | Whennot (e',i) -> failwith "I don't work with clocks yet"
       { sexp with s_e_desc = S_Alternative (seq_exp i,
                                             { s_e_desc = S_Value Nil;
                                               s_e_loc = Location.none },
@@ -231,7 +231,7 @@ let seq_eqs_zero eqs sname env =
     | ETuple el ->
       let iel = List.map (fun e -> seq_exp e) el in
       { sexp with s_e_desc = S_ETuple (iel) }
-    | Merge (e1,e2,e3) ->
+    | Merge (e1,e2,e3) -> failwith "I don't work with clocks yet"
       { sexp with s_e_desc =
                     S_Alternative (seq_exp e1,
                                    seq_exp e2,

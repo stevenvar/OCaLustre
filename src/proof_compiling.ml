@@ -115,7 +115,8 @@ let rec compile_expression_step e p =
   | Arrow (e1,e2) ->
     compile_pre_expression e2
   | Fby (e1,e2) -> compile_pre_expression e2
-  | When (e',i) ->
+  | Clock e -> failwith "I don't work with clocks"
+  | When (e',i) -> failwith "I don't work with clocks";
     S_Alternative (compile_expression_step i p,
                   compile_expression_step e' p,
                   S_Value Nil)

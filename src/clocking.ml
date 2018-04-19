@@ -17,9 +17,9 @@ let rec extract_conds c =
             let clk =  List.assoc (car_shorten c) !cars in
             (true,clk)::(extract_conds x)
           with _ ->
-            failwith "?";
-            (* List.iter (fun (x,y) -> Format.printf "%a -> %s\n" Carriers.print_carrier x y) !cars; *)
-            (* Format.printf "What is %a ?" Carriers.print_carrier c; *)
+            (* failwith "?"; *)
+            List.iter (fun (x,y) -> Format.printf "%a -> %s\n" Carriers.print_carrier x y) !cars;
+            Format.printf "What is %a ?" Carriers.print_carrier (car_shorten c);
             extract_conds x
         end
       | Onnot (x,c) ->

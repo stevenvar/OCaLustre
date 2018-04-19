@@ -114,10 +114,10 @@ let occurs_car { c_index = n; c_value = _} =
   let rec occrec = function
     | X { c_index = m; c_value = _} -> if n = m then raise Occurs
     | CarUnknown -> raise Occurs
-    | N s -> () 
+    | N s -> ()
   in
   occrec
-  
+
 let occurs_stream { s_index = n; s_value = _} =
   let rec occrec = function
     | SckVariable { s_index = m; s_value = _} -> if n = m then raise Occurs
@@ -142,7 +142,7 @@ let occurs { index = n; value = _} =
 let rec shorten_car (c:carrier) =
   match c with
   | CarUnknown -> failwith "shorten car"
-  | N x -> c 
+  | N x -> c
   | X { c_index = _; c_value = CarUnknown} -> c
   | X { c_index = _ ;
          c_value = X ({ c_index = _;
@@ -154,7 +154,7 @@ let rec shorten_car (c:carrier) =
 
 let rec shorten_stream (s:stream_clock) =
   match s with
-  | SckBase -> s 
+  | SckBase -> s
   | SckUnknown -> failwith "shorten_stream"
   | SckOn (s, car) -> SckOn (shorten_stream s, shorten_car car)
   | SckOnnot (s, car) -> SckOnnot (shorten_stream s, shorten_car car)
@@ -275,86 +275,136 @@ let rec unify c1 c2 =
 
 (** Instantiation **)
 
-let gen_instance_car (gv,gs,gc,car) =
-  let unknowns = List.map (fun n -> n, new_varcar ()) gc in
-  let rec ginstance c =
-    match c with
-    | CarUnknown -> failwith "gen_instance_car"
-    | N x -> c
-    | X { c_index = n; c_value = CarUnknown } ->
-      begin
-        try List.assoc n unknowns with Not_found ->
-          (
-            (* Format.printf "not found : %a \n" print_car c; *)
-          c)
-      end
-    | X { c_index = _; c_value = t } -> 
-      ginstance t
-  in
-  ginstance car
 
-let gen_instance_stream (gv,gs,gc,car) =
-  let unknowns = List.map (fun n -> n, new_varstream ()) gs in
-  let rec ginstance s =
-    match s with
-    | SckUnknown -> failwith "gen_instance_stream"
-    | SckBase -> s
-    | SckVariable { s_index = n ; s_value = SckUnknown} ->
-      begin
-        try List.assoc n unknowns with Not_found ->(
-          (* Format.printf "not found : %a \n" print_stream s; *)
-          s)
-      end
-    | SckVariable { s_index = _; s_value = t } ->
-      ginstance t
-    | SckOn (s,car) -> SckOn (ginstance s,gen_instance_car (gv,gs,gc,car))
-    | SckOnnot (s,car) -> SckOnnot (ginstance s, gen_instance_car (gv,gs,gc,car))
-  in
-  ginstance car
 
 let gen_instance (gv,gs,gc,tau) =
-  let unknowns = List.map (fun n -> n, new_varclock ()) gv in
+  let gv_unknowns = List.map (fun n -> n, new_varclock ()) gv in
+  let gs_unknowns = List.map (fun n -> n, new_varstream ()) gs in
+  let gc_unknowns = List.map (fun n -> n, new_varcar ()) gc in
+  let gen_instance_car car =
+    let rec ginstance c =
+      match c with
+      | CarUnknown -> failwith "gen_instance_car"
+      | N x -> c
+      | X { c_index = n; c_value = CarUnknown } ->
+        begin
+          try List.assoc n gc_unknowns  with Not_found ->
+            (
+              (* Format.printf "not found : %a \n" print_car c; *)
+              c)
+        end
+      | X { c_index = _; c_value = t } ->
+        ginstance t
+    in
+    ginstance car
+  in
+  let gen_instance_stream s =
+    let rec ginstance s =
+      match s with
+      | SckUnknown -> failwith "gen_instance_stream"
+      | SckBase -> s
+      | SckVariable { s_index = n ; s_value = SckUnknown} ->
+        begin
+          try List.assoc n gs_unknowns with Not_found ->(
+              (* Format.printf "not found : %a \n" print_stream s; *)
+              s)
+        end
+      | SckVariable { s_index = _; s_value = t } ->
+        ginstance t
+      | SckOn (s,car) -> SckOn (ginstance s,gen_instance_car car)
+      | SckOnnot (s,car) -> SckOnnot (ginstance s,gen_instance_car car)
+    in
+    ginstance s
+  in
   let rec ginstance t =
     match t with
     | ClkVariable { index = n; value = ClkUnknown}->
       begin try
-          List.assoc n unknowns
+          List.assoc n gv_unknowns
         with Not_found -> t
       end
     | ClkVariable { index = _; value = t } -> ginstance t
     | ClkStream s ->
-      ClkStream (gen_instance_stream (gv,gs,gc,s))
+      ClkStream (gen_instance_stream s)
     | ClkArrow (c1,c2) -> ClkArrow(ginstance c1, ginstance c2)
     | ClkUnknown -> failwith "gen_instance"
     | ClkTuple cs -> ClkTuple (List.map ginstance cs)
     | ClkDep (car,s) ->
-      ClkDep(gen_instance_car (gv,gs,gc,car),
-                               gen_instance_stream (gv,gs,gc,s))
+      ClkDep(gen_instance_car car,
+             gen_instance_stream s)
   in
   ginstance tau
 
 (** Generalization **)
 
+(* returns clock vars, stream vars, carrier vars *)
 let vars_of_clock tau =
-  let rec vars vs c =
+  let rec carrier_vars (vs,ss,cs) c =
+    match c with
+    | CarUnknown -> failwith "carrier_vars"
+    | N s -> (vs,ss,cs)
+    | X { c_index = n ; c_value = CarUnknown } ->
+      if List.mem n cs then (vs,ss,cs) else (vs,ss,n::cs)
+    | X { c_index = _; c_value = t} ->
+      carrier_vars (vs,ss,cs) t
+  in
+  let rec stream_vars (vs,ss,cs) s =
+    match s with
+    | SckUnknown -> failwith "stream_vars"
+    | SckBase -> (vs,ss,cs)
+    | SckOn (s, c) ->
+      let (vs,ss,cs) = stream_vars (vs,ss,cs) s in
+      let (vs,ss,cs) = carrier_vars (vs,ss,cs) c in
+      (vs,ss,cs)
+    | SckOnnot (s, c) ->
+      let (vs,ss,cs) = stream_vars (vs,ss,cs) s in
+      let (vs,ss,cs) = carrier_vars (vs,ss,cs) c in
+      (vs,ss,cs)
+    | SckVariable{ s_index = n; s_value = SckUnknown} ->
+      if List.mem n ss then (vs,ss,cs) else (vs,n::ss,cs)
+    | SckVariable{ s_index = n; s_value = t } ->
+      stream_vars (vs,ss,cs) s
+  in
+let rec vars (vs,ss,cs) c =
     match c with
     | ClkUnknown -> failwith "vars_of_clock"
-    | ClkArrow (c1,c2) -> vars (vars vs c1) c2
+    | ClkArrow (c1,c2) ->
+      let (v,s,c) = vars (vs,ss,cs) c1 in
+      let (v,s,c) = vars (v,s,c) c2 in
+      (v,s,c)
     | ClkVariable { index = n; value = ClkUnknown} ->
-      if List.mem n vs then vs else n::vs
-    | ClkVariable { index = n; value = t } -> vars vs t
-    | ClkTuple [] -> []
-    | ClkTuple (c::cs) -> List.fold_left (fun acc t -> vars acc t) (vars vs c) cs
-    | ClkStream s -> vs
-    | ClkDep (var,s) -> vs
-  in vars [] tau
+      if List.mem n vs then (vs,ss,cs) else (n::vs,ss,cs)
+    | ClkVariable { index = n; value = t } -> vars (vs,ss,cs) t
+    | ClkTuple [] -> (vs,ss,cs)
+    | ClkTuple (x::xs) ->
+      let (vs,ss,cs) = vars (vs,ss,cs) x in
+      List.fold_left (fun (vs,ss,cs) x ->
+          let (v,s,c) = vars (vs,ss,cs) x in
+        (v@vs,s@ss,c@cs)) (vs,ss,cs) xs
+    | ClkStream s ->
+      let (vs,ss,cs) = stream_vars (vs,ss,cs) s in
+      (vs,ss,cs)
+    | ClkDep (c,s) ->
+      let (vs,ss,cs) = carrier_vars (vs,ss,cs) c in
+      let (vs,ss,cs) = stream_vars (vs,ss,cs) s in
+      (vs,ss,cs)
+  in vars ([],[],[]) tau
 
 let substract l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
 
-let unknowns_of_clock bv t = substract (vars_of_clock t) bv
-    
+let unknowns_of_clock (bv,bs,bc) t =
+  let (vs,ss,cs) = vars_of_clock t in
+  (substract vs bv,
+   substract ss bs,
+   substract cs bc)
+
 let unknowns_of_clock_env env =
-  List.flatten (List.map (function (gv,gs,gc,t) -> unknowns_of_clock t gv) env)
+  let (vs,ss,cs) = List.fold_left (fun (vs,ss,cs) (gv,gs,gc,t) ->
+      let (v,s,c) = unknowns_of_clock (gv,gs,gc) t in
+      (v::vs),(s::ss),(c::cs)) ([],[],[]) env in
+  List.flatten vs,
+  List.flatten ss,
+  List.flatten cs
 
 let rec make_set l =
   match l with
@@ -362,9 +412,14 @@ let rec make_set l =
   | x::l -> if List.mem x l then make_set l else x :: make_set l
 
 let generalize_clock gamma tau =
-  let genvars = make_set (substract (vars_of_clock tau)
-                            (unknowns_of_clock_env gamma)) in
-  (genvars, [], [], tau)
+  let (vs,ss,cs) = vars_of_clock tau in
+  let (uv,us,uc) = unknowns_of_clock_env gamma in
+
+  let genvars = make_set (substract vs uv) in
+  let genstreams = make_set (substract ss us) in
+  let gencars = make_set (substract cs uc) in
+
+  (genvars, genstreams, gencars, tau)
 
 (** Clock inference **)
 
@@ -373,7 +428,10 @@ let rec clock_expr gamma e =
     begin
       match e.e_desc with
       | Unit | Call _ | Value _ ->
-        new_varclock ()
+        let u = new_varstream () in
+        ClkStream u
+      (* not sure *)
+        (* new_varclock () *)
         (* ClkStream (SckBase) *)
       | Variable n ->
         let sigma = try List.assoc n gamma
@@ -383,33 +441,45 @@ let rec clock_expr gamma e =
         in
         gen_instance sigma
       | PrefixOp (op,e) ->
-        clock_expr gamma e 
+        let u = new_varstream () in
+        let c = clock_expr gamma e in
+        unify (ClkStream u) c;
+        c
       | InfixOp (op,e1,e2) ->
+        let u = new_varstream () in
         let c1 = clock_expr gamma e1 in
         let c2 = clock_expr gamma e2 in
         unify c1 c2;
+        unify (ClkStream u) c1;
+        (* the result must be a clkstream, otherwise one can add clocks ... *)
         c1
       | Alternative (e1,e2,e3) ->
+        let u = new_varstream () in
         let c1 = clock_expr gamma e1 in
         let c2 = clock_expr gamma e2 in
         let c3 = clock_expr gamma e3 in
         unify c1 c2;
         unify c2 c3;
+        unify (ClkStream u) c1;
         c1
       | Fby (e1,e2) ->
+        let u = new_varstream () in
         let c1 = clock_expr gamma e1 in
         let c2 = clock_expr gamma e2 in
         unify c1 c2;
+        unify (ClkStream u) c1;
         c1
       | Pre e -> clock_expr gamma e
       | Arrow (e1,e2) ->
+        let u = new_varstream () in
         let c1 = clock_expr gamma e1 in
         let c2 = clock_expr gamma e2 in
         unify c1 c2;
+        unify (ClkStream u) c1;
         c1
       | ETuple es ->
         let cs = List.map (clock_expr gamma) es in
-        ClkTuple cs 
+        ClkTuple cs
       | When (e1,e2) ->
         let c1 = clock_expr gamma e1 in
         let c2 = clock_expr gamma e2 in
@@ -516,8 +586,13 @@ let print_env env =
     | [v] -> Format.fprintf fmt "%d" v
     | v::vs -> Format.fprintf fmt "%d,%a" v print_vars vs
   in
-  List.iter (fun (x,(gv,_,_,y)) ->
-      Format.printf "\t forall %a . %s => %a \n" print_vars gv x print_clock y) env
+  List.iter (fun (x,(gv,gs,gc,y)) ->
+      Format.printf "\t forall %a , %a , %a . %s  => %a \n"
+        print_vars gv
+        print_vars gs
+        print_vars gc
+        x
+        print_clock y) env
 
 type cequation = { cpattern : Parsing_ast.pattern ; cexpression : cexpression }
 
@@ -590,6 +665,7 @@ let clock_node gamma node =
   reset_varclock ();
   reset_varstream ();
   reset_fresh_name ();
+  (* print_env gamma; *)
   let vars = Clocking.get_all_vars node in
   let vars = List.map Clocks.string_of_pat vars in
   let vars_clocks =
@@ -608,7 +684,7 @@ let clock_node gamma node =
   Format.printf "node %a :: %a \n"
     Parsing_ast_printer.print_pattern node.name
     print_clock node_clock;
+  (* print_env env; *)
   check_clock node.name.p_loc node_clock;
-  let node_clock_scheme = generalize_clock [] node_clock in 
+  let node_clock_scheme = generalize_clock [] node_clock in
   ((Clocks.string_of_pat node.name,node_clock_scheme))::gamma
-

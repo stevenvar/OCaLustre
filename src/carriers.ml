@@ -72,6 +72,7 @@ let rec car_shorten c =
     car_shorten tv
   | VarCar ({ cindex = _ ; cvalue = VarCar tv1} as tv2) ->
     tv2.cvalue <- tv1.cvalue; car_shorten c
+  | VarCar { cindex = _; cvalue = t} -> car_shorten t
   | UnknownCar -> failwith "shorten"
   | _ -> c
 
@@ -112,5 +113,3 @@ let unify_carriers (c1,c2) =
     if not (caroccurs cv c2) then cv.cvalue <- c2
     else failwith "carrocurs"
   | _ -> failwith "unify_carriers"
-
-

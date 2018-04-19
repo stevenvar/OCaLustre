@@ -73,7 +73,19 @@ let rec full_shorten t =
 
 
 
+open Carriers
+let rec generalise_carrier c =
+  let rec aux_car c =
+    match c with
+    | NameCar s -> VarCar (new_varcar ())
+    | VarCar { cindex = n ; cvalue = t } -> aux_car t
+    | _ -> c
+  in
+  aux_car c
+
+
 let rec generalise tau =
+  let car = VarCar (new_varcar ()) in
   let v = Var (new_varclock ()) in
   let rec aux t =
     match t with
@@ -88,10 +100,12 @@ let rec generalise tau =
   in
   aux tau
 
+
 (* All the unknown vars of tau (except the ones in gamma) get bounded  *)
 let generalise_type gamma tau =
   let gamma = List.map (fun (a,b) -> b) gamma in
   let tau = generalise (full_shorten tau) in
+  (* let tau = generalise_carriers tau in *)
   let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
   let gencars = carriers_of_clock tau in
   (* let genvars = make_set genvars in *)
@@ -159,7 +173,7 @@ let rec shorten t =
   | Onnot (c,s) -> Onnot(shorten c,s)
   | Arrow(c1,c2) -> Arrow(shorten c1, shorten c2)
   | Unknown -> failwith "shorten"
-                 
+
   | _ ->
     t
 

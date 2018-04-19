@@ -87,6 +87,7 @@ let rec print_expression fmt e =
                     print_expression e1
                     print_expression e2
   | Unit -> Format.fprintf fmt "()"
+  | Clock e -> Format.fprintf fmt "%a" print_expression e
   | When (e1,e2) -> Format.fprintf fmt "( %a when %a )"
                     print_expression e1
                     print_expression e2
@@ -139,7 +140,7 @@ let remove_type x =
 let rec print_local_vars fmt l =
   match l with
   | [] -> ()
-  | x::xs -> Format.fprintf fmt "var %a;\n %a" print_pattern x
+  | x::xs -> Format.fprintf fmt "var %a;\n %a\n" print_pattern x
                print_local_vars xs
 
 
@@ -171,13 +172,27 @@ let get_local_vars node =
 let print_node fmt node =
   Format.fprintf fmt "
 node %a(%a) returns (%a)
- %a
- let
+ %alet
 %a%a
- tel
+ tel\n%!
 " print_pattern node.name
     print_pattern node.inputs
     print_pattern node.outputs
     print_local_vars (get_local_vars node)
     print_equations node.equations
     print_condition node.inv
+
+let to_lustre_file node =
+  let name = !Location.input_name in
+  let name = Filename.remove_extension name in
+  let node_name = Tools.string_of_pattern node.name in
+  let name = name^"_"^node_name^".ls" in
+  (* let oc = open_out_gen [ Open_wronly; Open_creat ; Open_append] 0o640 name in *)
+  let oc = open_out name in
+  let fmt =  Format.formatter_of_out_channel oc in
+  Format.printf "%a" print_node node;
+  Format.fprintf fmt "%a" print_node node;
+  close_out oc;
+  Format.printf "File %s has been written for node %s. \n"
+    name
+    node_name
