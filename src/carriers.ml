@@ -33,6 +33,7 @@ let carriers_of_clock tau =
   in
   let rec aux vs t =
     match t with
+    | Base -> []
     | Var { index = n ; value = Unknown } -> []
     | Var { index = _ ; value = t } -> aux vs t
     | Arrow(t1,t2) ->
@@ -76,9 +77,6 @@ let rec car_shorten c =
 
 let caroccurs { cindex = n ; cvalue = _ } c =
   let rec occrec c =
-    Format.fprintf Format.std_formatter "Occurs %d in %a ? \n%!"
-      n
-      print_carrier c;
     let c = car_shorten c in
     match c with
     | NameCar s -> false
@@ -114,3 +112,5 @@ let unify_carriers (c1,c2) =
     if not (caroccurs cv c2) then cv.cvalue <- c2
     else failwith "carrocurs"
   | _ -> failwith "unify_carriers"
+
+

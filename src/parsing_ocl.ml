@@ -123,7 +123,8 @@ let extract_clock attr =
             end
           | _ -> Error.syntax_error x.pstr_loc "wrong form of clock"
         end
-      | _ -> Error.syntax_error sl.loc "wrong clock"
+      | _ -> [%expr () ]
+        (* Error.syntax_error sl.loc "wrong clock" *)
     end
   | _ -> Error.syntax_error sl.loc "wrong attribute"
 
@@ -368,7 +369,7 @@ let mk_equation eq =
 
       { pattern = pat_of_pexp p ; expression = make_expression e}
     | _ ->
-       Error.syntax_error eq.pexp_loc "in equation"
+       Error.syntax_error eq.pexp_loc "equation in wrong form (maybe you need parenthesis)"
     end
       (*    | { pexp_desc = Pexp_apply (_, (p::e::_));
     pexp_loc ;

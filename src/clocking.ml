@@ -89,13 +89,12 @@ let get_conds gamma eq =
 
 let clock_expr gamma (e:expression) =
   let rec clock_rec e =
-
   (* Format.printf "Clocking expression %a \n" *)
      (* Parsing_ast_printer.print_expression e; *)
     match e.e_desc with
     | Value v ->
-      (* let clk = Var (Clocks.new_varclock ()) in *)
-      let clk = Base in
+      let clk = Var (Clocks.new_varclock ()) in
+      (* let clk = Base in *)
         { ce_desc = CValue v ;
           ce_loc = e.e_loc ;
           ce_clock = clk }
@@ -208,14 +207,14 @@ let clock_expr gamma (e:expression) =
       let c = clock_rec c in
       let a = Var (Clocks.new_varclock ()) in
       let s = NameCar (get_ident c) in
-      let s = VarCar (Carriers.new_varcar ()) in
-      let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in
-      (* let tt = (Arrow (a,Arrow(a,On(a,s)))) in *)
+      (* let s = VarCar (Carriers.new_varcar ()) in *)
+      (* let tt = (Arrow (a,Arrow(Carrier(s,a),On(a,s)))) in *)
+      let tt = (Arrow (a,Arrow(a,On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
-      Clocks.unify_with_carriers(new_type,tt);
-      (* Clocks.unify(new_type,tt); *)
+      (* Clocks.unify_with_carriers(new_type,tt); *)
+      Clocks.unify(tt,new_type);
       (* Format.printf "%s is on %a \n" (get_ident c) Clocks.print_clock (c.ce_clock,[]); *)
       (* Format.printf "the resulting clock of the when is %a \n" Clocks.print_clock (u,[]); *)
       cars := (s,(get_ident c))::!cars;
@@ -226,31 +225,32 @@ let clock_expr gamma (e:expression) =
       let e' = clock_rec e' in
       let c = clock_rec c in
       let s = NameCar (get_ident c) in
-      let s = VarCar (Carriers.new_varcar ()) in
+      (* let s = VarCar (Carriers.new_varcar ()) in *)
       (* Clock of 'whenot' is 'a -> (c : 'a) -> 'a on (not c) *)
       let a = Var (Clocks.new_varclock ()) in
-      let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in
-      (* let tt = (Arrow (a,Arrow(a,Onnot(a,s)))) in *)
+      (* let tt = (Arrow (a,Arrow(Carrier(s,a),Onnot(a,s)))) in *)
+      let tt = (Arrow (a,Arrow(a,Onnot(a,s)))) in
       let u = Var (Clocks.new_varclock ()) in
       let new_type = Arrow(e'.ce_clock,Arrow(c.ce_clock,u)) in
-      Clocks.unify_with_carriers(new_type,tt);
+      (* Clocks.unify_with_carriers(new_type,tt); *)
+      Clocks.unify(tt,new_type);
       { ce_desc = CWhennot(e',c);
         ce_loc = e.e_loc;
         ce_clock = u }
     | Merge (c,e1,e2) ->
       let c = clock_rec c in
-      let s = NameCar (get_ident c) in
+      (* let s = NameCar (get_ident c) in *)
       let s = VarCar (Carriers.new_varcar ()) in
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       (* Clock of 'merge' is (c:'a) -> 'a on c -> 'a on (not c) -> 'a *)
       let a = Var(Clocks.new_varclock () ) in
-      let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
-      (* let tt = Arrow(a, Arrow(On(a,s),Arrow(Onnot(a,s),a))) in *)
+      (* let tt = Arrow(Carrier(s,a), Arrow(On(a,s),Arrow(Onnot(a,s),a))) in *)
+      let tt = Arrow(a, Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
       let u = Var (Clocks.new_varclock () ) in
       let new_type = Arrow(c.ce_clock,Arrow(e1.ce_clock,Arrow(e2.ce_clock,u))) in
-      Clocks.unify_with_carriers(tt,new_type);
-      (* Clocks.unify(tt,new_type); *)
+      (* Clocks.unify_with_carriers(tt,new_type); *)
+      Clocks.unify(tt,new_type);
       { ce_desc = CMerge(c,e1,e2);
         ce_loc = e.e_loc;
         ce_clock = u }
@@ -373,6 +373,7 @@ let clock_equation gamma {pattern; expression} =
 
 let maj_clocks gamma {cpattern; cexpression} =
   let open Clocks in
+    (* print_env Format.std_formatter gamma; *)
   let gamma = List.map (fun (x,y) -> x, Clocks.gen_instance y) gamma in
   let pck = lookup gamma cpattern in
   try
@@ -466,7 +467,6 @@ let clock_node gamma node =
   let (env,eqs) = clock_equations env node.equations in
   (* print_env Format.std_formatter env; *)
   List.iter (maj_clocks env) eqs;
-  (* print_env Format.std_formatter env; *)
   let eqs = List.map (get_conds env) eqs in
   let ckins = List.map (fun x -> lookup_clock env x)
       (split_tuple node.inputs) in

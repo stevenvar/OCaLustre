@@ -14,6 +14,6 @@ let%node merge (c,x,y,u,v) ~return:(m,n) =
   m = merge c x y;
   n = merge c (u --@ c) (v --@ not c)
 
-let%node wrong () ~return:(c,x) =
-  c = clock true;
-  x = 2 --@ c
+(* let%node wrong () ~return:(c,x) = *)
+  (* c = clock true; *)
+  (* x = 2 --@ c *)

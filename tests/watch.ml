@@ -44,32 +44,35 @@ end
 let%node count d ~return:(cpt) =
   cpt = (0 --< (cpt+1) ) mod d
 
+
 let%node watch (sec) ~return:(h,m,s) =
-  no_s = count (100 --@ sec);
-  min = (no_s = 0);
-  no_m = count (60 --@ min);
-  hour = (no_m = 0);
-  no_h = count (12 --@ hour);
-  h' = merge hour no_h ((pre h') --@ not hour);
-  h = merge min h' (pre h --@ not min);
-  m = merge min no_m ((pre m)  --@ not min);
+  no_s = count (60 --@ sec);
+  min = clock (no_s = 0);
+  no_m = 60 --@ min;
+  hour = clock (no_m = 0);
+  no_h = 12 --@ hour;
+  h = merge min (merge hour no_h 0) 0;
+  m = merge min no_m 0;
   s = no_s
 
-let%node startstop (b) ~return:(h,m,s,sec) =
-  edge = false --> (b && (not (pre b)));
+
+(* let%node watch (sec) ~return:(h,m,s) =
+ *   no_s = count (100 --@ sec);
+ *   min = clock (no_s = 0);
+ *   truc = 60 --@ min;
+ *   no_m = count (truc);
+ *   hour = (no_m = 0);
+ *   no_h = count (12 --@ hour);
+ *   h' = merge hour no_h ((pre h') --@ not hour);
+ *   h = merge min h' (pre h --@ not min);
+ *   m = merge min no_m ((pre m)  --@ not min);
+ *   s = no_s
+*)
+
+let%node startstop (b) ~return:(edge,sec) =
+  edge := false --> (b && (not (pre b)));
   sec = true --< if edge then not sec else sec;
-  (h',m',s') = watch (sec);
-  (* k = h' + m'; *)
-  c = true;
-  d = false;
-  k = c --@ d;
-  u = 2 --@ k;
-  v = m' --@ c;
-  (* w = (u + v) --@ not d ; *)
-  (* w' = (u + v) --@ d ; *)
+  (* (h',m',s') = watch (sec); *)
   (* h = merge sec h' ((0 --< h) --@ not sec); *)
   (* m = merge sec m' ((0 --< m) --@ not sec); *)
-  (* s = merge sec s' ((0 --< s) --@ not sec); *)
-  h = 0;
-  m = 0;
-  s = 0;
+  (* s = merge sec s' ((0 --< s) --@ not sec) *)

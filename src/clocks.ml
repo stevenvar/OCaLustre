@@ -117,17 +117,18 @@ let rec print_clock fmt (t,v) =
   (* let cvar_names = List.combine (List.rev v) names in *)
   match t with
   | Base -> Format.fprintf fmt "base"
-  | Unknown -> Format.fprintf fmt "?"
-  (* | Var { index = n ; value = Unknown } ->
-   *   let name =
-   *     try
-   *       List.assoc n cvar_names
-   *     with Not_found -> string_of_int n in
-   *    Format.fprintf fmt "%s" name *)
+  | Unknown ->
+    Format.fprintf fmt "?"
+  | Var { index = n ; value = Unknown } ->
+    (* let name = *)
+      (* try *)
+        (* List.assoc n cvar_names *)
+      (* with Not_found -> string_of_int n in *)
+     Format.fprintf fmt "%d" n
   | Var { index = m ; value = t } ->
     Format.fprintf fmt "*(%a)" print_clock (t,v)
   | Arrow(t1,t2) ->
-    Format.fprintf fmt "(%a -> %a)" print_clock (t1,v) print_clock (t2,v)
+    Format.fprintf fmt "( %a -> %a )" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
       let rec print_list fmt l =
         match l with
@@ -156,8 +157,11 @@ let rec shorten t =
   | Carrier (s,c) -> Carrier(s,shorten c)
   | On (c,s) -> On(shorten c,s)
   | Onnot (c,s) -> Onnot(shorten c,s)
+  | Arrow(c1,c2) -> Arrow(shorten c1, shorten c2)
   | Unknown -> failwith "shorten"
-  | _ -> t
+                 
+  | _ ->
+    t
 
 
 (* Printing schemes  *)
@@ -179,7 +183,7 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
       in
       Format.fprintf fmt "%s" name
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "%a" print_rec t
+      Format.fprintf fmt "*%a" print_rec t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "%a -> %a" print_rec t1 print_rec t2
     | CTuple ts ->
@@ -252,6 +256,7 @@ let rec unify_with_carriers (tau1,tau2) =
       (* unify (tau1, c) *)
       if not (occurs tv tau2) then
         tv.value <- tau2
+      else (raise (ClockClash (tau1,tau2)))
     | Var ({index = m ; value = Unknown} as tv), _ ->
       if not (occurs tv tau2) then
         tv.value <- tau2
@@ -445,7 +450,9 @@ let rec string_of_pat p =
   | Ident i -> i
   | Typed(p,t) -> string_of_pat p
   | PUnit -> "()"
-  | _ -> failwith "sop"
+  | Tuple t -> failwith "sop"
+
+    (* List.fold_left (fun acc x -> string_of_pat x^acc) "" t *)
 
 (* Function for finding clock in an env *)
 let rec lookup_clock env p =
@@ -453,7 +460,7 @@ let rec lookup_clock env p =
   try
     List.assoc s env
   with Not_found ->
-    Error.print_error p.p_loc "Unbound variable"
+    Error.print_error p.p_loc ("Unbound variable "^s)
 
 
 (* let _ =
