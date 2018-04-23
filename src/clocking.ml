@@ -15,6 +15,7 @@ let rec extract_conds c =
       | On (x,c) ->
         begin try
             let clk =  List.assoc (car_shorten c) !cars in
+            (* (true,clk)::[] *)
             (true,clk)::(extract_conds x)
           with _ ->
             (* failwith "?"; *)
@@ -24,6 +25,8 @@ let rec extract_conds c =
         end
       | Onnot (x,c) ->
         begin try
+            let clk =  List.assoc (car_shorten c) !cars in
+            (* (false,clk)::[] *)
             (false,List.assoc c !cars)::(extract_conds x)
           with _ -> failwith "?";
             extract_conds x
@@ -42,8 +45,9 @@ let rec get_cond c1 c2 : ( (bool * string) list) =
   (* Format.printf "%s" s; *)
   match Clocks.shorten c1, Clocks.shorten c2 with
   | CTuple tl , CTuple pl ->
-    let l = List.map2 (fun x y -> (x,y)) tl pl in
-    List.fold_left (fun acc (x,y) -> get_cond x y @ acc) [] l
+    (* let l = List.map2 (fun x y -> (x,y)) tl pl in *)
+    (* List.fold_left (fun acc (x,y) -> get_cond x y @ acc) [] l *)
+    get_cond (List.hd tl) (List.hd pl)
   | Var a, Var b -> []
   | On (a,c), On (b,d) -> get_cond a b
   | Onnot (a,c), Onnot (b,d) -> get_cond a b
@@ -59,6 +63,12 @@ let rec left_clock c =
   | _ -> failwith "left_clock"
 
 
+let rec right_clock c =
+  match c with
+  | Arrow(a,b) -> b
+  | Var c -> left_clock c.value
+  | _ -> failwith "left_clock"
+
 let get_ident e =
   match e.ce_desc with
   | CVariable x -> x
@@ -73,9 +83,6 @@ let get_conds gamma eq =
           let fun_ck' = Clocks.gen_instance fun_ck in
           let params = left_clock (fun_ck') in
           let c = get_cond params ce'.ce_clock in
-          (* Format.printf "Conditionsfor %s (%a) \n" id *)
-            (* Clocks.print_clock (ce'.ce_clock, []); *)
-          (* List.iter (fun (x,y) -> Format.printf "%s = %b \n" y x) c; *)
           match c with
           | [] -> ce.ce_desc
           | _ -> CCondact(c,ce)
@@ -92,9 +99,14 @@ let clock_expr gamma (e:expression) =
   (* Format.printf "Clocking expression %a \n" *)
      (* Parsing_ast_printer.print_expression e; *)
     match e.e_desc with
-    | Value v ->
+    | Value Nil ->
       let clk = Var (Clocks.new_varclock ()) in
-      (* let clk = Base in *)
+      { ce_desc = CValue Nil ;
+        ce_loc = e.e_loc ;
+        ce_clock = clk }
+    | Value v ->
+      (* let clk = Var (Clocks.new_varclock ()) in *)
+      let clk = Base in
         { ce_desc = CValue v ;
           ce_loc = e.e_loc ;
           ce_clock = clk }
@@ -183,17 +195,30 @@ let clock_expr gamma (e:expression) =
           (* Format.printf "THE CLOCK = %a\n"
              Clocks.print_clock_scheme fun_ck; *)
           let fun_ck' = Clocks.gen_instance fun_ck in
-          let e' = clock_rec e' in
+          let ce' = clock_rec e' in
+          (* let's just say that the outputs is on the clock of the inputs *)
+          let get_one_input_clock =
+            function CTuple tl -> List.hd tl
+                   | c -> c
+          in
+          let c = get_one_input_clock ce'.ce_clock in
           let u = Var (Clocks.new_varclock ()) in
-          let t = Arrow (e'.ce_clock,u) in
-          Clocks.unify_with_carriers(t,fun_ck');
-          (* Clocks.unify(t,fun_ck'); *)
-          (* let params = left_clock (Clocks.gen_instance fun_ck) in *)
-          (* let c = get_cond params e'.ce_clock in *)
-          (* Format.printf "Conditions for %s (%a) \n" id *)
-            (* Clocks.print_clock (e'.ce_clock, []); *)
-          (* List.iter (fun (x,y) -> Format.printf "%s = %b \n" y x) c; *)
-          let exp = { ce_desc = CApplication(id,num,e');
+          let t = Arrow (ce'.ce_clock,u) in
+          Clocks.unify(t,fun_ck');
+          let rec put_all_output_clocks c clk =
+            let rec aux l =
+              match l with
+                [] -> []
+              | h::t -> c::(aux t)
+            in
+            match clk with
+              CTuple tl -> CTuple (aux tl)
+            | c -> c
+          in
+          let u = put_all_output_clocks c u in
+          (* Format.printf "Clock of %a = %a" Parsing_ast_printer.print_expression e *)
+            (* Clocks.print_clock (c,[]); *)
+          let exp = { ce_desc = CApplication(id,num,ce');
                       ce_loc = e.e_loc;
                       ce_clock = u } in
           exp
@@ -239,8 +264,8 @@ let clock_expr gamma (e:expression) =
         ce_clock = u }
     | Merge (c,e1,e2) ->
       let c = clock_rec c in
-      (* let s = NameCar (get_ident c) in *)
-      let s = VarCar (Carriers.new_varcar ()) in
+      let s = NameCar (get_ident c) in
+      (* let s = VarCar (Carriers.new_varcar ()) in *)
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       (* Clock of 'merge' is (c:'a) -> 'a on c -> 'a on (not c) -> 'a *)

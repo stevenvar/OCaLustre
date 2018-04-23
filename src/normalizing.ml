@@ -188,15 +188,17 @@ let rec normalize_exp l exp =
   | When (e,i) ->
     let (l',e') = normalize_exp l e in
     let exp' =  { exp with e_desc = When (e',i) } in
-    let (eq_y,y) = new_eq_var exp' in
-    let l = eq_y::l' in
-    l,y
+    (* let (eq_y,y) = new_eq_var exp' in *)
+    (* let l = eq_y::l' in *)
+    l',exp'
+    (* l,y *)
   | Whennot (e,i) ->
     let (l',e') = normalize_exp l e in
     let exp' =  { exp with e_desc = Whennot (e',i) } in
-    let (eq_y,y) = new_eq_var exp' in
-    let l = eq_y::l' in
-    l,y
+    (* let (eq_y,y) = new_eq_var exp' in *)
+    (* let l = eq_y::l' in *)
+    (* l,y *)
+    l',exp'
   | Unit -> l , exp
   | ETuple el ->
     let (l',el') = List.fold_right (fun e (_l,_e) ->

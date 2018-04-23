@@ -283,6 +283,9 @@ let make_expression e =
       | [%expr [%e? e1] --< [%e? e2] ]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
           e_loc = e.pexp_loc  }
+      | [%expr [%e? e1] => [%e? e2] ]  ->
+        { e_desc = Arrow (mk_expr e1 , mk_expr e2);
+          e_loc = e.pexp_loc  }
       | [%expr [%e? e1] --> [%e? e2] ]  ->
         { e_desc = Arrow (mk_expr e1 , mk_expr e2);
           e_loc = e.pexp_loc  }

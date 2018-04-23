@@ -6,7 +6,7 @@ open Tools
 type app_inits = imp_equation list
 and init = imp_equation
 and imp_inits = init list
-    
+
 and imp_expr = {
   i_desc : imp_expr_desc;
   i_loc : Location.t
@@ -83,10 +83,10 @@ type imp_node = {
 
  let rec print_cond_list fmt cl =
     match cl with
-    | [] -> ()
+    | [] -> Format.fprintf fmt "true"
     | [(b,x)] -> Format.fprintf fmt "%s = %b" x b
     | (hb,hx)::t -> Format.fprintf fmt "%s = %b && %a" hx hb print_cond_list t
-  
+
 
 
 let rec print_pattern fmt p =
@@ -138,7 +138,7 @@ let rec printml_expression fmt exp =
                  printml_expression e
                  printml_expressions tl
   in
- 
+
   match exp.i_desc with
   | IValue c -> Parsing_ast_printer.print_value fmt c
   | IVariable v ->  Format.fprintf fmt "%s" v

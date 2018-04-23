@@ -3,7 +3,9 @@ open Imperative_ast2
 open Parsing_ast
 open Tools
 
-let rec get_condition c = Clocking.extract_conds c
+let rec get_condition c =
+  let conds = Clocking.extract_conds c in
+  conds
   (* let open Carriers in
    * match c with
    * | Carrier(s,c) -> get_condition c

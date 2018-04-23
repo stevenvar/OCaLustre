@@ -5,11 +5,11 @@ open Imperative_ast2
 open Ast_helper
 open Tools
 
- let rec tocaml_cond_list cl =
+let rec tocaml_cond_list cl =
     match cl with
     | [] -> [%expr () ]
     | [(b,x)] -> let b = Ast_convenience.constr (string_of_bool b) [] in
-      let s = Ast_convenience.evar x in 
+      let s = Ast_convenience.evar x in
       [%expr [%e s] = [%e b] ]
     | (hb,hx)::t ->
       let e1 = tocaml_cond_list [(hb,hx)] in
@@ -24,7 +24,7 @@ let rec tocaml_imperative_updates e el =
       let e1 = tocaml_expression e1 in
       let e2 = tocaml_expression e2 in
       Exp.sequence [%expr tab.([%e e1]) <- [%e e2]] (loop t)
-  in loop el 
+  in loop el
 and tocaml_expression e =
   let open Parsing_ast in
   match e.i_desc with
