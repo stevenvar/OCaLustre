@@ -334,6 +334,8 @@ let rec seq_eqs_next eqs name env =
     | ETuple el ->
       let iel = List.map (fun e -> seq_exp s e) el in
       { sexp with s_e_desc =  S_ETuple (iel)}
+    | Clock e ->
+       seq_exp s e
     | Merge (e1,e2,e3) ->
       { sexp with s_e_desc =
                     S_Alternative (seq_exp s e1,

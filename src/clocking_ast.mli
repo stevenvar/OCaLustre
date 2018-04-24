@@ -50,18 +50,19 @@ and cnode = {
 }
 and cequation = {
   cpattern : pattern;
-  cexpression : cexpression
+  cexpression : expression;
+  cclock : clock;
 }
 
 and cexpression = {
   ce_desc : cexp_desc ;
   ce_loc : Location.t;
-  ce_clock : clock;
+  (* ce_clock : clock; *)
 }
 and cpattern = {
   cp_desc : cpatt_desc;
   cp_loc : Location.t;
-  cp_clock : clock_scheme
+  (* cp_clock : clock_scheme *)
 }
 and cpatt_desc =
   | CkIdent of ident

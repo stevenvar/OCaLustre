@@ -104,7 +104,7 @@ let rec generalise tau =
 (* All the unknown vars of tau (except the ones in gamma) get bounded  *)
 let generalise_type gamma tau =
   let gamma = List.map (fun (a,b) -> b) gamma in
-  let tau = generalise (full_shorten tau) in
+  (* let tau = generalise (full_shorten tau) in *)
   (* let tau = generalise_carriers tau in *)
   let genvars = (substract (vars_of_clock tau) (unknowns_of_type_env gamma)) in
   let gencars = carriers_of_clock tau in
@@ -140,7 +140,7 @@ let rec print_clock fmt (t,v) =
       (* with Not_found -> string_of_int n in *)
      Format.fprintf fmt "%d" n
   | Var { index = m ; value = t } ->
-    Format.fprintf fmt "*(%a)" print_clock (t,v)
+    Format.fprintf fmt "%a" print_clock (t,v)
   | Arrow(t1,t2) ->
     Format.fprintf fmt "( %a -> %a )" print_clock (t1,v) print_clock (t2,v)
     | CTuple ts ->
@@ -300,9 +300,9 @@ let rec unify_with_carriers (tau1,tau2) =
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  (* Format.printf  "Unifying %a and %a \n%!" *)
-  (* print_clock (tau1,[]) *)
-  (* print_clock (tau2,[]); *)
+  Format.printf  "Unifying %a and %a \n%!"
+  print_clock (tau1,[])
+  print_clock (tau2,[]);
   begin
     match tau1, tau2 with
     | Base, Base -> ()

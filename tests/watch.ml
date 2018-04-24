@@ -1,10 +1,8 @@
 module IO = struct
-  let watch_inputs () =
-    true
+  let watch_inputs () = ()
 
   let watch_outputs (h,m,s) =
-    Printf.printf "%02d:%02d:%02d\n" h m s;
-    print_newline ();
+    Format.printf "%02d:%02d:%02d\n%!" h m s;
     Unix.sleepf 0.1
 end
 
@@ -93,13 +91,25 @@ end
 let%node count d ~return:(cpt) =
   cpt = (0 --< (cpt+1) ) mod d
 
+(* let%node watch (sec) ~return:(h,m,s) =
+ *   no_s = count (3 --@ sec);
+ *   min = (no_s = (0 --@ sec));
+ *   no_m = count ((3 --@ sec) --@ min);
+ *   hour = (no_m = ((0 --@ sec) --@ min));
+ *   no_h = count(((12 --@ sec) --@ min) --@ hour);
+ *   h' = merge hour no_h ( (0 --@ sec --@ min --< h')--@ not hour);
+ *   h = merge min h' ( (0 --@ sec --<h) --@ not min);
+ *   m = merge min no_m ( (pre m) --@ not min);
+ *   s = no_s *)
+
+
 let%node watch (sec) ~return:(h,m,s) =
   no_s = count (3 --@ sec);
-  min = clock (no_s = (0 --@ sec));
-  no_m = count ((3 --@ sec) --@ min);
-  hour = clock (no_m = ((0 --@ sec) --@ min));
-  no_h = count(((12 --@ sec) --@ min) --@ hour);
-  h' = merge hour no_h (0 --@ sec --@ min --@ not hour);
-  h = merge min h' ( (0 --@ sec --<h) --@ not min);
-  m = merge min no_m ( (pre m) --@ not min);
+  min = (no_s = 0);
+  no_m = count (3 --@ min);
+  hour = (no_m = 0);
+  no_h = count(3 --@ hour);
+  h' = merge hour no_h ( (0 --< h')--@ not hour);
+  h = merge min h' ((0 --< h) --@ not min);
+  m = merge min no_m ((0 --< m) --@ not min);
   s = no_s
