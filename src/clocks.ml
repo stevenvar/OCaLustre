@@ -253,7 +253,7 @@ let rec unify_with_carriers (tau1,tau2) =
   begin
     match tau1, tau2 with
     | Base, Base -> ()
-    | unknown , Unknown -> ()
+    | Unknown , Unknown -> ()
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');
       unify(c,d);
@@ -306,6 +306,8 @@ let rec unify (tau1,tau2) =
   begin
     match tau1, tau2 with
     | Base, Base -> ()
+    (* | CTuple tl, Base -> *)
+      (* List.iter (fun x -> unify(x,Base)) tl *)
     | Unknown , Unknown -> ()
     | Carrier (s,c) , Carrier (s',d) ->
       unify_carriers(s,s');

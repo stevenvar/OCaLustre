@@ -21,7 +21,7 @@ and imp_expr_desc =
   | IArray_map of imp_expr * Parsetree.expression
   | IImperative_update of imp_expr * ((imp_expr * imp_expr) list)
   | ICondact of (bool * ident) list * imp_expr
-  | IApplication of ident * int * imp_expr
+  | IApplication of (bool*ident) list * ident * int * imp_expr
   | IApplication_init of ident * imp_expr
   | ICall of Parsetree.expression
   | IRef of ident
@@ -164,7 +164,7 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
-  | IApplication (i,num,e) -> Format.fprintf fmt "%s%d_app (%a)"
+  | IApplication (c,i,num,e) -> Format.fprintf fmt "%s%d_app (%a)"
                               i
                               num
                              printml_expression e

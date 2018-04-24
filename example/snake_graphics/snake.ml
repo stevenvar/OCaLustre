@@ -83,8 +83,7 @@ let%node game_loop (l,r) ~return:(hd,tl,apple,lose) =
   lose := eats_itself (snake,head,tail);
   hd := snake.(head);
   tl := snake.(tail)
-
 let%node main (button1,button2) ~return:(hd,tl,apple,lose) =
-  left := rising_edge(button1);
-  right :=rising_edge(button2);
-  (hd,tl,apple,lose) := game_loop(left,right)
+  l := rising_edge(button1);
+  r := rising_edge(button2);
+  (hd,tl,apple,lose) := game_loop(l,r)

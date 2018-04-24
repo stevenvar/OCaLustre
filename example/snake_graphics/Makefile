@@ -1,7 +1,7 @@
 all : snake.byte
 
 snake.byte : IO.ml snake.ml
-	ocamlc -ppx "ocalustre -m game_loop" graphics.cma unix.cma $? -dsource -o $@
+	ocamlc -ppx "../../ocalustre.native -i -m game_loop" graphics.cma unix.cma $? -dsource -o $@
 
 run : snake.byte
 	./$<

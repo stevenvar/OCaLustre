@@ -87,10 +87,16 @@ and tocaml_expression e =
     [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
   | IInfixOp (IAnd,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
-  | IApplication (id, num, e) ->
+  | IApplication (c,id, num, e) ->
     let e' = tocaml_expression e in
+    let cl = tocaml_cond_list c in
     let n = string_of_int num in
-    [%expr [%e (Exp.ident (lid_of_ident (id^n^"_app")))] [%e e' ]]
+    let exp = [%expr [%e (Exp.ident (lid_of_ident (id^n^"_app")))] [%e e' ]] in
+    begin
+      match c with
+      | [] -> exp
+      | _ -> [%expr if [%e cl] then [%e exp] else Obj.magic ()]
+    end
   | ICondact(l,e) ->
     let e' = tocaml_expression e in
     (* let b' = Ast_convenience.constr (string_of_bool b) [] in *)

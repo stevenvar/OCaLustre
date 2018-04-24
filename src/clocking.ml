@@ -4,7 +4,18 @@ open Carriers
 
 (* let cars = ref [] *)
 
-let rec extract_conds c = []
+let rec extract_conds c =
+  let c = Clocks.shorten c in
+  begin
+    match c with
+    | On (x,c) ->
+      (true,string_of_carrier c)::(extract_conds x)
+    | Onnot (x,c) ->
+      (false,string_of_carrier c)::(extract_conds x)
+    | _ -> []
+  end
+
+
   (* let c = Clocks.shorten c in
    * let open Carriers in
    * cars := List.map (fun (x,y) -> car_shorten x, y) !cars;
@@ -109,10 +120,6 @@ let clock_expr gamma (e:expression) =
       let clk = Var (Clocks.new_varclock ()) in clk
     | Unit ->
        let clk = Var (Clocks.new_varclock ()) in clk
-    | Array e' ->
-      let clk = Clocks.(new_varclock ()) in
-      let clk = Var clk in
-      clk
     | Variable n ->
       (* get the clock scheme of n in the env *)
       let sigma =
@@ -139,36 +146,47 @@ let clock_expr gamma (e:expression) =
       Clocks.unify(e2,e3);
       e1
     | Application(id,num,e') ->
-      begin
-        try
-          let fun_ck = Clocks.clock_lookup id gamma in
-          let fun_ck' = Clocks.gen_instance fun_ck in
-          let ce' = clock_rec e' in
-          (* let's just say that the outputs is on the clock of the inputs *)
-          let get_one_input_clock =
-            function CTuple tl -> List.hd tl
-                   | c -> c
-          in
-          let c = get_one_input_clock ce' in
-          let u = Var (Clocks.new_varclock ()) in
-          let t = Arrow (ce',u) in
-          Clocks.unify(t,fun_ck');
-          let rec put_all_output_clocks c clk =
-            let rec aux l =
-              match l with
-                [] -> []
-              | h::t -> c::(aux t)
-            in
-            match clk with
-              CTuple tl -> CTuple (aux tl)
-            | c -> c
-          in
-          let u = put_all_output_clocks c u in
-          u
-        with Not_found ->
-          let s = Format.asprintf "Clock of node not found : %s" id in
-          Error.print_error e.e_loc s
-      end
+      let fun_ck = Clocks.clock_lookup id gamma in
+      let fun_ck' = Clocks.gen_instance fun_ck in
+      let ce' = clock_rec e' in
+      let get_one_input_clock =
+        function CTuple tl -> List.hd tl
+               | c -> c
+      in
+      let c = get_one_input_clock ce' in
+      let clk = right_clock fun_ck' in
+      let rec put_all_output_clocks c clk =
+        match clk with
+          CTuple tl -> CTuple (List.map (fun _ -> c) tl)
+        | k -> c
+      in
+      let cc = put_all_output_clocks c clk in
+      cc
+    (* let's just say that the outputs is on the clock of the inputs *)
+    (*   let get_one_input_clock =
+         *     function CTuple tl -> List.hd tl
+         *            | c -> c
+         *   in
+         *   let c = get_one_input_clock ce' in
+         *   let u = Var (Clocks.new_varclock ()) in
+         *   (\* let t = Arrow (ce',u) in *\)
+         *   (\* Clocks.unify(t,fun_ck'); *\)
+         *   let rec put_all_output_clocks c clk =
+         *     let rec aux l =
+         *       match l with
+         *         [] -> []
+         *       | h::t -> c::(aux t)
+         *     in
+         *     match clk with
+         *       CTuple tl -> CTuple (aux tl)
+         *     | c -> c
+         *   in
+         *   let u = put_all_output_clocks c u in
+         *   u
+         * with Not_found ->
+         *   let s = Format.asprintf "Clock of node not found : %s" id in
+         *   Error.print_error e.e_loc s *)
+
     | Clock e -> clock_rec e
     | When (e',c) ->
       let e' = clock_rec e' in
@@ -205,7 +223,11 @@ let clock_expr gamma (e:expression) =
       u
     | ETuple es ->
       let es = List.map clock_rec es in
-      CTuple es
+      (* say that the clock of a tuple should be the same everywhere *)
+      let c = Var (Clocks.new_varclock ()) in
+      List.iter (fun x -> Clocks.unify(x,c)) es;
+      (* CTuple es *)
+      c
     | Fby (e1,e2) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
@@ -221,6 +243,18 @@ let clock_expr gamma (e:expression) =
       let e' = clock_rec e in
       e'
     | Arrow (e1,e2) ->
+      let e1 = clock_rec e1 in
+      let e2 = clock_rec e2 in
+      Clocks.unify(e1,e2);
+      e1
+    | Array el ->
+      let clks = List.map clock_rec el in
+      let c = List.hd clks in
+      List.iter (fun x -> Clocks.unify(c,x)) clks;
+      List.hd clks
+    | Imperative_update (e,l) ->
+      clock_rec e
+    | Array_get (e1,e2) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       Clocks.unify(e1,e2);
@@ -281,10 +315,14 @@ let clock_equation gamma {pattern; expression} =
   (* Clocks.print_env Format.std_formatter gamma; *)
   let clock = clock_expr gamma expression in
   let gamma' = List.map (fun (x,y) -> x, Clocks.gen_instance y) gamma in
-  let pck = lookup gamma' pattern in
+  let p = match pattern.p_desc with Tuple tl -> List.hd tl | p -> pattern in
+  let pck = lookup gamma' p in
   let open Clocks in
   try
-    unify (pck, clock);
+   ( match pattern.p_desc with
+    | Tuple tl -> List.iter (fun x -> unify(lookup gamma' x,clock)) tl
+    | p -> unify(lookup gamma' pattern,clock)
+   )  ;
     (* ((string_of_pat pattern,generalise_type gamma pck)::gamma) *)
   gamma,{ cpattern = pattern; cexpression = expression ; cclock = clock }
   with Clocks.ClockClash (c1,c2) ->
@@ -307,6 +345,31 @@ let clock_equation gamma {pattern; expression} =
               print_carrier c2 in
           Error.print_error expression.e_loc s1
         end
+
+let unify_error (c1,c2) loc =
+  try
+    Clocks.unify (c1,c2);
+  with Clocks.ClockClash (c1,c2) ->
+    begin
+      let open Clocks in
+      let vars1 = (vars_of_clock c1) in
+      let vars2 = (vars_of_clock c2) in
+      let s1 = Format.asprintf
+                 "Clock clash between %a and %a"
+                 print_clock (c1,vars1)
+                 print_clock (c2,vars2) in
+      Error.print_error loc s1;
+    end
+      | Carriers.CarrierClash (c1,c2) ->
+        begin
+          let open Carriers in
+          let s1 = Format.asprintf
+              "Carrier clash between %a and %a"
+              print_carrier c1
+              print_carrier c2 in
+          Error.print_error loc s1
+        end
+
 
 let clock_equations gamma eqs =
   List.fold_left (fun (env,eqs) eq ->
@@ -369,15 +432,17 @@ let clock_node gamma node =
   (* print_env Format.std_formatter env; *)
   (* Clocks.print_env Format.std_formatter env; *)
   let (env,eqs) = clock_equations env node.equations in
-  (* print_env Format.std_formatter env; *)
+  print_env Format.std_formatter env;
   let eqs = List.map (get_conds env) eqs in
   let ckins = List.map (fun x -> lookup_clock env x)
       (split_tuple node.inputs) in
   let ckouts = List.map (fun x -> lookup_clock env x)
       (split_tuple node.outputs) in
   let ckins = List.map gen_instance ckins in
+  List.iter (fun c -> unify_error(c,Base) node.inputs.p_loc) ckins;
   let ckins = group_tuple ckins in
   let ckouts = List.map gen_instance ckouts in
+  List.iter (fun c -> unify_error(c,Base) node.outputs.p_loc) ckouts;
   let ckouts = group_tuple ckouts in
   let node_clock = Arrow(ckins,ckouts) in
   (* let node_clock = Clocks.full_shorten node_clock in *)

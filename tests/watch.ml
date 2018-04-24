@@ -1,5 +1,5 @@
 module IO = struct
-  let watch_inputs () = ()
+  let watch_inputs () = true
 
   let watch_outputs (h,m,s) =
     Format.printf "%02d:%02d:%02d\n%!" h m s;
@@ -110,6 +110,14 @@ let%node watch (sec) ~return:(h,m,s) =
   hour = (no_m = 0);
   no_h = count(3 --@ hour);
   h' = merge hour no_h ( (0 --< h')--@ not hour);
-  h = merge min h' ((0 --< h) --@ not min);
-  m = merge min no_m ((0 --< m) --@ not min);
-  s = no_s
+  hh = merge min h' ((0 --< hh) --@ not min);
+  mm = merge min no_m ((0 --< mm) --@ not min);
+  h = merge sec hh (-1);
+  m = merge sec mm (-1);
+  s = merge sec no_s (-1)
+
+let%node call_watch (d) ~return:(h,m,s) =
+  (hh,mm,ss) = watch (true --@ d);
+  h = merge d hh 0;
+  m = merge d mm 0;
+  s = merge d ss 0

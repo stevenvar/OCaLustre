@@ -43,13 +43,13 @@ let compile_infop op =
   | Bor -> IOr    | Band -> IAnd
   | Mod -> IMod
 
-let rec compile_expression_init i e =
-  let ce = compile_expression_init i in
+let rec compile_expression_init i e c =
+  let ce = fun e -> compile_expression_init i e c in
   let rec compile_desc d =
   match d with
   | Value v -> IValue v
   | Variable s -> IVariable s
-  | Application (i,num, e) -> IApplication(i,num,ce e)
+  | Application (i,num, e) -> IApplication(get_condition c,i,num,ce e)
   (* | Condact (l,e') -> ICondact(l,ce e') *)
   | Call e -> ICall e
   | InfixOp (op,e1,e2) -> IInfixOp(compile_infop op, ce e1, ce e2)
@@ -74,13 +74,15 @@ let rec compile_expression_init i e =
   in
   { i_desc = compile_desc e.e_desc ; i_loc = e.e_loc }
 
-let rec compile_expression_step i e =
-  let ce = compile_expression_step i in
+let rec compile_expression_step i e c =
+  let ce = fun e -> compile_expression_step i e c in
   let rec compile_desc d =
   match d with
   | Value v -> IValue v
   | Variable s -> IVariable s
-  | Application (i,num,e') -> IApplication(i,num,ce e')
+  | Application (i,num,e') ->
+    let conds = get_condition c in
+    IApplication(conds,i,num,ce e')
   | Call e -> ICall e
   | InfixOp (op,e1,e2) ->
     IInfixOp(compile_infop op, ce e1, ce e2)
@@ -119,13 +121,13 @@ let rec compile_expression_step i e =
 let compile_equation_init eq =
   { i_pattern = eq.cpattern;
     i_expression = compile_expression_init
-        (get_ident eq.cpattern) eq.cexpression;
+        (get_ident eq.cpattern) eq.cexpression eq.cclock;
     i_condition = [] }
 
 let compile_equation_step eq =
   { i_pattern = eq.cpattern;
     i_expression = compile_expression_step
-        (get_ident eq.cpattern) eq.cexpression;
+        (get_ident eq.cpattern) eq.cexpression eq.cclock;
     i_condition = [] }
 
 let get_updates_init eqs =
@@ -133,7 +135,7 @@ let get_updates_init eqs =
     match eq.cexpression.e_desc with
     | Fby (e1,e2) -> { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
                         i_expression = compile_expression_init
-                            (get_ident eq.cpattern) e1;
+                            (get_ident eq.cpattern) e1 eq.cclock;
                       i_condition = [] }::l
 
      | _ -> l
@@ -145,11 +147,11 @@ let get_updates_step eqs =
     match eq.cexpression.e_desc with
     | Fby (e1,e2) -> { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
                         i_expression = compile_expression_step
-                            (get_ident eq.cpattern) e2;
+                            (get_ident eq.cpattern) e2 eq.cclock;
                         i_condition = get_condition eq.cclock }::l
     | Pre e -> { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
                   i_expression = compile_expression_step
-                      (get_ident eq.cpattern) e;
+                      (get_ident eq.cpattern) e eq.cclock;
                   i_condition = [] }::l
     | _ -> l
   in
@@ -159,7 +161,7 @@ let get_init_fby eqs =
   let aux eq l =
     match eq.cexpression.e_desc with
     | Fby (e1,e2) ->
-      let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e1) in
+      let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e1 eq.cclock) in
       { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
                         i_expression = { i_desc = desc; i_loc = e1.e_loc};
                       i_condition = [] }::l
@@ -185,7 +187,7 @@ let get_app_inits eqs =
 let get_init_pres eqs =
   let aux eq l =
     match eq.cexpression.e_desc with
-    | Pre e ->  let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e) in
+    | Pre e ->  let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e eq.cclock) in
       { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
                   i_expression = { i_desc = desc ; i_loc = e.e_loc };
                   i_condition = [] }::l
