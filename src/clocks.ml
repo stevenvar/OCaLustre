@@ -300,9 +300,9 @@ let rec unify_with_carriers (tau1,tau2) =
 let rec unify (tau1,tau2) =
   let tau1 = shorten tau1 in
   let tau2 = shorten tau2 in
-  Format.printf  "Unifying %a and %a \n%!"
-  print_clock (tau1,[])
-  print_clock (tau2,[]);
+  (* Format.printf  "Unifying %a and %a \n%!" *)
+  (* print_clock (tau1,[]) *)
+  (* print_clock (tau2,[]); *)
   begin
     match tau1, tau2 with
     | Base, Base -> ()

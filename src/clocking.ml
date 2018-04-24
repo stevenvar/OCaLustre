@@ -278,7 +278,7 @@ let split_pattern pat =
   | _ -> [pat]
 
 let clock_equation gamma {pattern; expression} =
-  Clocks.print_env Format.std_formatter gamma;
+  (* Clocks.print_env Format.std_formatter gamma; *)
   let clock = clock_expr gamma expression in
   let gamma' = List.map (fun (x,y) -> x, Clocks.gen_instance y) gamma in
   let pck = lookup gamma' pattern in
