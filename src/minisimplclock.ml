@@ -237,6 +237,7 @@ let rec clk_expr (gamma : (string * clk_scheme) list) e =
       match e.e_desc with
       | Unit -> CBase
       | Value _ -> CBase
+      | Call _ -> CBase
       | Variable n ->
         let sigma = try List.assoc n gamma
           with Not_found ->

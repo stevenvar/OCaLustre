@@ -145,6 +145,7 @@ let rec unify t1 t2 =
        unify c2 c4
      | TTuple cs, TTuple vs ->
        (try
+          if List.length cs <> List.length vs then raise (Invalid_argument "length");
          List.iter2 (fun a b -> unify a b) cs vs
        with Invalid_argument _ -> raise (Unify(t1,t2)))
      | _ -> raise (Unify (t1,t2)))
@@ -215,14 +216,13 @@ let generalize_typ gamma tau =
   let genvars = make_set (substract vs uv) in
   genvars, tau
 
-(** Typ inference **)
+(** Type inference **)
 
 let rec typ_expr gamma e =
-  try
-    begin
       match e.e_desc with
       | Unit -> TUnit
-      | Call _ -> failwith "cannot type call"
+      | Call _ -> new_vartyp ()
+        (* failwith "cannot type call" *)
       | Value (Integer _) ->
         TInt
       | Value (Bool _) ->
@@ -236,8 +236,17 @@ let rec typ_expr gamma e =
             Error.print_error e.e_loc s
         in
         gen_instance sigma
-      | PrefixOp (op,e) ->
+      | PrefixOp (Not,e) ->
         let t = typ_expr gamma e in
+        unify t TBool;
+        t
+      | PrefixOp (Neg,e) ->
+        let t = typ_expr gamma e in
+        unify t TInt;
+        t
+      | PrefixOp (Negf,e) ->
+        let t = typ_expr gamma e in
+        unify t TFloat;
         t
       | InfixOp ((Plus | Minus | Times | Div | Mod),e1,e2) ->
         let t1 = typ_expr gamma e1 in
@@ -257,7 +266,7 @@ let rec typ_expr gamma e =
         unify t1 t2;
         unify t1 TBool;
         t1
-      | InfixOp ((Equals | Sup | Supe | Inf | Infe) ,e1,e2) ->
+      | InfixOp ((Diff | Equals | Sup | Supe | Inf | Infe) ,e1,e2) ->
         let t1 = typ_expr gamma e1 in
         let t2 = typ_expr gamma e2 in
         unify t1 t2;
@@ -313,11 +322,6 @@ let rec typ_expr gamma e =
       | _ ->
         let s = Format.asprintf "%a : todo" Parsing_ast_printer.print_expression e in
         Error.print_error e.e_loc s
-    end
-  with Unify (c1,c2) ->
-    let s = Format.asprintf "Type clash between %a and %a"
-        print_typ c1 print_typ c2 in
-    Error.print_error e.e_loc s
 
 (** Typing **)
 
@@ -393,7 +397,9 @@ let typ_equations gamma eqs =
       unify pck clk;
     with Unify (c1,c2) ->
     let s = Format.asprintf "Type clash between %a and %a"
-        print_typ c1 print_typ c2 in
+        print_typ_scheme (unknowns_of_typ [] c1, c1)
+        print_typ_scheme (unknowns_of_typ [] c2, c2)
+    in
     Error.print_error eq.expression.e_loc s);
     { tpattern = eq.pattern ;
       texpression = { te_desc = eq.expression.e_desc; te_typ = clk}
