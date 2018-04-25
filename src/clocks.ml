@@ -197,7 +197,7 @@ let print_clock_scheme fmt (Forall(gv,gc,t)) =
       in
       Format.fprintf fmt "%s" name
     | Var { index = m ; value = t } ->
-      Format.fprintf fmt "*%a" print_rec t
+      Format.fprintf fmt "%a" print_rec t
     | Arrow(t1,t2) ->
       Format.fprintf fmt "%a -> %a" print_rec t1 print_rec t2
     | CTuple ts ->

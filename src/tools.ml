@@ -61,10 +61,12 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
   }
 
 
-let string_of_pattern ?(prefix="") ?(suffix="") p =
+let rec string_of_pattern ?(prefix="") ?(suffix="") p =
   let open Parsing_ast in
   match p.p_desc with
   | Ident i -> prefix^i^suffix;
+  | Typed (p,t) -> string_of_pattern p
+  | PUnit -> "()"
   | _ -> failwith "no tuple !"
 
 

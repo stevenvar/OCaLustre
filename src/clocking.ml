@@ -432,7 +432,7 @@ let clock_node gamma node =
   (* print_env Format.std_formatter env; *)
   (* Clocks.print_env Format.std_formatter env; *)
   let (env,eqs) = clock_equations env node.equations in
-  print_env Format.std_formatter env;
+  (* print_env Format.std_formatter env; *)
   let eqs = List.map (get_conds env) eqs in
   let ckins = List.map (fun x -> lookup_clock env x)
       (split_tuple node.inputs) in

@@ -240,6 +240,8 @@ let make_expression e =
                                  e_loc = e.pexp_loc }
       | [%expr ~-. [%e? e] ] -> { e_desc = PrefixOp (Negf,(mk_expr e)) ;
                                   e_loc = e.pexp_loc }
+      | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
+      | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
       | { pexp_desc = Pexp_constant c;
           pexp_loc ;
           pexp_attributes } ->
@@ -266,8 +268,6 @@ let make_expression e =
       | {pexp_desc = Pexp_ident {txt = (Lident v); loc} ;
          pexp_loc ;
          pexp_attributes} -> { e_desc = Variable v ; e_loc = e.pexp_loc }
-      | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
-      | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
       | [%expr [%e? e1] fby [%e? e2] ]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
           e_loc = e.pexp_loc  }
