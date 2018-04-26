@@ -149,43 +149,27 @@ let clock_expr gamma (e:expression) =
       let fun_ck = Clocks.clock_lookup id gamma in
       let fun_ck' = Clocks.gen_instance fun_ck in
       let ce' = clock_rec e' in
+    (*let's just say that the outputs is on the clock of the inputs*)
       let get_one_input_clock =
-        function CTuple tl -> List.hd tl
-               | c -> c
-      in
-      let c = get_one_input_clock ce' in
-      let clk = right_clock fun_ck' in
-      let rec put_all_output_clocks c clk =
-        match clk with
-          CTuple tl -> CTuple (List.map (fun _ -> c) tl)
-        | k -> c
-      in
-      let cc = put_all_output_clocks c clk in
-      cc
-    (* let's just say that the outputs is on the clock of the inputs *)
-    (*   let get_one_input_clock =
-         *     function CTuple tl -> List.hd tl
-         *            | c -> c
-         *   in
-         *   let c = get_one_input_clock ce' in
-         *   let u = Var (Clocks.new_varclock ()) in
-         *   (\* let t = Arrow (ce',u) in *\)
-         *   (\* Clocks.unify(t,fun_ck'); *\)
-         *   let rec put_all_output_clocks c clk =
-         *     let rec aux l =
-         *       match l with
-         *         [] -> []
-         *       | h::t -> c::(aux t)
-         *     in
-         *     match clk with
-         *       CTuple tl -> CTuple (aux tl)
-         *     | c -> c
-         *   in
-         *   let u = put_all_output_clocks c u in
-         *   u
-         * with Not_found ->
-         *   let s = Format.asprintf "Clock of node not found : %s" id in
-         *   Error.print_error e.e_loc s *)
+            function CTuple tl -> List.hd tl
+                   | c -> c
+          in
+          let c = get_one_input_clock ce' in
+          let u = Var (Clocks.new_varclock ()) in
+          (* let t = Arrow (ce',u) in *)
+          (* Clocks.unify(t,fun_ck'); *)
+          let rec put_all_output_clocks c clk =
+            let rec aux l =
+              match l with
+                [] -> []
+              | h::t -> c::(aux t)
+            in
+            match clk with
+              CTuple tl -> CTuple (aux tl)
+            | c -> c
+          in
+          let u = put_all_output_clocks c u in
+          u
 
     | Clock e -> clock_rec e
     | When (e',c) ->

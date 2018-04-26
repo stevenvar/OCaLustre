@@ -37,16 +37,16 @@ let rec print_ck fmt c =
   | CVariable { index = n; value = CUnknown } ->
     Format.fprintf fmt "'%d" n
   | CVariable { index = n; value = c } ->
-    Format.fprintf fmt "*%a" print_ck c
-  | Con (ck,s) -> Format.fprintf fmt "%a on %s" print_ck ck s
-  | Connot (ck,s) -> Format.fprintf fmt "%a onnot %s" print_ck ck s
+    Format.fprintf fmt "%a" print_ck c
+  | Con (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
+  | Connot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
 
 let rec print_ct fmt c =
   let rec print_tuple fmt l =
     match l with
       [] -> ()
     | [c] -> Format.fprintf fmt "%a" print_ct c
-    | c::cs -> Format.fprintf fmt "%a*%a" print_ct c print_ct c
+    | c::cs -> Format.fprintf fmt "(%a*%a)" print_ct c print_ct c
   in
   match c with
   | Ck ck -> print_ck fmt ck
@@ -94,7 +94,7 @@ let rec shorten_ck c =
     shorten_ck c
   | CVariable { index = _ ; value = t' } -> shorten_ck t'
   | Con (ck,x) -> Con (shorten_ck ck, x)
-  | Connot (ck,x) -> Con (shorten_ck ck, x)
+  | Connot (ck,x) -> Connot (shorten_ck ck, x)
   | _ -> c
 
 let rec shorten_ct c =
@@ -110,7 +110,7 @@ exception Unify_ct of ct * ct
 let rec unify_ck c1 c2 =
   let t1 = shorten_ck c1 in
   let t2 = shorten_ck c2 in
-  (* Format.printf "Unify %a and %a \n" print_clk c1 print_clk c2; *)
+  (* Format.printf "Unify %a and %a \n" print_ck c1 print_ck c2; *)
   try
     (match t1, t2 with
      | CBase, CBase -> ()
@@ -135,17 +135,17 @@ let rec unify_ck c1 c2 =
 let rec unify_ct c1 c2 =
   let c1 = shorten_ct c1 in
   let c2 = shorten_ct c2 in
+  (* Format.printf "Unify %a and %a \n" print_ct c1 print_ct c2; *)
   try
     (match c1,c2 with
      | Ck c1, Ck c2 -> unify_ck c1 c2
-     | CTuple cts, Ck c ->
-       List.iter (fun c -> unify_ct c c2) cts
      | CTuple cts, CTuple cts' ->
        (try
          List.iter2 (fun c d -> unify_ct c d) cts cts'
        with Invalid_argument _ -> Error.print_error Location.none "Not the same number of elements")
 
-     | _ -> raise (Unify_ct (c1,c2)))
+     | _ ->
+       raise (Unify_ct (c1,c2)))
   with Unify_ck (_,_) -> raise (Unify_ct (c1,c2))
 
 (** Instantiation **)
@@ -174,7 +174,7 @@ let rec gen_instance_ct (gv,tau) =
 
 (** Generalization **)
 
-(* returns clk vars, stream vars, carrier vars *)
+(* returns clk vars *)
 let vars_of_clk tau =
   let rec vars vs v =
     match v with
@@ -228,98 +228,117 @@ let mk_len_clock c n =
     | 0 -> CTuple acc
     | _ -> aux (n-1) (c::acc)
   in
-  aux n []
+  if n = 1 then c
+  else
+    aux n []
+
+
+let get_ident e =
+  match e.e_desc with
+  | Variable n -> n
+  | _ ->
+    let s = Format.asprintf "%a : not an identifier" Parsing_ast_printer.print_expression e in
+    Error.print_error e.e_loc s
+
 (** Clk inference **)
 
 let rec clk_expr (gamma : (string * clk_scheme) list) e =
+  (* Format.printf "Clocking %a \n" Parsing_ast_printer.print_expression e; *)
   try
     begin
       match e.e_desc with
-      | Unit -> CBase
-      | Value _ -> CBase
-      | Call _ -> CBase
+      | Unit -> Ck CBase
+      | Value _ -> Ck CBase
+      | Call _ -> Ck CBase
       | Variable n ->
         let sigma = try List.assoc n gamma
           with Not_found ->
             let s = Format.asprintf "Unbound variable : %s" n in
             Error.print_error e.e_loc s
         in
-        (match gen_instance_ct sigma with
-        | Ck s -> s
-        | CTuple cts -> failwith "ok")
+        let s = gen_instance_ct sigma in
+        s
       | PrefixOp (op,e) ->
         let t = clk_expr gamma e in
         t
       | InfixOp (op,e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        unify_ck t1 t2;
+        unify_ct t1 t2;
         t1
       | Alternative (e1,e2,e3) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
         let t3 = clk_expr gamma e3 in
-        unify_ck t1 t2;
-        unify_ck t2 t3;
+        unify_ct t1 t2;
+        unify_ct t2 t3;
         t1
       | Fby (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        unify_ck t1 t2;
+        unify_ct t1 t2;
         t1
       | Pre e -> clk_expr gamma e
       | Arrow (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        unify_ck t1 t2;
+        unify_ct t1 t2;
         t1
       | When (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        let x = "x" (* todo *) in
-        unify_ck t1 t2;
-        Con(t1,x)
+        let x = get_ident e2 in
+        unify_ct t1 t2;
+        let u = new_varclk () in
+        unify_ct (Ck u) t1;
+        Ck (Con(u,x))
       | Application (id,num,e) ->
-          (* let fun_clock = clk_expr gamma { e_desc = Variable id; *)
-        (* e_loc = Location.none} in *)
+        let fun_clock = clk_expr gamma { e_desc = Variable id;
+                                         e_loc = Location.none} in
+        let arity = len fun_clock in
         let params = match e.e_desc with
           | ETuple  es -> es
           | _ -> [e]
         in
-          let es = List.map (fun x -> clk_expr gamma x) params in
-          (* unify_ck e fun_clock; *)
-        List.hd es
-        (* CTuple es *)
+        let es = List.map (fun x -> clk_expr gamma x) params in
+        let ck = List.fold_left (fun acc x -> unify_ct x acc; x) (List.hd es) es in
+        mk_len_clock ck arity
+        (* List.hd es *)
+        (* (match es with *)
+        (* | [] -> failwith "?" *)
+        (* | [x] -> x *)
+        (* | _ ->  CTuple es) *)
       | Whennot (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        let x = "x" (* todo *) in
-        unify_ck t1 t2;
-        Connot(t1,x)
+        let x = get_ident e2 in
+        let u = new_varclk () in
+        unify_ct (Ck u) t1;
+        unify_ct t1 t2;
+        Ck (Connot(u,x))
       | Merge (e1,e2,e3) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
         let t3 = clk_expr gamma e3 in
-        let x = "x" (* todo *) in
-        unify_ck (Con(t1,x)) t2;
-        unify_ck (Connot(t1,x)) t3;
+        let x = get_ident e1 in
+        let u = new_varclk () in
+        unify_ct (Ck u) t1;
+        unify_ct (Ck (Con(u,x))) t2;
+        unify_ct (Ck (Connot(u,x))) t3;
         t1
       | _ ->
         let s = Format.asprintf "%a : todo" Parsing_ast_printer.print_expression e in
         Error.print_error e.e_loc s
     end
-  with Unify_ck (c1,c2) ->
+  with Unify_ct (c1,c2) ->
     let s = Format.asprintf "Clocking clash between %a and %a"
-        print_ck c1 print_ck c2 in
+        print_ct c1 print_ct c2 in
     Error.print_error e.e_loc s
 
 let rec clk_expr_ct (gamma : (string * clk_scheme) list) e =
-  try
   match e.e_desc with
   | ETuple es -> CTuple (List.map (clk_expr_ct gamma) es)
-  | _ ->  Ck (clk_expr gamma e)
-  with Unify_ck (c1,c2) -> raise (Unify_ct (Ck c1, Ck c2))
-
+  | _ ->  (clk_expr gamma e)
 
 
 let print_env env =
@@ -386,14 +405,14 @@ let rec assoc_env (env:(string * clk_scheme) list) p : clk_scheme =
 
 let clk_equations gamma eqs =
   let rec clk_eq (gamma:(string* clk_scheme) list) eq =
-    let clk = clk_expr_ct gamma eq.expression in
     let pck = assoc_env gamma eq.pattern in
     let pck = gen_instance_ct pck in
+    let clk = clk_expr_ct gamma eq.expression in
     (try
       unify_ct pck clk;
     with Unify_ct (c1,c2) ->
-    let s = Format.asprintf "Clk clash between %a and %a"
-        print_ct c1 print_ct c2 in
+    let s = Format.asprintf "This expression has clock %a but %a was expected"
+        print_ct c2 print_ct c1 in
     Error.print_error eq.expression.e_loc s);
     { cpattern = eq.pattern ;
       cexpression = { ce_desc = eq.expression.e_desc; ce_clk = clk}
@@ -413,6 +432,10 @@ let get_all_vars node =
     List.map (fun eq -> split_tuple eq.pattern) node.equations
   in
   let vars = List.flatten vars in
+  let vars = List.map Tools.string_of_pattern vars in
+  let inouts = split_tuple node.outputs in
+  let inouts = List.map Tools.string_of_pattern inouts in
+  let vars = substract vars inouts in
   Clocks.make_set vars
 
 let rec lookup_clk env p =
@@ -424,17 +447,16 @@ let rec lookup_clk env p =
 
 let clk_node gamma node =
   reset_varclk ();
-  let vars = get_all_vars node in
-  let vars = List.map Tools.string_of_pattern vars in
-  let vars_clks =
-    List.map (fun x -> (x,([],Ck (new_varclk())))) vars in
   let inouts = get_all_inouts node in
   let inouts = List.map Tools.string_of_pattern inouts in
   let inout_clks =
     List.map (fun x -> (x,([],Ck CBase))) inouts in
+  let vars = get_all_vars node in
+  let vars_clks =
+    List.map (fun x -> (x,([],Ck (new_varclk())))) vars in
   let env = inout_clks@vars_clks@gamma in
   let eqs = clk_equations env node.equations in
-  print_env env;
+  (* print_env env; *)
   let ckins = List.map (fun x -> lookup_clk env x)
       (split_tuple node.inputs) in
   let ckins = List.map gen_instance_ct ckins in
@@ -448,5 +470,5 @@ let clk_node gamma node =
   (* print_env env; *)
   let node_clk_scheme = generalize_clk [] node_clk_outs in
   Format.printf "ins :: %a \n" print_ct node_clk_ins;
-  Format.printf "outs :: %a \n" print_ct node_clk_ins;
+  Format.printf "outs :: %a \n" print_ct node_clk_outs;
   ((Tools.string_of_pattern node.name,node_clk_scheme))::gamma
