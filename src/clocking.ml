@@ -434,10 +434,11 @@ let clock_node gamma node =
   let node_clock = generalise_type [] node_clock in
   (* Format.printf "after generalizing %a \n" print_clock_scheme node_clock; *)
   let new_env = (string_of_pat node.name,node_clock)::gamma in
-  (new_env,
-  {
+  let cn = {
     cnode_clock = node_clock;
     cname = node.name;
     cinputs = node.inputs;
     coutputs = node.outputs;
-    cequations = List.rev eqs })
+    cequations = List.rev eqs } in
+  Format.printf "Checking : %b \n" (Check.check_node env cn);
+  (new_env,cn)

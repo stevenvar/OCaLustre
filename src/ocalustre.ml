@@ -32,7 +32,7 @@ let outputs_env = ref []
 (** Clocking env **)
 let env = ref []
 (* let mini_env = ref [] *)
-let simpl_env = ref []
+(* let simpl_env = ref [] *)
 
 (** Typing env **)
 let typ_env = ref []
@@ -92,8 +92,8 @@ let create_node mapper str =
           if !lustre then Lustre_printer.to_lustre_file _node;
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
-          simpl_env := Minisimplclock.clk_node !simpl_env _sched_node;
           typ_env := Minitypes.typ_node !typ_env _sched_node;
+          (* simpl_env := Minisimplclock.clk_node !simpl_env _sched_node; *)
           if !just_clock then [%str ] else
             begin
               let (new_env,_cnode) = Clocking.clock_node !env _sched_node in

@@ -43,6 +43,12 @@ let rec ident_of_cexpr ce =
   | CVariable s -> s
   | _ -> failwith "ident_of_cexpr"
 
+let rec ident_of_expr e =
+  let open Parsing_ast in
+  match e.e_desc with
+  | Variable s -> s
+  | _ -> failwith "ident_of_expr"
+
 
 open Parsetree
 open Longident
@@ -69,6 +75,14 @@ let rec string_of_pattern ?(prefix="") ?(suffix="") p =
   | PUnit -> "()"
   | _ -> failwith "no tuple !"
 
+let rec string_list_of_pattern p =
+    let open Parsing_ast in
+    match p.p_desc with
+    | Ident i -> i::[]
+    | Typed (p,t) -> string_list_of_pattern p
+    | PUnit -> []
+    | Tuple tl ->
+      List.fold_left (fun acc x -> string_list_of_pattern x @ acc) [] tl
 
 let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
   let open Parsing_ast in
