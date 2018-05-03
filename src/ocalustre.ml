@@ -32,7 +32,7 @@ let outputs_env = ref []
 (** Clocking env **)
 let env = ref []
 (* let mini_env = ref [] *)
-(* let simpl_env = ref [] *)
+let simpl_env = ref []
 
 (** Typing env **)
 let typ_env = ref []
@@ -93,19 +93,20 @@ let create_node mapper str =
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           typ_env := Minitypes.typ_node !typ_env _sched_node;
-          (* simpl_env := Minisimplclock.clk_node !simpl_env _sched_node; *)
-          if !just_clock then [%str ] else
-            begin
+          if false then
+            simpl_env := Minisimplclock.clk_node !simpl_env _sched_node;
               let (new_env,_cnode) = Clocking.clock_node !env _sched_node in
               env := new_env;
               if !clocks then Clocking_ast_printer.print_node
                   Format.std_formatter (_cnode,!verbose);
-              let _icnode = Compiling_w_clocks.compile_cnode _cnode in
-              if !verbose then Imperative_ast2.printml_node
-                  Format.std_formatter _icnode;
-              if not !nonalloc then create_functional_code _icnode
-              else create_imperative_code _sched_node
-            end
+              if !just_clock then [%str ] else
+                begin
+                  let _icnode = Compiling_w_clocks.compile_cnode _cnode in
+                  if !verbose then Imperative_ast2.printml_node
+                      Format.std_formatter _icnode;
+                  if not !nonalloc then create_functional_code _icnode
+                  else create_imperative_code _sched_node
+                end
         end
       | _ -> Error.syntax_error s.pstr_loc "not a node"
     end

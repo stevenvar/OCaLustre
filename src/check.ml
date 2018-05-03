@@ -30,7 +30,9 @@ let rec check_lexp_of_expression (e:expression) =
   | Parsing_ast.When (e1, e2) -> Ewhen(check_lexp_of_expression e1, char_list_of_string (ident_of_expr e2),true)
   | Parsing_ast.Whennot (e1, e2) -> Ewhen(check_lexp_of_expression e1, char_list_of_string (ident_of_expr e2),false)
   | Parsing_ast.Unit -> Econst (Cint 0) (* todo : unit *)
-  | _ -> failwith "not a lexp"
+  | _ ->
+    let s = Format.asprintf "%a : not a lexp" Parsing_ast_printer.print_expression e in
+    Error.print_error e.e_loc s
 
 let rec check_clock_of_clock (c:clock) =
   let c = Clocks.shorten c in
@@ -40,6 +42,7 @@ let rec check_clock_of_clock (c:clock) =
   | Clocking_ast.On (c, i) -> Con (check_clock_of_clock c, char_list_of_string (Carriers.string_of_carrier i), true)
   | Clocking_ast.Onnot (c, i) -> Con (check_clock_of_clock c, char_list_of_string (Carriers.string_of_carrier i), false)
   | Clocking_ast.Arrow (c1,c2) -> check_clock_of_clock c2
+  | Clocking_ast.CTuple cs -> check_clock_of_clock (List.hd cs)
   | _ ->
     let s = Format.asprintf "wrong clock : %a" Clocks.print_clock (c,[]) in
     failwith s
@@ -72,14 +75,15 @@ let rec print_chk fmt c =
 let check_equation_of_equation { cpattern; cexpression; cclock } =
   let clk = check_clock_of_clock cclock in
   (* Format.printf "Clock of %a : %a \n" Parsing_ast_printer.print_pattern cpattern print_chk clk; *)
-  let s = string_of_pattern cpattern in
+
+  let s = try string_of_pattern cpattern with _ -> "tuple" in
   match cexpression.e_desc with
   | Fby (e1,e2) ->
-    let le = check_lexp_of_expression cexpression in
+    let le = check_lexp_of_expression e2 in
     let c = const_of_expression e1 in
     EqFby (char_list_of_string s, clk, c, le)
   | Application (i,n,e) ->
-    let le = check_lexp_of_expression cexpression in
+    let le = check_lexp_of_expression e in
     EqApp (char_list_of_string s,clk,char_list_of_string i, [le])
   | _ -> let ce = check_cexp_of_expression cexpression in
     EqDef (char_list_of_string s,clk,ce)
@@ -118,14 +122,13 @@ let check_node env  n =
   let cn = check_node_of_node n in
   (* Format.printf "env = %a \n" Clocks.print_env env; *)
   let env = check_env_of_env env in
-  (* Format.printf "chk env = %a \n" print_chk_env env; *)
-  (* List.iter (fun eq -> Format.printf "eq : %a \n"
-   *               print_chk_option (clockof_equation env eq)) cn.n_eqs;
-   * List.iter (fun eq -> Format.printf "in %s = %a \n"
-   *               (string_of_char_list eq)
-   *               print_chk_option (clockof_var env eq)) cn.n_input;
-   * List.iter (fun eq -> Format.printf "out %s = %a  \n"
-   *               (string_of_char_list eq)
-   *               print_chk_option (clockof_var env eq)) cn.n_output; *)
-  let clk = clockof_node env cn in
-  clk <> None
+  Format.printf "chk env = %a \n" print_chk_env env;
+  List.iter (fun eq -> Format.printf "eq : %b \n"
+                (well_clocked_eq env eq)) cn.n_eqs;
+  List.iter (fun eq -> Format.printf "in %s = %a \n"
+                (string_of_char_list eq)
+                print_chk_option (clockof_var env eq)) cn.n_input;
+  List.iter (fun eq -> Format.printf "out %s = %a  \n"
+                (string_of_char_list eq)
+                print_chk_option (clockof_var env eq)) cn.n_output;
+  well_clocked_node env cn

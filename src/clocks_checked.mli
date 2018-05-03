@@ -1,10 +1,4 @@
 
-val negb : bool -> bool
-
-
-
-val fold_left : ('a1 -> 'a2 -> 'a1) -> 'a2 list -> 'a1 -> 'a1
-
 val string_dec : char list -> char list -> bool
 
 type ident = char list
@@ -59,9 +53,9 @@ val eqb : bool -> bool -> bool
 
 val clock_eqb : clock -> clock -> bool
 
-val clock_option_eqb : clock option -> clock option -> bool
-
 val clockof_var : clockenv -> ident -> clock option
+
+val clockof_vars : clockenv -> ident list -> clock option
 
 val clockof_lexp : clockenv -> lexp -> clock option
 
@@ -69,8 +63,8 @@ val clockof_lexps : clockenv -> lexp list -> clock option
 
 val clockof_cexp : clockenv -> cexp -> clock option
 
-val clockof_equation : clockenv -> equation -> clock option
+val well_clocked_eq : clockenv -> equation -> bool
 
-val clockof_eqs : clockenv -> equation list -> clock option
+val well_clocked_eqs : clockenv -> equation list -> bool
 
-val clockof_node : clockenv -> node -> clock option
+val well_clocked_node : clockenv -> node -> bool

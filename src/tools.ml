@@ -73,7 +73,7 @@ let rec string_of_pattern ?(prefix="") ?(suffix="") p =
   | Ident i -> prefix^i^suffix;
   | Typed (p,t) -> string_of_pattern p
   | PUnit -> "()"
-  | _ -> failwith "no tuple !"
+  | _ -> failwith "string_of_pattern : no tuple !"
 
 let rec string_list_of_pattern p =
     let open Parsing_ast in

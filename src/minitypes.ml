@@ -390,20 +390,21 @@ let rec assoc_env (env:(string * typ_scheme) list) p =
 
 let typ_equations gamma eqs =
   let rec typ_eq gamma eq =
-    let clk = typ_expr gamma eq.expression in
-    let pck = assoc_env gamma eq.pattern in
-    let pck = gen_instance pck in
     (try
-      unify pck clk;
-    with Unify (c1,c2) ->
-    let s = Format.asprintf "Type clash between %a and %a"
-        print_typ_scheme (unknowns_of_typ [] c1, c1)
-        print_typ_scheme (unknowns_of_typ [] c2, c2)
-    in
-    Error.print_error eq.expression.e_loc s);
-    { tpattern = eq.pattern ;
-      texpression = { te_desc = eq.expression.e_desc; te_typ = clk}
-    }
+       let clk = typ_expr gamma eq.expression in
+       let pck = assoc_env gamma eq.pattern in
+       let pck = gen_instance pck in
+       unify pck clk;
+       { tpattern = eq.pattern ;
+         texpression = { te_desc = eq.expression.e_desc; te_typ = clk}
+       }
+     with Unify (c1,c2) ->
+       (let s = Format.asprintf "Type clash between %a and %a"
+            print_typ_scheme (unknowns_of_typ [] c1, c1)
+            print_typ_scheme (unknowns_of_typ [] c2, c2)
+        in
+        Error.print_error eq.expression.e_loc s));
+
   in
   List.map (typ_eq gamma) eqs
 
