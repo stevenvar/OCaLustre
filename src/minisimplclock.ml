@@ -472,11 +472,14 @@ let clk_node gamma node =
     Parsing_ast_printer.print_pattern node.name
     print_ct node_clk_ins
     print_ct node_clk_outs;
-  ((Tools.string_of_pattern node.name,node_clk_scheme))::gamma,
-  {
-    cnode_clock = node_clk_scheme;
-    cname = node.name;
-    cinputs = node.inputs;
-    coutputs = node.outputs;
-    cequations = eqs
-  }
+  let new_env = (Tools.string_of_pattern node.name,node_clk_scheme)::gamma in
+  let cnode =
+    {
+      cnode_clock = node_clk_scheme;
+      cname = node.name;
+      cinputs = node.inputs;
+      coutputs = node.outputs;
+      cequations = eqs
+    } in
+  (* Format.printf "Checking : %b \n" (Check.check_node env cnode); *)
+  (env,new_env,cnode)

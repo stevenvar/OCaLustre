@@ -93,20 +93,23 @@ let create_node mapper str =
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           typ_env := Minitypes.typ_node !typ_env _sched_node;
-          let (new_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
-          simpl_env := new_env;
-          (* let (new_env,_cnode) = Clocking.clock_node !env _sched_node in *)
-          (* env := new_env; *)
-          (* if !clocks then Clocking_ast_printer.print_node *)
-              (* Format.std_formatter (_cnode,!verbose); *)
-          if !just_clock then [%str ] else
+          let (local_env,new_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
+          let check = (Check.check_node local_env _cnode) in
+          Format.printf "Checking : %b \n" check;
+          if check then
             begin
-              let _icnode = Compiling_w_clocks.compile_cnode _cnode in
-              if !verbose then Imperative_ast2.printml_node
+              simpl_env := new_env;
+              if !just_clock then [%str ] else
+                begin
+                  let _icnode = Compiling_w_clocks.compile_cnode _cnode in
+                  if !verbose then Imperative_ast2.printml_node
                       Format.std_formatter _icnode;
                   if not !nonalloc then create_functional_code _icnode
                   else create_imperative_code _sched_node
+                end
             end
+          else
+            Error.print_error _cnode.cname.p_loc "Clock checking has failed"
         end
       | _ -> Error.syntax_error s.pstr_loc "not a node"
     end

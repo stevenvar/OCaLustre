@@ -2,7 +2,7 @@
 open Parsing_ast
 open Parsing_ast_printer
 open Clocking_ast
-open Clocks
+
 
 let rec print_expression fmt (ce:cexpression) =
   let rec print_expression_list fmt el =
@@ -74,9 +74,9 @@ let rec print_expression fmt (ce:cexpression) =
 
 
 let print_equation fmt (eq,vars) =
-  Format.fprintf fmt "\t (%a : %a) = todo ;\n"
+  Format.fprintf fmt "\t (%a : todo) = todo ;\n"
     print_pattern eq.cpattern
-    print_clock (eq.cclock,[])
+    (* print_ct eq.cclock *)
     (* print_expression eq.cexpression *)
 
 let rec print_equations fmt (eqs,vars) =
@@ -89,15 +89,14 @@ let rec print_equations fmt (eqs,vars) =
 
 let print_node fmt (node,verbose) =
   let cs = node.cnode_clock in
-  let Forall(gv,gc,t) = cs in
+  let (gv,t) = cs in
   if verbose then
-  Format.fprintf fmt "node %a %a returns:%a :: \027[32m%a\027[0m = \n%a"
+  Format.fprintf fmt "node %a %a returns:%a = \n%a"
     print_pattern node.cname
     print_pattern node.cinputs
     print_pattern node.coutputs
-    Clocks.print_clock_scheme cs
+    (* Minisimplclock.print_ct t *)
     print_equations (node.cequations,gv)
   else
-    Format.fprintf fmt "%a :: \027[32m%a\027[0m\n%!"
+    Format.fprintf fmt "%a \n%!"
       print_pattern node.cname
-      Clocks.print_clock_scheme cs
