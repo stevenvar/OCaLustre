@@ -417,7 +417,7 @@ let get_all_vars node =
   (* let vars = [] in *)
   let ins = split_tuple node.inputs in
   (* let outs = split_tuple node.outputs in *)
-  Clocks.make_set (vars@ins)
+  Tools.make_set (vars@ins)
 
 let rec lookup_typ env p =
   let s = Tools.string_of_pattern p in

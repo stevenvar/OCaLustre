@@ -113,13 +113,14 @@ let clock_expr gamma (e:expression) =
   let rec clock_rec e =
   (* Format.printf "Clocking expression %a \n" *)
      (* Parsing_ast_printer.print_expression e; *)
+
     match e.e_desc with
-    | Value Nil ->
-      let clk = Var (Clocks.new_varclock ()) in clk
     | Value v ->
-      let clk = Var (Clocks.new_varclock ()) in clk
+      let clk = Var (Clocks.new_varclock ()) in
+      { ce_loc = e.e_loc; ce_desc = CValue v; ce_clock = clk }
     | Unit ->
-       let clk = Var (Clocks.new_varclock ()) in clk
+      let clk = Var (Clocks.new_varclock ()) in
+      { ce_loc = e.e_loc; ce_desc = CUnit; ce_clock = clk }
     | Variable n ->
       (* get the clock scheme of n in the env *)
       let sigma =
@@ -132,29 +133,29 @@ let clock_expr gamma (e:expression) =
         (* instantiate it *)
       in
       let gs = Clocks.gen_instance sigma in
-      gs
+      { ce_loc = e.e_loc; ce_desc = CVariable n; ce_clock = gs }
     | InfixOp (op,e1,e2) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
-      Clocks.unify(e1,e2);
-      e1
+      Clocks.unify(e1.ce_clock,e2.ce_clock);
+      { ce_loc = e.e_loc; ce_desc = CInfixOp (op,e1,e2); ce_clock = e1.ce_clock }
     | Alternative (e1,e2,e3) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
       let e3 = clock_rec e3 in
-      Clocks.unify(e1,e2);
-      Clocks.unify(e2,e3);
-      e1
+      Clocks.unify(e1.ce_clock,e2.ce_clock);
+      Clocks.unify(e2.ce_clock,e3.ce_clock);
+      { ce_loc = e.e_loc; ce_desc = CAlternative (e1,e2,e3); ce_clock = e1.ce_clock }
     | Application(id,num,e') ->
-      let fun_ck = Clocks.clock_lookup id gamma in
-      let fun_ck' = Clocks.gen_instance fun_ck in
+      (* let fun_ck = Clocks.clock_lookup id gamma in *)
+      (* let fun_ck' = Clocks.gen_instance fun_ck in *)
       let ce' = clock_rec e' in
-    (*let's just say that the outputs is on the clock of the inputs*)
+      (*let's just say that the outputs are on the clock of the inputs*)
       let get_one_input_clock =
             function CTuple tl -> List.hd tl
                    | c -> c
           in
-          let c = get_one_input_clock ce' in
+          let c = get_one_input_clock ce'.ce_clock in
           let u = Var (Clocks.new_varclock ()) in
           (* let t = Arrow (ce',u) in *)
           (* Clocks.unify(t,fun_ck'); *)
@@ -169,8 +170,7 @@ let clock_expr gamma (e:expression) =
             | c -> c
           in
           let u = put_all_output_clocks c u in
-          u
-
+          { ce_clock = u; ce_desc = CApplication (id,num,ce'); ce_loc = e.e_loc }
     | Clock e -> clock_rec e
     | When (e',c) ->
       let e' = clock_rec e' in
@@ -180,9 +180,9 @@ let clock_expr gamma (e:expression) =
       let tt = (Arrow (a,Arrow(a,On(a,s)))) in
       (* clock of result *)
       let u = Var (Clocks.new_varclock ()) in
-      let new_type = Arrow(e',Arrow(c',u)) in
+      let new_type = Arrow(e'.ce_clock,Arrow(c'.ce_clock,u)) in
       Clocks.unify(tt,new_type);
-      u
+      { ce_clock = u; ce_desc = CWhen(e',c'); ce_loc = e.e_loc }
     | Whennot (e',c) ->
       let e' = clock_rec e' in
       let c' = clock_rec c in
@@ -190,10 +190,10 @@ let clock_expr gamma (e:expression) =
       let a = Var (Clocks.new_varclock ()) in
       let tt = (Arrow (a,Arrow(a,Onnot(a,s)))) in
       let u = Var (Clocks.new_varclock ()) in
-      let new_type = Arrow(e',Arrow(c',u)) in
+      let new_type = Arrow(e'.ce_clock,Arrow(c'.ce_clock,u)) in
       (* Clocks.unify_with_carriers(new_type,tt); *)
       Clocks.unify(tt,new_type);
-      u
+      { ce_clock = u; ce_desc = CWhennot(e',c'); ce_loc = e.e_loc }
     | Merge (c,e1,e2) ->
       let c' = clock_rec c in
       let s = NameCar (get_ident c) in
@@ -202,47 +202,47 @@ let clock_expr gamma (e:expression) =
       let a = Var(Clocks.new_varclock () ) in
       let tt = Arrow(a, Arrow(On(a,s),Arrow(Onnot(a,s),a))) in
       let u = Var (Clocks.new_varclock () ) in
-      let new_type = Arrow(c',Arrow(e1,Arrow(e2,u))) in
+      let new_type = Arrow(c'.ce_clock,Arrow(e1.ce_clock,Arrow(e2.ce_clock,u))) in
       Clocks.unify(tt,new_type);
-      u
+      { ce_clock = u; ce_loc = e.e_loc; ce_desc = CMerge(c',e1,e2) }
     | ETuple es ->
       let es = List.map clock_rec es in
       (* say that the clock of a tuple should be the same everywhere *)
       let c = Var (Clocks.new_varclock ()) in
-      List.iter (fun x -> Clocks.unify(x,c)) es;
+      List.iter (fun x -> Clocks.unify(x.ce_clock,c)) es;
       (* CTuple es *)
-      c
+      { ce_clock = c ; ce_loc = e.e_loc; ce_desc = CETuple es }
     | Fby (e1,e2) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
-      Clocks.unify(e1,e2);
-      e1
+      Clocks.unify(e1.ce_clock,e2.ce_clock);
+      { ce_clock = e2.ce_clock; ce_loc = e.e_loc; ce_desc = CFby(e1,e2) }
     | PrefixOp (op,e') ->
       let e' = clock_rec e' in
-      e'
+      { ce_clock = e'.ce_clock; ce_desc = CPrefixOp (op,e'); ce_loc = e.e_loc }
     | Call e' ->
       let a = Var(Clocks.new_varclock ()) in
-      a
+      { ce_clock = a; ce_desc =CCall e'; ce_loc = e.e_loc }
     | Pre e ->
       let e' = clock_rec e in
-      e'
+      { ce_clock = e'.ce_clock; ce_desc = CPre e'; ce_loc = e.e_loc }
     | Arrow (e1,e2) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
-      Clocks.unify(e1,e2);
-      e1
+      Clocks.unify(e1.ce_clock,e2.ce_clock);
+      { ce_clock = e1.ce_clock; ce_desc = CArrow (e1,e2); ce_loc = e.e_loc }
     | Array el ->
-      let clks = List.map clock_rec el in
-      let c = List.hd clks in
-      List.iter (fun x -> Clocks.unify(c,x)) clks;
-      List.hd clks
+      let els = List.map clock_rec el in
+      let c = List.hd els in
+      List.iter (fun x -> Clocks.unify(c.ce_clock,x.ce_clock)) els;
+      { ce_clock = c.ce_clock; ce_desc = CArray els; ce_loc = e.e_loc }
     | Imperative_update (e,l) ->
       clock_rec e
     | Array_get (e1,e2) ->
       let e1 = clock_rec e1 in
       let e2 = clock_rec e2 in
-      Clocks.unify(e1,e2);
-      e1
+      Clocks.unify(e1.ce_clock,e2.ce_clock);
+      { ce_clock = e1.ce_clock; ce_desc = CArray_get (e1,e2); ce_loc = e.e_loc }
     | _ -> failwith "todo"
   in
   try
@@ -297,10 +297,11 @@ let split_pattern pat =
 
 let clock_equation gamma {pattern; expression} =
   (* Clocks.print_env Format.std_formatter gamma; *)
-  let clock = clock_expr gamma expression in
+  let cexpression = (clock_expr gamma expression) in
+  let clock = cexpression.ce_clock in
   let gamma' = List.map (fun (x,y) -> x, Clocks.gen_instance y) gamma in
-  let p = match pattern.p_desc with Tuple tl -> List.hd tl | p -> pattern in
-  let pck = lookup gamma' p in
+  (* let p = match pattern.p_desc with Tuple tl -> List.hd tl | p -> pattern in *)
+  (* let pck = lookup gamma' p in *)
   let open Clocks in
   try
    ( match pattern.p_desc with
@@ -308,7 +309,7 @@ let clock_equation gamma {pattern; expression} =
     | p -> unify(lookup gamma' pattern,clock)
    )  ;
     (* ((string_of_pat pattern,generalise_type gamma pck)::gamma) *)
-  gamma,{ cpattern = pattern; cexpression = expression ; cclock = clock }
+  gamma,{ cpattern = pattern; cexpression = cexpression ; cclock = clock }
   with Clocks.ClockClash (c1,c2) ->
     begin
       let open Clocks in

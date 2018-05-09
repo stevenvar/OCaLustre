@@ -1,24 +1,5 @@
-type clkvar = { index : int; mutable value : ck }
-and clk_scheme = int list * ct
-
-(** AST inspired from "Clock-directed modular code generation" **)
-
-and ident = string
-
-and ct =
-  | Ck of ck
-  | CTuple of ct list
-
-and ck =
-  | CBase
-  | CUnknown
-  | CVariable of clkvar
-  | Con of ck * ident
-  | Connot of ck * ident
-
+open Clocking_ast
 open Parsing_ast
-
-type cexpression = { ce_desc : exp_desc ; ce_clk : ct }
 
 (** Printing **)
 
@@ -32,14 +13,14 @@ let tvar_name n =
 
 let rec print_ck fmt c =
   match c with
-  | CBase -> Format.fprintf fmt "base"
-  | CUnknown -> Format.fprintf fmt "?"
-  | CVariable { index = n; value = CUnknown } ->
+  | CkBase -> Format.fprintf fmt "base"
+  | CkUnknown -> Format.fprintf fmt "?"
+  | CkVariable { index = n; value = CkUnknown } ->
     Format.fprintf fmt "'%d" n
-  | CVariable { index = n; value = c } ->
+  | CkVariable { index = n; value = c } ->
     Format.fprintf fmt "%a" print_ck c
-  | Con (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
-  | Connot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
+  | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
+  | Ckonnot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
 
 let rec print_ct fmt c =
   let rec print_tuple fmt l =
@@ -50,7 +31,7 @@ let rec print_ct fmt c =
   in
   match c with
   | Ck ck -> print_ck fmt ck
-  | CTuple cks -> print_tuple fmt cks
+  | CkTuple cks -> print_tuple fmt cks
 
 
 (** Variables **)
@@ -59,7 +40,7 @@ let new_varclk, reset_varclk =
   let cpt = ref 0 in
   (fun () ->
      incr cpt;
-     CVariable { index = !cpt ; value = CUnknown }),
+     CkVariable { index = !cpt ; value = CkUnknown }),
   (fun () -> cpt := 0)
 
 (** Shorten **)
@@ -69,38 +50,38 @@ exception Occurs
 
 let occurs_ck { index = n; value = _} =
   let rec occrec = function
-    | CVariable { index = m; value = _} -> if n = m then raise Occurs
-    | CUnknown -> raise Occurs
-    | CBase -> ()
-    | Con (ck,x) -> occrec ck
-    | Connot (ck,x) -> occrec ck
+    | CkVariable { index = m; value = _} -> if n = m then raise Occurs
+    | CkUnknown -> raise Occurs
+    | CkBase -> ()
+    | Ckon (ck,x) -> occrec ck
+    | Ckonnot (ck,x) -> occrec ck
   in
   occrec
 
 let rec occurs_ct var =
   function
   | Ck ck -> occurs_ck var ck
-  | CTuple cts -> List.iter (fun s -> occurs_ct var s) cts
+  | CkTuple cts -> List.iter (fun s -> occurs_ct var s) cts
 
 let rec shorten_ck c =
   match c with
-  | CUnknown -> failwith "shorten"
-  | CVariable { index = _; value = CUnknown} -> c
-  | CVariable { index = _;
-                   value = CVariable ({ index = _;
-                                         value = CUnknown }) as tv} -> tv
-  | CVariable ({ index = _; value = CVariable tv1 } as tv2) ->
+  | CkUnknown -> failwith "shorten"
+  | CkVariable { index = _; value = CkUnknown} -> c
+  | CkVariable { index = _;
+                   value = CkVariable ({ index = _;
+                                         value = CkUnknown }) as tv} -> tv
+  | CkVariable ({ index = _; value = CkVariable tv1 } as tv2) ->
     tv2.value <- tv1.value;
     shorten_ck c
-  | CVariable { index = _ ; value = t' } -> shorten_ck t'
-  | Con (ck,x) -> Con (shorten_ck ck, x)
-  | Connot (ck,x) -> Connot (shorten_ck ck, x)
+  | CkVariable { index = _ ; value = t' } -> shorten_ck t'
+  | Ckon (ck,x) -> Ckon (shorten_ck ck, x)
+  | Ckonnot (ck,x) -> Ckonnot (shorten_ck ck, x)
   | _ -> c
 
 let rec shorten_ct c =
   match c with
   | Ck ck -> Ck (shorten_ck ck)
-  | CTuple cts -> CTuple (List.map shorten_ct cts)
+  | CkTuple cts -> CkTuple (List.map shorten_ct cts)
 
 (** Unify **)
 
@@ -113,20 +94,20 @@ let rec unify_ck c1 c2 =
   (* Format.printf "Unify %a and %a \n" print_ck c1 print_ck c2; *)
   try
     (match t1, t2 with
-     | CBase, CBase -> ()
-     | CVariable ({ index = n ; value = CUnknown } as tv1),
-       CVariable ({ index = m; value = CUnknown } as tv2) ->
+     | CkBase, CkBase -> ()
+     | CkVariable ({ index = n ; value = CkUnknown } as tv1),
+       CkVariable ({ index = m; value = CkUnknown } as tv2) ->
        if n <> m then tv1.value <- t2
-     | CVariable ({ index = n ; value = CUnknown } as tv), c2 ->
+     | CkVariable ({ index = n ; value = CkUnknown } as tv), c2 ->
        occurs_ck tv c2;
        tv.value <- c2
-     | c1 , CVariable ({ index = n ; value = CUnknown } as tv) ->
+     | c1 , CkVariable ({ index = n ; value = CkUnknown } as tv) ->
        occurs_ck tv c1;
        tv.value <- c1
-     | Con(ck,s), Con(ck',s') ->
+     | Ckon(ck,s), Ckon(ck',s') ->
        if s = s' then unify_ck ck ck'
        else raise (Unify_ck (t1,t2))
-     | Connot(ck,s), Connot(ck',s') ->
+     | Ckonnot(ck,s), Ckonnot(ck',s') ->
        if s = s' then unify_ck ck ck'
        else raise (Unify_ck (t1,t2))
      | _ -> raise (Unify_ck (t1, t2)))
@@ -139,7 +120,7 @@ let rec unify_ct c1 c2 =
   try
     (match c1,c2 with
      | Ck c1, Ck c2 -> unify_ck c1 c2
-     | CTuple cts, CTuple cts' ->
+     | CkTuple cts, CkTuple cts' ->
        (try
          List.iter2 (fun c d -> unify_ct c d) cts cts'
        with Invalid_argument _ -> Error.print_error Location.none "Not the same number of elements")
@@ -154,23 +135,23 @@ let gen_instance (gv,tau) =
   let gv_unknowns = List.map (fun n -> n, new_varclk ()) gv in
   let rec ginstance t =
     match t with
-    | CVariable { index = n; value = CUnknown}->
+    | CkVariable { index = n; value = CkUnknown}->
       begin try
           List.assoc n gv_unknowns
         with Not_found -> t
       end
-    | CVariable { index = _; value = t } -> ginstance t
-    | CUnknown -> failwith "gen_instance"
-    | Con (ck,x) -> Con(ginstance ck, x)
-    | Connot (ck,x) -> Connot(ginstance ck, x)
-    | CBase -> CBase
+    | CkVariable { index = _; value = t } -> ginstance t
+    | CkUnknown -> failwith "gen_instance"
+    | Ckon (ck,x) -> Ckon(ginstance ck, x)
+    | Ckonnot (ck,x) -> Ckonnot(ginstance ck, x)
+    | CkBase -> CkBase
   in
   ginstance tau
 
 let rec gen_instance_ct (gv,tau) =
   match tau with
   | Ck ck -> Ck (gen_instance (gv,ck))
-  | CTuple cts -> CTuple (List.map (fun ct -> gen_instance_ct (gv,ct)) cts)
+  | CkTuple cts -> CkTuple (List.map (fun ct -> gen_instance_ct (gv,ct)) cts)
 
 (** Generalization **)
 
@@ -178,20 +159,20 @@ let rec gen_instance_ct (gv,tau) =
 let vars_of_clk tau =
   let rec vars vs v =
     match v with
-    | CUnknown -> failwith "vars_of_clk"
-    | CVariable { index = n; value = CUnknown} ->
+    | CkUnknown -> failwith "vars_of_clk"
+    | CkVariable { index = n; value = CkUnknown} ->
       if List.mem n vs then vs else (n::vs)
-    | CVariable { index = n; value = t } -> vars vs t
-    | Con (ck,x) -> vars vs ck
-    | Connot (ck,x) -> vars vs ck
-    | CBase -> vs
+    | CkVariable { index = n; value = t } -> vars vs t
+    | Ckon (ck,x) -> vars vs ck
+    | Ckonnot (ck,x) -> vars vs ck
+    | CkBase -> vs
   in vars [] tau
 
 let vars_of_clk_ct tau =
   let rec vars vs v =
     match v with
     | Ck ck -> vars_of_clk ck
-    | CTuple cts -> List.fold_left (fun acc ct -> vars acc ct) vs cts
+    | CkTuple cts -> List.fold_left (fun acc ct -> vars acc ct) vs cts
   in vars [] tau
 
 let substract l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1
@@ -206,26 +187,21 @@ let unknowns_of_clk_env env =
       (v::vs)) [] env in
   List.flatten vs
 
-let rec make_set l =
-  match l with
-  | [] -> []
-  | x::l -> if List.mem x l then make_set l else x :: make_set l
-
 let generalize_clk gamma  tau =
   let vs = vars_of_clk_ct tau in
   let uv = unknowns_of_clk_env gamma in
-  let genvars = make_set (substract vs uv) in
+  let genvars = Tools.make_set (substract vs uv) in
   genvars, tau
 
 let len clk =
   match clk with
   | Ck ck -> 1
-  | CTuple cts -> List.length cts
+  | CkTuple cts -> List.length cts
 
 let mk_len_clock c n =
   let rec aux n acc=
     match n with
-    | 0 -> CTuple acc
+    | 0 -> CkTuple acc
     | _ -> aux (n-1) (c::acc)
   in
   if n = 1 then c
@@ -247,9 +223,16 @@ let rec clk_expr (gamma : (string * clk_scheme) list) e =
   try
     begin
       match e.e_desc with
-      | Unit -> Ck CBase
-      | Value _ -> Ck CBase
-      | Call _ -> Ck CBase
+      (* | Unit -> Ck Base *)
+      (* | Value _ -> Ck CBase *)
+      | Call y ->
+        { ce_desc = CCall y; ce_loc = e.e_loc; ce_clk = Ck CkBase }
+      | Unit ->
+        let ck = Ck (new_varclk ()) in
+        { ce_desc = CUnit; ce_loc = e.e_loc; ce_clk = ck }
+      | Value v ->
+        let ck = Ck (new_varclk ()) in
+        { ce_desc = CValue v; ce_loc = e.e_loc; ce_clk = ck }
       | Variable n ->
         let sigma = try List.assoc n gamma
           with Not_found ->
@@ -257,75 +240,78 @@ let rec clk_expr (gamma : (string * clk_scheme) list) e =
             Error.print_error e.e_loc s
         in
         let s = gen_instance_ct sigma in
-        s
+        { ce_desc = CVariable n; ce_loc = e.e_loc; ce_clk = s }
       | PrefixOp (op,e) ->
         let t = clk_expr gamma e in
         t
       | InfixOp (op,e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        unify_ct t1 t2;
-        t1
+        unify_ct t1.ce_clk t2.ce_clk;
+        { ce_desc = CInfixOp (op,t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | Alternative (e1,e2,e3) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
         let t3 = clk_expr gamma e3 in
-        unify_ct t1 t2;
-        unify_ct t2 t3;
-        t1
+        unify_ct t1.ce_clk t2.ce_clk;
+        unify_ct t2.ce_clk t3.ce_clk;
+        { ce_desc = CAlternative (t1,t2,t3); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | Fby (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        unify_ct t1 t2;
-        t1
+        unify_ct t1.ce_clk t2.ce_clk;
+        { ce_desc = CFby (t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | Pre e -> clk_expr gamma e
       | Arrow (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
-        unify_ct t1 t2;
-        t1
+        unify_ct t1.ce_clk t2.ce_clk;
+        { ce_desc = CArrow (t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | When (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
         let x = get_ident e2 in
-        unify_ct t1 t2;
+        unify_ct t1.ce_clk t2.ce_clk;
         let u = new_varclk () in
-        unify_ct (Ck u) t1;
-        Ck (Con(u,x))
-      | Application (id,num,e) ->
+        unify_ct (Ck u) t1.ce_clk;
+        { ce_desc = CWhen(t1,t2) ; ce_loc = e.e_loc; ce_clk = Ck (Ckon(u,x)) }
+      | Application (id,num,ee) ->
         let fun_clock = clk_expr gamma { e_desc = Variable id;
                                          e_loc = Location.none} in
-        let arity = len fun_clock in
-        let params = match e.e_desc with
+        let arity = len fun_clock.ce_clk in
+        let params = match ee.e_desc with
           | ETuple  es -> es
-          | _ -> [e]
+          | _ -> [ee]
         in
         let es = List.map (fun x -> clk_expr gamma x) params in
-        let ck = List.fold_left (fun acc x -> unify_ct x acc; x) (List.hd es) es in
-        mk_len_clock ck arity
-        (* List.hd es *)
-        (* (match es with *)
-        (* | [] -> failwith "?" *)
-        (* | [x] -> x *)
-        (* | _ ->  CTuple es) *)
+        let ck = List.fold_left (fun acc x -> unify_ct x.ce_clk acc; x.ce_clk)
+            ((List.hd es).ce_clk) es in
+        let es' = match es with [h] -> h | _ -> { ce_desc = CETuple es;
+                                                  ce_clk = ck;
+                                                  ce_loc = ee.e_loc} in
+        { ce_desc = CApplication(id,num,es') ;
+          ce_loc = e.e_loc;
+          ce_clk = mk_len_clock ck arity }
       | Whennot (e1,e2) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
         let x = get_ident e2 in
         let u = new_varclk () in
-        unify_ct (Ck u) t1;
-        unify_ct t1 t2;
-        Ck (Connot(u,x))
+        unify_ct (Ck u) t1.ce_clk;
+        unify_ct t1.ce_clk t2.ce_clk;
+        { ce_desc = CWhennot(t1,t2);
+          ce_loc = e.e_loc ;
+          ce_clk = Ck(Ckonnot(u,x))}
       | Merge (e1,e2,e3) ->
         let t1 = clk_expr gamma e1 in
         let t2 = clk_expr gamma e2 in
         let t3 = clk_expr gamma e3 in
         let x = get_ident e1 in
         let u = new_varclk () in
-        unify_ct (Ck u) t1;
-        unify_ct (Ck (Con(u,x))) t2;
-        unify_ct (Ck (Connot(u,x))) t3;
-        t1
+        unify_ct (Ck u) t1.ce_clk;
+        unify_ct (Ck (Ckon(u,x))) t2.ce_clk;
+        unify_ct (Ck (Ckonnot(u,x))) t3.ce_clk;
+        { ce_desc = CMerge (t1,t2,t3); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | _ ->
         let s = Format.asprintf "%a : todo" Parsing_ast_printer.print_expression e in
         Error.print_error e.e_loc s
@@ -337,7 +323,12 @@ let rec clk_expr (gamma : (string * clk_scheme) list) e =
 
 let rec clk_expr_ct (gamma : (string * clk_scheme) list) e =
   match e.e_desc with
-  | ETuple es -> CTuple (List.map (clk_expr_ct gamma) es)
+  | ETuple es ->
+    let es' = List.map (clk_expr_ct gamma) es in
+    let h = List.hd es' in
+    { ce_desc = CETuple (List.map (clk_expr_ct gamma) es);
+      ce_clk = h.ce_clk;
+      ce_loc = e.e_loc}
   | _ ->  (clk_expr gamma e)
 
 
@@ -354,7 +345,7 @@ let print_env env =
         x
         print_ct y) env
 
-type cequation = { cpattern : Parsing_ast.pattern ; cexpression : cexpression }
+(* type cequation = { cpattern : Parsing_ast.pattern ; cexpression : cexpression } *)
 
 let rec lookup env p =
    match p.p_desc with
@@ -365,7 +356,7 @@ let rec lookup env p =
         Error.print_error p.p_loc ("Not found : "^i))
   | Tuple t ->
      let clks = List.map (lookup env) t in
-     let clk = CTuple clks in clk
+     let clk = CkTuple clks in clk
   | PUnit -> failwith "unit"
   | Typed (p,t) -> lookup env p
 
@@ -382,9 +373,9 @@ let split_tuple p =
 
 let group_tuple pl =
   match pl with
-  | [] -> Ck CUnknown
+  | [] -> Ck CkUnknown
   | [x] -> x
-  | _ -> CTuple pl
+  | _ -> CkTuple pl
 
 
 let rec assoc_env (env:(string * clk_scheme) list) p : clk_scheme =
@@ -397,8 +388,8 @@ let rec assoc_env (env:(string * clk_scheme) list) p : clk_scheme =
   | Tuple t ->
     let clks = List.map (assoc_env env) t in
     let clks = List.map (gen_instance_ct) clks in
-    (* let clk = CTuple clks in generalize_clk env clk *)
-    ([],CTuple clks)
+    (* let clk = CkTuple clks in generalize_clk env clk *)
+    ([],CkTuple clks)
   | PUnit -> failwith "unit"
   | Typed (p,t) -> assoc_env env p
 
@@ -407,25 +398,33 @@ let clk_equations gamma eqs =
   let rec clk_eq (gamma:(string* clk_scheme) list) eq =
     let pck = assoc_env gamma eq.pattern in
     let pck = gen_instance_ct pck in
-    let clk = clk_expr_ct gamma eq.expression in
+    let cexp = clk_expr_ct gamma eq.expression in
     (try
-      unify_ct pck clk;
+      unify_ct pck cexp.ce_clk;
     with Unify_ct (c1,c2) ->
     let s = Format.asprintf "This expression has clock %a but %a was expected"
         print_ct c2 print_ct c1 in
     Error.print_error eq.expression.e_loc s);
     { cpattern = eq.pattern ;
-      cexpression = { ce_desc = eq.expression.e_desc; ce_clk = clk}
+      cexpression = cexp;
+      cclock = cexp.ce_clk
     }
   in
   List.map (clk_eq gamma) eqs
 
-
+let rec make_set l =
+    match l with
+    | [] -> []
+    | x::xs ->
+      if List.mem x xs then
+        make_set l
+      else
+        x :: (make_set xs)
 
 let get_all_inouts node =
   let ins = split_tuple node.inputs in
   let outs = split_tuple node.outputs in
-  Clocks.make_set (ins@outs)
+  make_set (ins@outs)
 
 let get_all_vars node =
   let vars =
@@ -436,7 +435,7 @@ let get_all_vars node =
   let inouts = split_tuple node.outputs in
   let inouts = List.map Tools.string_of_pattern inouts in
   let vars = substract vars inouts in
-  Clocks.make_set vars
+  make_set vars
 
 let rec lookup_clk env p =
   let s = Tools.string_of_pattern p in
@@ -450,7 +449,7 @@ let clk_node gamma node =
   let inouts = get_all_inouts node in
   let inouts = List.map Tools.string_of_pattern inouts in
   let inout_clks =
-    List.map (fun x -> (x,([],Ck CBase))) inouts in
+    List.map (fun x -> (x,([],Ck CkBase))) inouts in
   let vars = get_all_vars node in
   let vars_clks =
     List.map (fun x -> (x,([],Ck (new_varclk())))) vars in
@@ -469,6 +468,15 @@ let clk_node gamma node =
   let node_clk_outs = ckouts in
   (* print_env env; *)
   let node_clk_scheme = generalize_clk [] node_clk_outs in
-  Format.printf "ins :: %a \n" print_ct node_clk_ins;
-  Format.printf "outs :: %a \n" print_ct node_clk_outs;
-  ((Tools.string_of_pattern node.name,node_clk_scheme))::gamma
+  Format.printf "%a :: %a -> %a \n"
+    Parsing_ast_printer.print_pattern node.name
+    print_ct node_clk_ins
+    print_ct node_clk_outs;
+  ((Tools.string_of_pattern node.name,node_clk_scheme))::gamma,
+  {
+    cnode_clock = node_clk_scheme;
+    cname = node.name;
+    cinputs = node.inputs;
+    coutputs = node.outputs;
+    cequations = eqs
+  }

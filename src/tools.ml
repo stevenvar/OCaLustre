@@ -128,3 +128,9 @@ let rec pat_of_pattern p =
       ppat_desc = Ppat_constraint (pat_of_pattern p, core_type) ;
       ppat_loc = p.p_loc;
       ppat_attributes = []}
+
+
+let rec make_set l =
+  match l with
+  | [] -> []
+  | x::l -> if List.mem x l then make_set l else x :: make_set l

@@ -1,17 +1,24 @@
 open Parsing_ast
 
-type carrier = UnknownCar | NameCar of string | VarCar of varcar
+type clkvar = { index : int; mutable value : ck }
+and clk_scheme = int list * ct
 
-and varcar = { cindex : int; mutable cvalue : carrier }
+(** AST inspired from "Clock-directed modular code generation" **)
 
-type clock = Unknown
-           | Base
-           | Var of varclock
-           | CTuple of clock list
-           | Arrow of clock * clock
-           | On of clock * carrier
-           | Onnot of clock * carrier
-           | Carrier of carrier * clock (* clocks with a name like c :: 'a *)
+and ident = string
+
+and ct =
+  | Ck of ck
+  | CkTuple of ct list
+
+and ck =
+  | CkBase
+  | CkUnknown
+  | CkVariable of clkvar
+  | Ckon of ck * ident
+  | Ckonnot of ck * ident
+
+type cexpression = { ce_desc : cexp_desc ; ce_clk : ct; ce_loc : Location.t }
 
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
@@ -37,12 +44,8 @@ and cexp_desc =
   | CUnit
 
 
-and varclock = { index : int ; mutable value : clock }
-(* clocks vars * carriers vars * clock *)
-and clock_scheme = Forall of int list * int list * clock
-
 and cnode = {
-    cnode_clock : clock_scheme;
+    cnode_clock : clk_scheme;
     cname : pattern;
     cinputs : pattern;
     coutputs : pattern;
@@ -50,21 +53,6 @@ and cnode = {
 }
 and cequation = {
   cpattern : pattern;
-  cexpression : expression;
-  cclock : clock;
+  cexpression : cexpression;
+  cclock : ct;
 }
-
-and cexpression = {
-  ce_desc : cexp_desc ;
-  ce_loc : Location.t;
-  (* ce_clock : clock; *)
-}
-and cpattern = {
-  cp_desc : cpatt_desc;
-  cp_loc : Location.t;
-  (* cp_clock : clock_scheme *)
-}
-and cpatt_desc =
-  | CkIdent of ident
-  | CkTuple of cpattern list
-  | CkPUnit
