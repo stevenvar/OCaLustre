@@ -23,6 +23,7 @@ let lustre = ref false
 let no_auto = ref false
 let why = ref false
 let nonalloc = ref false
+let check = ref false
 let typing = ref false
 let not_printed_wrapper = ref true
 let just_clock = ref false
@@ -94,9 +95,9 @@ let create_node mapper str =
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           typ_env := Minitypes.typ_node !typ_env _sched_node;
           let (local_env,new_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
-          let check = (Check.check_node local_env _cnode) in
-          Format.printf "Checking : %b \n" check;
-          if check then
+          let checked = if !check then (Check.check_node local_env _cnode) else true in
+          if !check then Format.printf "Checking : %b \n" checked;
+          if checked then
             begin
               simpl_env := new_env;
               if !just_clock then [%str ] else
@@ -132,6 +133,7 @@ let _ =
                   ("-m", Arg.Set_string main, "Generate main function");
                   ("-i", Arg.Set clocks, "Prints node clocks");
                   ("-clk", Arg.Set just_clock, "Just infer clocks, and stop");
+                  ("-check_clocks", Arg.Set check, "Check clock inference");
                   ("-t", Arg.Set typing, "Prints node types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;

@@ -40,9 +40,9 @@ let rec check_clock_of_clock (c:ct) =
     match c with
     | Clocking_ast.CkBase -> Cbase
     | Clocking_ast.Ckon (c, i) ->
-      Con (aux c, char_list_of_string i, true)
+      Con (aux c, char_list_of_string i)
     | Clocking_ast.Ckonnot (c, i) ->
-      Con (aux c, char_list_of_string i, false)
+      Conot (aux c, char_list_of_string i)
     | _ -> raise (WrongClock c)
   in
   match c with
@@ -61,19 +61,19 @@ let rec check_lexp_of_cexpression (ce:cexpression) =
     | Clocking_ast.CInfixOp (op, e1, e2) ->
       let e1 = check_lexp_of_cexpression e1 in
       let e2 = check_lexp_of_cexpression e2 in
-      Ebinop (e1,e2)
+      Ebinop (Op,e1,e2)
     (* | Clocking_ast.CPrefixOp (_, _) -> (??) *) (* todo *)
     | Clocking_ast.CValue _ ->
-      Econst (Cconst, check_clock_of_clock ce.ce_clk)
+      Econst (Cc, check_clock_of_clock ce.ce_clk)
     | Clocking_ast.CVariable v -> Evar (char_list_of_string v)
     | Clocking_ast.CWhen (e1,e2) ->
       Ewhen(check_lexp_of_cexpression e1,
-            char_list_of_string (ident_of_cexpr e2),true)
+            char_list_of_string (ident_of_cexpr e2))
     | Clocking_ast.CWhennot (e1,e2) ->
-      Ewhen(check_lexp_of_cexpression e1,
-            char_list_of_string (ident_of_cexpr e2),false)
+      Ewhenot(check_lexp_of_cexpression e1,
+            char_list_of_string (ident_of_cexpr e2))
     | Clocking_ast.CUnit ->
-      Econst (Cconst, check_clock_of_clock ce.ce_clk)
+      Econst (Cc, check_clock_of_clock ce.ce_clk)
     | _ ->
       let s = Format.asprintf "%a : not a lexp"
           Clocking_ast_printer.print_expression ce in
@@ -104,14 +104,15 @@ let rec check_cexp_of_cexpression (ce:cexpression) =
 
 let const_of_cexpression ce =
   match ce.ce_desc with
-  | CValue v -> Cconst
+  | CValue v -> Cc
   | _ -> failwith "not a constant"
 
 
 let rec print_chk fmt c =
   match c with
   | Cbase -> Format.fprintf fmt "BASE"
-  | Con (c,i,b) -> Format.fprintf fmt "(%a on (%s,%b))" print_chk c (string_of_char_list i) b
+  | Con (c,i) -> Format.fprintf fmt "(%a on %s)" print_chk c (string_of_char_list i)
+  | Conot (c,i) -> Format.fprintf fmt "(%a onnot %s)" print_chk c (string_of_char_list i)
 
 let check_equation_of_equation { cpattern; cexpression; cclock } =
   try
@@ -144,15 +145,17 @@ let check_equation_of_equation { cpattern; cexpression; cclock } =
            Minisimplclock.print_ct ct in
        Error.print_error cexpression.ce_loc s
 
-let check_equations_of_equations eqs =
-  List.map (check_equation_of_equation) eqs
+let rec check_equations_of_equations eqs =
+  match eqs with
+  | [] -> failwith "empty list"
+  | [e] -> Nebase (check_equation_of_equation e)
+  | h::t -> Necons ((check_equation_of_equation h),(check_equations_of_equations t))
 
 let check_node_of_node n =
-  { n_name = char_list_of_string (string_of_pattern n.cname);
-    n_input = List.map char_list_of_string (string_list_of_pattern n.cinputs) |> nelist_of_list;
-    n_output = List.map char_list_of_string (string_list_of_pattern n.coutputs) |> nelist_of_list;
-    n_eqs = check_equations_of_equations n.cequations
-  }
+  Mk_node ((char_list_of_string (string_of_pattern n.cname)),
+    (List.map char_list_of_string (string_list_of_pattern n.cinputs) |> nelist_of_list),
+    (List.map char_list_of_string (string_list_of_pattern n.coutputs) |> nelist_of_list),
+    (check_equations_of_equations n.cequations))
 
 let rec print_chk_option fmt c =
   match c with

@@ -17,52 +17,47 @@ type 'a nelist =
 
 type ident = char list
 
-(** val ident_eqb : char list -> char list -> bool **)
+type const =
+| Cc
 
-let ident_eqb s1 s2 =
-  if string_dec s1 s2 then true else false
+type operator =
+| Op
 
 type clock =
 | Cbase
-| Con of clock * ident * bool
-
-type const =
-| Cconst
+| Con of clock * ident
+| Conot of clock * ident
 
 type lexp =
 | Econst of const * clock
 | Evar of ident
-| Ewhen of lexp * ident * bool
-| Ebinop of lexp * lexp
-
-type lexps = lexp nelist
+| Ebinop of operator * lexp * lexp
+| Ewhen of lexp * ident
+| Ewhenot of lexp * ident
 
 type lidents = ident nelist
 
+type lexps = lexp nelist
+
 type cexp =
+| Eexp of lexp
 | Emerge of ident * cexp * cexp
 | Eif of lexp * cexp * cexp
-| Eexp of lexp
 
 type equation =
 | EqDef of ident * clock * cexp
-| EqApp of lidents * clock * ident * lexps
 | EqFby of ident * clock * const * lexp
+| EqApp of lidents * clock * ident * lexps
 
-type node = { n_name : ident; n_input : ident nelist;
-              n_output : ident nelist; n_eqs : equation list }
+type leqns = equation nelist
 
-(** val n_input : node -> ident nelist **)
+type d =
+| Mk_node of ident * lidents * lidents * leqns
 
-let n_input x = x.n_input
+(** val ident_eqb : char list -> char list -> bool **)
 
-(** val n_output : node -> ident nelist **)
-
-let n_output x = x.n_output
-
-(** val n_eqs : node -> equation list **)
-
-let n_eqs x = x.n_eqs
+let ident_eqb s1 s2 =
+  if string_dec s1 s2 then true else false
 
 type clockenv = (char list*clock) list
 
@@ -72,22 +67,21 @@ let rec assoc x = function
 | [] -> None
 | p :: l0 -> let y,c = p in if ident_eqb x y then Some c else assoc x l0
 
-(** val eqb : bool -> bool -> bool **)
-
-let rec eqb b1 b2 =
-  if b1 then b2 else if b2 then false else true
-
 (** val clock_eqb : clock -> clock -> bool **)
 
 let rec clock_eqb c1 c2 =
   match c1 with
   | Cbase -> (match c2 with
               | Cbase -> true
-              | Con (_, _, _) -> false)
-  | Con (x, c, b) ->
+              | _ -> false)
+  | Con (x, c) ->
     (match c2 with
-     | Cbase -> false
-     | Con (y, d, k) -> (&&) ((&&) (clock_eqb x y) (ident_eqb c d)) (eqb b k))
+     | Con (y, d0) -> (&&) (clock_eqb x y) (ident_eqb c d0)
+     | _ -> false)
+  | Conot (x, c) ->
+    (match c2 with
+     | Conot (y, d0) -> (&&) (clock_eqb x y) (ident_eqb c d0)
+     | _ -> false)
 
 (** val clockof_var : clockenv -> ident -> clock option **)
 
@@ -113,22 +107,31 @@ let rec clockof_vars c = function
 let rec clockof_lexp c = function
 | Econst (_, ck) -> Some ck
 | Evar x -> assoc x c
-| Ewhen (e, c0, k) ->
-  let c1 = clockof_lexp c e in
-  let c2 = assoc c0 c in
-  (match c1 with
-   | Some a ->
-     (match c2 with
-      | Some b -> if clock_eqb a b then Some (Con (a, c0, k)) else None
-      | None -> None)
-   | None -> None)
-| Ebinop (e1, e2) ->
+| Ebinop (_, e1, e2) ->
   let c1 = clockof_lexp c e1 in
   let c2 = clockof_lexp c e2 in
   (match c1 with
    | Some a ->
      (match c2 with
       | Some b -> if clock_eqb a b then Some a else None
+      | None -> None)
+   | None -> None)
+| Ewhen (e, c0) ->
+  let c1 = clockof_lexp c e in
+  let c2 = assoc c0 c in
+  (match c1 with
+   | Some a ->
+     (match c2 with
+      | Some b -> if clock_eqb a b then Some (Con (a, c0)) else None
+      | None -> None)
+   | None -> None)
+| Ewhenot (e, c0) ->
+  let c1 = clockof_lexp c e in
+  let c2 = assoc c0 c in
+  (match c1 with
+   | Some a ->
+     (match c2 with
+      | Some b -> if clock_eqb a b then Some (Conot (a, c0)) else None
       | None -> None)
    | None -> None)
 
@@ -149,6 +152,7 @@ let rec clockof_lexps c = function
 (** val clockof_cexp : clockenv -> cexp -> clock option **)
 
 let rec clockof_cexp c = function
+| Eexp e -> clockof_lexp c e
 | Emerge (x, e1, e2) ->
   let cx = assoc x c in
   let c1 = clockof_cexp c e1 in
@@ -156,25 +160,21 @@ let rec clockof_cexp c = function
   (match cx with
    | Some ck ->
      (match c1 with
-      | Some y ->
-        (match y with
-         | Cbase -> None
-         | Con (u, n, b) ->
-           if b
-           then (match c2 with
-                 | Some c0 ->
-                   (match c0 with
-                    | Cbase -> None
-                    | Con (v, m, b0) ->
-                      if b0
-                      then None
-                      else if (&&) (ident_eqb x n)
-                                ((&&) (clock_eqb ck u)
-                                  ((&&) (clock_eqb u v) (ident_eqb n m)))
-                           then Some ck
-                           else None)
-                 | None -> None)
-           else None)
+      | Some c0 ->
+        (match c0 with
+         | Con (u, n) ->
+           (match c2 with
+            | Some c3 ->
+              (match c3 with
+               | Conot (v, m) ->
+                 if (&&) (ident_eqb x n)
+                      ((&&) (clock_eqb ck u)
+                        ((&&) (clock_eqb u v) (ident_eqb n m)))
+                 then Some ck
+                 else None
+               | _ -> None)
+            | None -> None)
+         | _ -> None)
       | None -> None)
    | None -> None)
 | Eif (e, t, f) ->
@@ -191,7 +191,6 @@ let rec clockof_cexp c = function
          | None -> None)
       | None -> None)
    | None -> None)
-| Eexp e -> clockof_lexp c e
 
 (** val well_clocked_eq : clockenv -> equation -> bool **)
 
@@ -200,40 +199,38 @@ let rec well_clocked_eq c = function
   (match clockof_var c i with
    | Some c0 ->
      (match clockof_cexp c ce with
-      | Some d -> (&&) (clock_eqb c0 d) (clock_eqb c0 ck)
+      | Some d0 -> (&&) (clock_eqb c0 d0) (clock_eqb c0 ck)
+      | None -> false)
+   | None -> false)
+| EqFby (i, ck, _, e) ->
+  (match clockof_var c i with
+   | Some d0 ->
+     (match clockof_lexp c e with
+      | Some c0 -> (&&) (clock_eqb d0 c0) (clock_eqb c0 ck)
       | None -> false)
    | None -> false)
 | EqApp (ii, ck, _, es) ->
   let ck' = clockof_lexps c es in
   (match clockof_vars c ii with
-   | Some d ->
+   | Some d0 ->
      (match ck' with
-      | Some ck'0 -> (&&) (clock_eqb d ck'0) (clock_eqb ck ck'0)
-      | None -> false)
-   | None -> false)
-| EqFby (i, ck, _, e) ->
-  (match clockof_var c i with
-   | Some d ->
-     (match clockof_lexp c e with
-      | Some c0 -> (&&) (clock_eqb d c0) (clock_eqb c0 ck)
+      | Some ck'0 -> (&&) (clock_eqb d0 ck'0) (clock_eqb ck ck'0)
       | None -> false)
    | None -> false)
 
-(** val well_clocked_eqs : clockenv -> equation list -> bool **)
+(** val well_clocked_eqs : clockenv -> equation nelist -> bool **)
 
 let rec well_clocked_eqs c = function
-| [] -> true
-| e :: eqs0 ->
-  (match eqs0 with
-   | [] -> well_clocked_eq c e
-   | _ :: _ -> (&&) (well_clocked_eq c e) (well_clocked_eqs c eqs0))
+| Nebase eq -> well_clocked_eq c eq
+| Necons (e, eqs0) -> (&&) (well_clocked_eq c e) (well_clocked_eqs c eqs0)
 
-(** val well_clocked_node : clockenv -> node -> bool **)
+(** val well_clocked_node : clockenv -> d -> bool **)
 
-let rec well_clocked_node c n =
-  let chk = well_clocked_eqs c n.n_eqs in
-  let in_clocks = clockof_vars c n.n_input in
-  let out_clocks = clockof_vars c n.n_output in
+let rec well_clocked_node c = function
+| Mk_node (_, xs, ys, eqns) ->
+  let chk = well_clocked_eqs c eqns in
+  let in_clocks = clockof_vars c xs in
+  let out_clocks = clockof_vars c ys in
   (match in_clocks with
    | Some c0 ->
      (match c0 with
@@ -241,7 +238,7 @@ let rec well_clocked_node c n =
         (match out_clocks with
          | Some c1 -> (match c1 with
                        | Cbase -> chk
-                       | Con (_, _, _) -> false)
+                       | _ -> false)
          | None -> false)
-      | Con (_, _, _) -> false)
+      | _ -> false)
    | None -> false)

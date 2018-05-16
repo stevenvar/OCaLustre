@@ -7,49 +7,48 @@ type 'a nelist =
 
 type ident = char list
 
-val ident_eqb : char list -> char list -> bool
+type const =
+| Cc
+
+type operator =
+| Op
 
 type clock =
 | Cbase
-| Con of clock * ident * bool
-
-type const =
-| Cconst
+| Con of clock * ident
+| Conot of clock * ident
 
 type lexp =
 | Econst of const * clock
 | Evar of ident
-| Ewhen of lexp * ident * bool
-| Ebinop of lexp * lexp
-
-type lexps = lexp nelist
+| Ebinop of operator * lexp * lexp
+| Ewhen of lexp * ident
+| Ewhenot of lexp * ident
 
 type lidents = ident nelist
 
+type lexps = lexp nelist
+
 type cexp =
+| Eexp of lexp
 | Emerge of ident * cexp * cexp
 | Eif of lexp * cexp * cexp
-| Eexp of lexp
 
 type equation =
 | EqDef of ident * clock * cexp
-| EqApp of lidents * clock * ident * lexps
 | EqFby of ident * clock * const * lexp
+| EqApp of lidents * clock * ident * lexps
 
-type node = { n_name : ident; n_input : ident nelist;
-              n_output : ident nelist; n_eqs : equation list }
+type leqns = equation nelist
 
-val n_input : node -> ident nelist
+type d =
+| Mk_node of ident * lidents * lidents * leqns
 
-val n_output : node -> ident nelist
-
-val n_eqs : node -> equation list
+val ident_eqb : char list -> char list -> bool
 
 type clockenv = (char list*clock) list
 
 val assoc : char list -> clockenv -> clock option
-
-val eqb : bool -> bool -> bool
 
 val clock_eqb : clock -> clock -> bool
 
@@ -65,6 +64,6 @@ val clockof_cexp : clockenv -> cexp -> clock option
 
 val well_clocked_eq : clockenv -> equation -> bool
 
-val well_clocked_eqs : clockenv -> equation list -> bool
+val well_clocked_eqs : clockenv -> equation nelist -> bool
 
-val well_clocked_node : clockenv -> node -> bool
+val well_clocked_node : clockenv -> d -> bool

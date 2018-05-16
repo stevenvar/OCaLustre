@@ -27,11 +27,11 @@ let rec print_ct fmt c =
     match l with
       [] -> ()
     | [c] -> Format.fprintf fmt "%a" print_ct c
-    | c::cs -> Format.fprintf fmt "(%a*%a)" print_ct c print_ct c
+    | c::cs -> Format.fprintf fmt "%a * %a" print_ct c print_tuple cs
   in
   match c with
   | Ck ck -> print_ck fmt ck
-  | CkTuple cks -> print_tuple fmt cks
+  | CkTuple cks -> Format.fprintf fmt "(%a)" print_tuple cks
 
 
 (** Variables **)
@@ -187,10 +187,27 @@ let unknowns_of_clk_env env =
       (v::vs)) [] env in
   List.flatten vs
 
+let rec replace_vars_by_base tau =
+    match tau with
+    | CkVariable ({ index = n; value = CkUnknown } as tv) ->
+      tv.value <- CkBase
+    | Ckon (ck,x) -> replace_vars_by_base ck
+    | Ckonnot (ck,x) -> replace_vars_by_base ck
+    | CkVariable { index = n; value = t} ->
+      replace_vars_by_base t
+    | CkBase -> ()
+    | CkUnknown -> failwith "unknown"
+
+let rec replace_vars_by_base_ct tau =
+  match tau with
+  | Ck ck -> replace_vars_by_base ck
+  | CkTuple cts -> List.iter replace_vars_by_base_ct cts
+
 let generalize_clk gamma  tau =
   let vs = vars_of_clk_ct tau in
   let uv = unknowns_of_clk_env gamma in
   let genvars = Tools.make_set (substract vs uv) in
+  replace_vars_by_base_ct tau;
   genvars, tau
 
 let len clk =
@@ -449,7 +466,7 @@ let clk_node gamma node =
   let inouts = get_all_inouts node in
   let inouts = List.map Tools.string_of_pattern inouts in
   let inout_clks =
-    List.map (fun x -> (x,([],Ck CkBase))) inouts in
+    List.map (fun x -> (x,([],Ck (new_varclk ())))) inouts in
   let vars = get_all_vars node in
   let vars_clks =
     List.map (fun x -> (x,([],Ck (new_varclk())))) vars in
@@ -467,6 +484,7 @@ let clk_node gamma node =
   let node_clk_ins = ckins in
   let node_clk_outs = ckouts in
   (* print_env env; *)
+  replace_vars_by_base_ct node_clk_ins;
   let node_clk_scheme = generalize_clk [] node_clk_outs in
   Format.printf "%a :: %a -> %a \n"
     Parsing_ast_printer.print_pattern node.name
