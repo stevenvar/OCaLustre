@@ -94,12 +94,12 @@ let create_node mapper str =
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           typ_env := Minitypes.typ_node !typ_env _sched_node;
-          let (local_env,new_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
-          let checked = if !check then (Check.check_node local_env _cnode) else true in
+          let (global_env, local_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
+          let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
           if !check then Format.printf "Checking : %b \n" checked;
           if checked then
             begin
-              simpl_env := new_env;
+              simpl_env := global_env;
               if !just_clock then [%str ] else
                 begin
                   let _icnode = Compiling_w_clocks.compile_cnode _cnode in

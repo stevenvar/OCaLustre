@@ -470,7 +470,7 @@ let clk_node gamma node =
   let vars = get_all_vars node in
   let vars_clks =
     List.map (fun x -> (x,([],Ck (new_varclk())))) vars in
-  let env = inout_clks@vars_clks@gamma in
+  let env = inout_clks@vars_clks in
   let eqs = clk_equations env node.equations in
   (* print_env env; *)
   let ckins = List.map (fun x -> lookup_clk env x)
@@ -490,14 +490,20 @@ let clk_node gamma node =
     Parsing_ast_printer.print_pattern node.name
     print_ct node_clk_ins
     print_ct node_clk_outs;
-  let new_env = (Tools.string_of_pattern node.name,node_clk_scheme)::gamma in
+  let clk1 = node_clk_ins in
+  let clk2 = node_clk_outs in
+  let xs1 = node.inputs in
+  let xs2 = node.outputs in
+  let globalenv = (Tools.string_of_pattern node.name,(clk1,xs1,clk2,xs2))::gamma in
   let cnode =
     {
       cnode_clock = node_clk_scheme;
       cname = node.name;
+      cinputs_clk = node_clk_ins;
+      coutputs_clk = node_clk_outs;
       cinputs = node.inputs;
       coutputs = node.outputs;
       cequations = eqs
     } in
   (* Format.printf "Checking : %b \n" (Check.check_node env cnode); *)
-  (env,new_env,cnode)
+  (globalenv,env,cnode)

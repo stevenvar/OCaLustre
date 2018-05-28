@@ -49,7 +49,16 @@ let rec check_clock_of_clock (c:ct) =
   | Ck c -> aux c
   | CkTuple cs ->
     check_clock_of_clock (List.hd cs)
- (* raise (WrongCt c) *)
+(* raise (WrongCt c) *)
+
+let rec check_clocks_of_clocks (c:ct) =
+  match c with
+  | Ck _ -> Nebase (check_clock_of_clock c)
+  | CkTuple (c::cks) ->
+     let ccks = List.map check_clock_of_clock cks in
+     let ccks = nelist_of_list ccks in
+     Necons (check_clock_of_clock c,ccks)
+  | CkTuple [] -> failwith "check_clocks_of_clocks"
 
 
 let rec check_clock_of_clock_scheme (g,c: clk_scheme) =
@@ -152,10 +161,15 @@ let rec check_equations_of_equations eqs =
   | h::t -> Necons ((check_equation_of_equation h),(check_equations_of_equations t))
 
 let check_node_of_node n =
-  Mk_node ((char_list_of_string (string_of_pattern n.cname)),
-    (List.map char_list_of_string (string_list_of_pattern n.cinputs) |> nelist_of_list),
-    (List.map char_list_of_string (string_list_of_pattern n.coutputs) |> nelist_of_list),
-    (check_equations_of_equations n.cequations))
+  let cins = n.cinputs_clk in
+  let couts = n.coutputs_clk in
+  Mk_node (
+      (char_list_of_string (string_of_pattern n.cname)),
+      (List.map char_list_of_string (string_list_of_pattern n.cinputs) |> nelist_of_list),
+      check_clocks_of_clocks cins,
+      (List.map char_list_of_string (string_list_of_pattern n.coutputs) |> nelist_of_list),
+      check_clocks_of_clocks couts,
+      (check_equations_of_equations n.cequations))
 
 let rec print_chk_option fmt c =
   match c with
@@ -184,12 +198,35 @@ let check_env_of_env env  =
   in
   List.map aux env
 
-let check_node env  n =
+let check_global_env_of_global_env global : globalclockenv =
+  let rec aux (s,(clk1,xs1,clk2,xs2)) =
+    try
+      let name = char_list_of_string s in
+      let inc = check_clocks_of_clocks clk1 in
+      let outc = check_clocks_of_clocks clk2 in
+      let inp = List.map char_list_of_string (string_list_of_pattern xs1) |> nelist_of_list in
+      let outp = List.map char_list_of_string (string_list_of_pattern xs2) |> nelist_of_list in
+      (name, (((inc,inp),outc),outp))
+    with WrongClock ck ->
+      let s = Format.asprintf "%a : wrong clock"
+          Minisimplclock.print_ck ck in
+      Error.print_error Location.none s
+       | WrongCt ct ->
+         let s = Format.asprintf "%a : wrong ct"
+             Minisimplclock.print_ct ct in
+         Error.print_error Location.none s
+
+  in
+  List.map aux global
+
+
+let check_node global env n =
   (* let env = List.map (fun x -> (char_list_of_string x,Cbase)) (string_list_of_pattern n.cinputs) in *)
   (* let env' = List.map (fun x -> (char_list_of_string x,Cbase)) (string_list_of_pattern n.coutputs) in *)
   (* let env = env@env' in *)
   let cn = check_node_of_node n in
   (* Format.printf "env = %a \n" Clocks.print_env env; *)
+  let global = check_global_env_of_global_env global in
   let env = check_env_of_env env in
   (* Format.printf "chk env = %a \n" print_chk_env env; *)
   (* List.iter (fun eq -> Format.printf "eq : %b \n" *)
@@ -200,4 +237,4 @@ let check_node env  n =
   (* List.iter (fun eq -> Format.printf "out %s = %a  \n" *)
                 (* (string_of_char_list eq) *)
                 (* print_chk_option (clockof_var env eq)) (list_of_nelist cn.n_output); *)
-  well_clocked_node env cn
+  well_clocked_node global env cn

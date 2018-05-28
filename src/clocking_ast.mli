@@ -46,6 +46,8 @@ and cexp_desc =
 
 and cnode = {
     cnode_clock : clk_scheme;
+    cinputs_clk : ct;
+    coutputs_clk : ct;
     cname : pattern;
     cinputs : pattern;
     coutputs : pattern;
