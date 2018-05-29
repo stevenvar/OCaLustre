@@ -82,7 +82,7 @@ let rec string_list_of_pattern p =
     | Typed (p,t) -> string_list_of_pattern p
     | PUnit -> []
     | Tuple tl ->
-      List.fold_left (fun acc x -> string_list_of_pattern x @ acc) [] tl
+      List.fold_left (fun acc x -> acc @ string_list_of_pattern x ) [] tl
 
 let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
   let open Parsing_ast in

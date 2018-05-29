@@ -8,15 +8,15 @@ let rec app l m =
 
 (** val string_dec : char list -> char list -> bool **)
 
-let rec string_dec s0 x =
-  match s0 with
+let rec string_dec s x =
+  match s with
   | [] -> (match x with
            | [] -> true
            | _::_ -> false)
-  | a::s1 ->
+  | a::s0 ->
     (match x with
      | [] -> false
-     | a0::s2 -> if (=) a a0 then string_dec s1 s2 else false)
+     | a0::s1 -> if (=) a a0 then string_dec s0 s1 else false)
 
 type 'a nelist =
 | Nebase of 'a
@@ -51,21 +51,26 @@ type lexps = lexp nelist
 
 type lidents = ident nelist
 
+type lclocks = clock nelist
+
 type equation =
 | EqDef of ident * clock * cexp
 | EqFby of ident * clock * const * lexp
 | EqApp of lidents * clock * ident * lexps
-
-type lclocks = clock nelist
+| EqTuple of lidents * lclocks * lexps
 
 type leqns = equation nelist
+
+type tau = clock nelist*ident nelist
 
 type d =
 | Mk_node of ident * lidents * lclocks * lidents * lclocks * leqns
 
-type s = char list list
+type ident_pair = ident*ident
 
 type xlist = ident list
+
+type lident_pair = ident_pair list
 
 (** val subst_ck : clock -> clock -> clock **)
 
@@ -100,29 +105,21 @@ let rec clocks = function
 let ident_eqb s1 s2 =
   if string_dec s1 s2 then true else false
 
-(** val assoc_sub :
-    char list -> (char list*char list) list -> char list option **)
+(** val assoc_sub : char list -> (char list*char list) list -> char list **)
 
 let rec assoc_sub x = function
-| [] -> None
-| p :: l0 -> let y,c = p in if ident_eqb x y then Some c else assoc_sub x l0
+| [] -> x
+| p :: l0 -> let y,c = p in if ident_eqb x y then c else assoc_sub x l0
 
-(** val subst_name_ck : clock -> (char list*char list) list -> clock **)
+(** val subst_name_ck : clock -> lident_pair -> clock **)
 
-let rec subst_name_ck c sigma =
-  match c with
-  | Cbase -> c
-  | Con (c0, x) ->
-    (match assoc_sub x sigma with
-     | Some y -> Con ((subst_name_ck c0 sigma), y)
-     | None -> Con ((subst_name_ck c0 sigma), x))
-  | Conot (c0, x) ->
-    (match assoc_sub x sigma with
-     | Some y -> Conot ((subst_name_ck c0 sigma), y)
-     | None -> Conot ((subst_name_ck c0 sigma), x))
+let rec subst_name_ck x1 x2 =
+  match x1 with
+  | Cbase -> Cbase
+  | Con (ck, x) -> Con ((subst_name_ck ck x2), (assoc_sub x x2))
+  | Conot (ck, x) -> Conot ((subst_name_ck ck x2), (assoc_sub x x2))
 
-(** val subst_names :
-    clock nelist -> (char list*char list) list -> clock nelist **)
+(** val subst_names : clock nelist -> lident_pair -> clock nelist **)
 
 let rec subst_names cks sigma =
   match cks with
@@ -132,8 +129,7 @@ let rec subst_names cks sigma =
 
 type clockenv = (char list*clock) list
 
-type globalclockenv =
-  (char list*(((clock nelist*ident nelist)*clock nelist)*ident nelist)) list
+type globalclockenv = (char list*(tau*tau)) list
 
 (** val assoc : char list -> clockenv -> clock option **)
 
@@ -141,16 +137,14 @@ let rec assoc x = function
 | [] -> None
 | p :: l0 -> let y,c = p in if ident_eqb x y then Some c else assoc x l0
 
-(** val assoc_global :
-    char list -> globalclockenv -> (((clock nelist*ident nelist)*clock
-    nelist)*ident nelist) option **)
+(** val assoc_global : char list -> globalclockenv -> (tau*tau) option **)
 
 let rec assoc_global x = function
 | [] -> None
 | p :: l0 ->
   let y,c = p in if ident_eqb x y then Some c else assoc_global x l0
 
-(** val mem_S : char list -> s -> bool **)
+(** val mem_S : char list -> xlist -> bool **)
 
 let rec mem_S x = function
 | [] -> false
@@ -186,16 +180,16 @@ let rec clocks_eqb cl1 cl2 =
      | Necons (d0, ds) -> (&&) (clock_eqb c d0) (clocks_eqb cs ds))
 
 (** val clk_subst_fun :
-    char list nelist -> lexp nelist -> s -> (char list*ident) list option **)
+    char list nelist -> lexp nelist -> xlist -> (char list*ident) list option **)
 
-let rec clk_subst_fun xs es s0 =
+let rec clk_subst_fun xs es s =
   match xs with
   | Nebase x ->
     (match es with
      | Nebase e ->
        (match e with
-        | Evar y -> if mem_S x s0 then Some ((x,y) :: []) else Some []
-        | _ -> if mem_S x s0 then None else Some [])
+        | Evar y -> if mem_S x s then Some ((x,y) :: []) else Some []
+        | _ -> if mem_S x s then None else Some [])
      | Necons (_, _) -> None)
   | Necons (x, xs0) ->
     (match es with
@@ -203,40 +197,38 @@ let rec clk_subst_fun xs es s0 =
      | Necons (e, es0) ->
        (match e with
         | Evar y ->
-          if mem_S x s0
-          then (match clk_subst_fun xs0 es0 s0 with
+          if mem_S x s
+          then (match clk_subst_fun xs0 es0 s with
                 | Some sigma -> Some ((x,y) :: sigma)
                 | None -> None)
-          else clk_subst_fun xs0 es0 s0
-        | _ -> if mem_S x s0 then None else clk_subst_fun xs0 es0 s0))
+          else clk_subst_fun xs0 es0 s
+        | _ -> if mem_S x s then None else clk_subst_fun xs0 es0 s))
 
 (** val clk_subst_var_fun :
-    lidents -> lidents -> s -> (ident*ident) list option **)
+    lidents -> lidents -> xlist -> (ident*ident) list option **)
 
-let rec clk_subst_var_fun xs xs' s0 =
+let rec clk_subst_var_fun xs xs' s =
   match xs with
   | Nebase x ->
     (match xs' with
-     | Nebase y -> if mem_S x s0 then Some ((x,y) :: []) else Some []
+     | Nebase y -> if mem_S x s then Some ((x,y) :: []) else Some []
      | Necons (_, _) -> None)
   | Necons (x, xs0) ->
     (match xs' with
      | Nebase _ -> None
      | Necons (y, ys) ->
-       if mem_S x s0
-       then (match clk_subst_var_fun xs0 ys s0 with
+       if mem_S x s
+       then (match clk_subst_var_fun xs0 ys s with
              | Some sigma -> Some ((x,y) :: sigma)
              | None -> None)
-       else clk_subst_var_fun xs0 ys s0)
+       else clk_subst_var_fun xs0 ys s)
 
 (** val clockof_var : clockenv -> ident -> clock option **)
 
 let rec clockof_var c x =
   assoc x c
 
-(** val clockof_global_var :
-    globalclockenv -> ident -> (((clock nelist*ident nelist)*clock
-    nelist)*ident nelist) option **)
+(** val clockof_global_var : globalclockenv -> ident -> (tau*tau) option **)
 
 let rec clockof_global_var c x =
   assoc_global x c
@@ -372,18 +364,18 @@ let rec well_clocked_eq g c = function
   let fck = clockof_global_var g f in
   (match fck with
    | Some p ->
-     let p0,xs2 = p in
-     let p1,cks2 = p0 in
-     let cks1,xs1 = p1 in
+     let t,t0 = p in
+     let cks1,xs1 = t in
+     let cks2,xs2 = t0 in
      let cks3 = clockof_lexps c es in
      let cks4 = clockof_vars c xs in
      (match cks3 with
       | Some cks5 ->
         (match cks4 with
          | Some cks6 ->
-           let s0 = app (clocks cks1) (clocks cks2) in
-           let sigma = clk_subst_fun xs1 es s0 in
-           let sigma' = clk_subst_var_fun xs2 xs s0 in
+           let s = app (clocks cks1) (clocks cks2) in
+           let sigma = clk_subst_fun xs1 es s in
+           let sigma' = clk_subst_var_fun xs2 xs s in
            (match sigma with
             | Some sigma0 ->
               (match sigma' with
@@ -391,11 +383,17 @@ let rec well_clocked_eq g c = function
                  (&&)
                    (clocks_eqb cks5 (subst_base (subst_names cks1 sigma0) ck))
                    (clocks_eqb cks6
-                     (subst_base
-                       (subst_names (subst_names cks2 sigma0) sigma'0) ck))
+                     (subst_base (subst_names cks2 (app sigma'0 sigma0)) ck))
                | None -> false)
             | None -> false)
          | None -> false)
+      | None -> false)
+   | None -> false)
+| EqTuple (xs, cks, es) ->
+  (match clockof_lexps c es with
+   | Some ces ->
+     (match clockof_vars c xs with
+      | Some cxs -> (&&) (clocks_eqb ces cxs) (clocks_eqb ces cks)
       | None -> false)
    | None -> false)
 
@@ -410,7 +408,7 @@ let rec well_clocked_eqs g c = function
 
 let rec well_clocked_node g c = function
 | Mk_node (_, xs, cks, ys, cks', eqns) ->
-  let chk = well_clocked_eqs g c eqns in
+   let chk = well_clocked_eqs g c eqns in
   let in_clocks = clockof_vars c xs in
   let out_clocks = clockof_vars c ys in
   (match in_clocks with

@@ -47,8 +47,8 @@ let rec check_clock_of_clock (c:ct) =
   in
   match c with
   | Ck c -> aux c
-  | CkTuple cs ->
-    check_clock_of_clock (List.hd cs)
+  | CkTuple cs -> failwith "cktuple"
+
 (* raise (WrongCt c) *)
 
 let rec check_clocks_of_clocks (c:ct) =
@@ -163,6 +163,9 @@ let rec check_equations_of_equations eqs =
 let check_node_of_node n =
   let cins = n.cinputs_clk in
   let couts = n.coutputs_clk in
+  (* Minisimplclock.print_ct Format.std_formatter cins; *)
+   (* Minisimplclock.print_ct Format.std_formatter couts; *)
+
   Mk_node (
       (char_list_of_string (string_of_pattern n.cname)),
       (List.map char_list_of_string (string_list_of_pattern n.cinputs) |> nelist_of_list),
@@ -176,11 +179,12 @@ let rec print_chk_option fmt c =
     Some c -> print_chk fmt c
   | None -> Format.fprintf fmt "NONE"
 
-let print_chk_env fmt e =
+let rec print_chk_env fmt e =
   match e with
     [] -> ()
-  | (cl,clk)::t -> Format.fprintf fmt "%s :: %a \n" (string_of_char_list cl)
+  | (cl,clk)::t -> Format.fprintf fmt "%s :: %a \n%a \n" (string_of_char_list cl)
                      print_chk clk
+                     print_chk_env t
 
 let check_env_of_env env  =
   let rec aux (s,clk) =
@@ -206,7 +210,7 @@ let check_global_env_of_global_env global : globalclockenv =
       let outc = check_clocks_of_clocks clk2 in
       let inp = List.map char_list_of_string (string_list_of_pattern xs1) |> nelist_of_list in
       let outp = List.map char_list_of_string (string_list_of_pattern xs2) |> nelist_of_list in
-      (name, (((inc,inp),outc),outp))
+      (name, ((inc,inp),(outc,outp)))
     with WrongClock ck ->
       let s = Format.asprintf "%a : wrong clock"
           Minisimplclock.print_ck ck in
@@ -220,21 +224,9 @@ let check_global_env_of_global_env global : globalclockenv =
   List.map aux global
 
 
-let check_node global env n =
-  (* let env = List.map (fun x -> (char_list_of_string x,Cbase)) (string_list_of_pattern n.cinputs) in *)
-  (* let env' = List.map (fun x -> (char_list_of_string x,Cbase)) (string_list_of_pattern n.coutputs) in *)
-  (* let env = env@env' in *)
+let check_node global local n =
   let cn = check_node_of_node n in
-  (* Format.printf "env = %a \n" Clocks.print_env env; *)
   let global = check_global_env_of_global_env global in
-  let env = check_env_of_env env in
-  (* Format.printf "chk env = %a \n" print_chk_env env; *)
-  (* List.iter (fun eq -> Format.printf "eq : %b \n" *)
-                (* (well_clocked_eq env eq)) cn.n_eqs; *)
-  (* List.iter (fun eq -> Format.printf "in %s = %a \n" *)
-                (* (string_of_char_list eq) *)
-                (* print_chk_option (clockof_var env eq)) (list_of_nelist cn.n_input); *)
-  (* List.iter (fun eq -> Format.printf "out %s = %a  \n" *)
-                (* (string_of_char_list eq) *)
-                (* print_chk_option (clockof_var env eq)) (list_of_nelist cn.n_output); *)
-  well_clocked_node global env cn
+  let local = check_env_of_env local in
+  (* print_chk_env Format.std_formatter local; *)
+  well_clocked_node global local cn

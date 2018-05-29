@@ -36,21 +36,26 @@ type lexps = lexp nelist
 
 type lidents = ident nelist
 
+type lclocks = clock nelist
+
 type equation =
 | EqDef of ident * clock * cexp
 | EqFby of ident * clock * const * lexp
 | EqApp of lidents * clock * ident * lexps
-
-type lclocks = clock nelist
+| EqTuple of lidents * lclocks * lexps
 
 type leqns = equation nelist
+
+type tau = clock nelist*ident nelist
 
 type d =
 | Mk_node of ident * lidents * lclocks * lidents * lclocks * leqns
 
-type s = char list list
+type ident_pair = ident*ident
 
 type xlist = ident list
+
+type lident_pair = ident_pair list
 
 val subst_ck : clock -> clock -> clock
 
@@ -62,39 +67,35 @@ val clocks : lclocks -> xlist
 
 val ident_eqb : char list -> char list -> bool
 
-val assoc_sub : char list -> (char list*char list) list -> char list option
+val assoc_sub : char list -> (char list*char list) list -> char list
 
-val subst_name_ck : clock -> (char list*char list) list -> clock
+val subst_name_ck : clock -> lident_pair -> clock
 
-val subst_names : clock nelist -> (char list*char list) list -> clock nelist
+val subst_names : clock nelist -> lident_pair -> clock nelist
 
 type clockenv = (char list*clock) list
 
-type globalclockenv =
-  (char list*(((clock nelist*ident nelist)*clock nelist)*ident nelist)) list
+type globalclockenv = (char list*(tau*tau)) list
 
 val assoc : char list -> clockenv -> clock option
 
-val assoc_global :
-  char list -> globalclockenv -> (((clock nelist*ident nelist)*clock
-  nelist)*ident nelist) option
+val assoc_global : char list -> globalclockenv -> (tau*tau) option
 
-val mem_S : char list -> s -> bool
+val mem_S : char list -> xlist -> bool
 
 val clock_eqb : clock -> clock -> bool
 
 val clocks_eqb : clock nelist -> clock nelist -> bool
 
 val clk_subst_fun :
-  char list nelist -> lexp nelist -> s -> (char list*ident) list option
+  char list nelist -> lexp nelist -> xlist -> (char list*ident) list option
 
-val clk_subst_var_fun : lidents -> lidents -> s -> (ident*ident) list option
+val clk_subst_var_fun :
+  lidents -> lidents -> xlist -> (ident*ident) list option
 
 val clockof_var : clockenv -> ident -> clock option
 
-val clockof_global_var :
-  globalclockenv -> ident -> (((clock nelist*ident nelist)*clock
-  nelist)*ident nelist) option
+val clockof_global_var : globalclockenv -> ident -> (tau*tau) option
 
 val clockof_vars : clockenv -> ident nelist -> clock nelist option
 
