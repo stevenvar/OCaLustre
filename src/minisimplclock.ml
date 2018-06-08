@@ -3,6 +3,11 @@ open Parsing_ast
 open Clocking_ast_printer
 
 
+let rec split_ct ct =
+  match ct with
+  | Ck c -> [Ck c]
+  | CkTuple cks -> cks
+
 let rec carriers ck = match ck with
   | CkBase -> []
   | CkVariable { value = c } -> carriers c
@@ -21,8 +26,13 @@ let rec subst_base ck ck' =
   | CkBase -> ck'
   | CkVariable { value = c } -> subst_base c ck'
   | Ckon (ck,s) -> Ckon(subst_base ck ck',s)
-  | Ckonnot (ck,s) -> Ckon(subst_base ck ck',s)
+  | Ckonnot (ck,s) -> Ckonnot(subst_base ck ck',s)
   | _ -> failwith "subst_base"
+
+let rec subst_base_ct ct ck' =
+  match ct with
+  | Ck ck -> Ck (subst_base ck ck')
+  | CkTuple cks -> CkTuple (List.map (fun c -> subst_base_ct c ck') cks)
 
 let app_sigma sigma x =
   try List.assoc x sigma with _ -> x
@@ -48,21 +58,17 @@ let rec subst_ct ct sigma =
   | CkTuple [] -> []
   | _ -> failwith "subst_ct"
 
-let rec clk_subst_fun xs es s =
+let rec get_subst xs es s =
   match xs,es with
-  | [], [] -> Some []
-  | [x], [e] -> if List.mem s x then None else Some []
-  |  x::xs,  Variable y::es ->
-    if List.mem s x then
-      begin match clk_subst_fun xs es s with
-        | Some sigma -> Some ((x,y)::sigma)
-        | None -> None
-      end
-    else clk_subst_fun xs es s
+  | [], [] -> []
+  |  x::xs,  CVariable y::es ->
+    if List.mem x s then
+      let sigma = get_subst xs es s in
+      (x,y)::sigma
+    else get_subst xs es s
   |  x::xs, e::es ->
-    if List.mem s x then None else clk_subst_fun xs es s
-  | _, _ -> None
-
+    if List.mem x s then (failwith "get_subst") else get_subst xs es s
+  | _, _ -> failwith "get_subst"
 
 (** Printing **)
 
@@ -176,24 +182,6 @@ let rec unify_ck c1 c2 =
      | _ -> raise (Unify_ck (t1, t2)))
   with Occurs -> raise (Unify_ck (t1,t2))
 
-let rec get_subst ck1 ck2 =
-  match shorten_ck ck1, shorten_ck ck2 with
-  | Ckon(ck,s), Ckon(ck',s') -> (s,s')::(get_subst ck ck')
-  | Ckonnot(ck,s), Ckonnot(ck',s') -> (s,s')::(get_subst ck ck')
-  | CkBase, CkBase -> []
-  (* | CkUnknown, CkUnknown -> [] *)
-  | _ -> []
-(* | _ -> failwith "get_subst" *)
-
-let rec get_subst_ct ck1 ck2 =
-  match shorten_ct ck1 , shorten_ct ck2 with
-  | Ck ck1 , Ck ck2 -> get_subst ck1 ck2
-  | CkTuple [] , CkTuple [] -> []
-  | CkTuple cks1 , CkTuple cks2 ->
-    List.fold_left2 (fun acc x y -> get_subst_ct x y @ acc) [] cks1 cks2
-  | _ -> failwith "get_subst_ct"
-
-
 let rec unify_ct c1 c2 =
   let c1 = shorten_ct c1 in
   let c2 = shorten_ct c2 in
@@ -233,6 +221,25 @@ let rec gen_instance_ct (gv,tau) =
   match tau with
   | Ck ck -> Ck (gen_instance (gv,ck))
   | CkTuple cts -> CkTuple (List.map (fun ct -> gen_instance_ct (gv,ct)) cts)
+
+
+let rec get_cond c1 c2 =
+  match shorten_ck c1, shorten_ck c2 with
+  | CkBase, c -> c
+  | Ckon (a,c), Ckon (b,d) -> get_cond a b
+  | Ckonnot (a,c), Ckonnot (b,d) -> get_cond a b
+  | _ -> failwith "get_cond"
+
+
+let rec get_cond_ct c1 c2 =
+  match c1, c2 with
+  | Ck c, Ck c' -> get_cond c c'
+  | CkTuple cks, CkTuple cks' ->
+     let c = List.hd cks in
+     let d = List.hd cks' in
+     get_cond_ct c d
+  | _ -> failwith "get_cond_ct"
+
 
 (** Generalization **)
 
@@ -305,6 +312,20 @@ let mk_len_clock c n =
   if n = 1 then c
   else
     aux n []
+
+
+let print_env env =
+  let rec print_vars fmt gv =
+    match gv with
+    | [] -> ()
+    | [v] -> Format.fprintf fmt "%d" v
+    | v::vs -> Format.fprintf fmt "%d,%a" v print_vars vs
+  in
+  List.iter (fun (x,(gv,y)) ->
+      Format.printf "\t forall %a . %s  => %a \n"
+        print_vars gv
+        x
+        print_ct y) env
 
 
 let get_ident e =
@@ -390,8 +411,6 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
          *                                           ce_loc = ee.e_loc} in *)
          let param = clk_expr delta gamma ee in
          let s = carriers_list cks1 @ carriers_list cks2 in
-         Format.printf "carriers = ";
-         List.iter (Format.printf "%s") s;
          let pclocks = match param.ce_clk with
            | CkTuple cks -> cks
            | Ck ck -> [Ck ck]
@@ -400,12 +419,23 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
            | CkTuple cks -> cks
            | Ck ck -> [Ck ck]
          in
-         let sigma = List.map2 (get_subst_ct) fclocks pclocks in
-         let sigma = List.flatten sigma in
-         List.iter (fun (x,y) -> Format.printf "%s->%s  " x y) sigma;
-         let pclocks = List.fold_left (fun acc x -> subst_ct x sigma::acc) [] pclocks in
-         let pclocks = List.flatten pclocks in
-         List.iter2 (unify_ct) pclocks fclocks;
+         let params = match param.ce_desc with
+           | CETuple e -> e
+           | _ -> [param]
+         in
+         let params = List.map (fun x -> x.ce_desc) params in
+         let xs1 = Tools.string_list_of_pattern xs1 in
+         let sigma = get_subst xs1 params s in
+         let fclocks = List.fold_left (fun acc x -> subst_ct x sigma::acc) [] fclocks in
+         let fclocks = List.rev (List.flatten fclocks) in
+         (* List.iter (print_ct Format.std_formatter) fclocks; *)
+         let c = get_cond_ct cks1 param.ce_clk in
+         (* Format.printf "The condition clocks is %a \n" print_ck c; *)
+         let ff = subst_base_ct (CkTuple fclocks) c in
+         (* Format.printf "Unify with is %a \n" print_ct (CkTuple fclocks); *)
+         (* Format.printf "Unify with is %a \n" print_ct ff; *)
+         let ff = split_ct ff in
+         List.iter2 (unify_ct) pclocks ff;
          (* let es' = { ce_desc = ; ce_clk = cks2 ; ce_loc = ee.e_loc} in *)
          let es' = param in
          { ce_desc = CApplication(id,num,es') ;
@@ -440,6 +470,7 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         Error.print_error e.e_loc s
     end
   with Unify_ct (c1,c2) ->
+    print_env gamma;
     let s = Format.asprintf "Clocking clash between %a and %a"
         print_ct c1 print_ct c2 in
     Error.print_error e.e_loc s
@@ -454,19 +485,6 @@ let rec clk_expr_ct delta (gamma : (string * clk_scheme) list) e =
       ce_loc = e.e_loc}
   | _ ->  (clk_expr delta gamma e)
 
-
-let print_env env =
-  let rec print_vars fmt gv =
-    match gv with
-    | [] -> ()
-    | [v] -> Format.fprintf fmt "%d" v
-    | v::vs -> Format.fprintf fmt "%d,%a" v print_vars vs
-  in
-  List.iter (fun (x,(gv,y)) ->
-      Format.printf "\t forall %a . %s  => %a \n"
-        print_vars gv
-        x
-        print_ct y) env
 
 (* type cequation = { cpattern : Parsing_ast.pattern ; cexpression : cexpression } *)
 
@@ -577,8 +595,8 @@ let clk_node delta node =
   let vars_clks =
     List.map (fun x -> (x,([],Ck (new_varclk())))) vars in
   let env = inout_clks@vars_clks in
-  let eqs = clk_equations delta env node.equations in
   (* print_env env; *)
+  let eqs = clk_equations delta env node.equations in
   let ckins = List.map (fun x -> lookup_clk env x)
       (split_tuple node.inputs) in
   let ckins = List.map gen_instance_ct ckins in
@@ -592,14 +610,27 @@ let clk_node delta node =
   (* print_env env; *)
   replace_vars_by_base_ct node_clk_ins;
   let node_clk_scheme = generalize_clk [] node_clk_outs in
-  Format.printf "%a :: %a -> %a\n"
-    Parsing_ast_printer.print_pattern node.name
-    Parsing_ast_printer.print_pattern node.inputs
-    Parsing_ast_printer.print_pattern node.outputs;
-  Format.printf "%a :: %a -> %a \n"
-    Parsing_ast_printer.print_pattern node.name
-    print_ct node_clk_ins
-    print_ct node_clk_outs;
+  let signs_in = List.map2 (fun x y -> (x,y)) (Tools.string_list_of_pattern node.inputs) (split_ct node_clk_ins) in
+  let signs_out = List.map2 (fun x y -> (x,y)) (Tools.string_list_of_pattern node.outputs) (split_ct node_clk_outs) in
+  (* Format.printf "%a := %a -> %a\n" *)
+    (* Parsing_ast_printer.print_pattern node.name *)
+    (* Parsing_ast_printer.print_pattern node.inputs *)
+    (* Parsing_ast_printer.print_pattern node.outputs; *)
+  let print_sign fmt (x,y) =
+    Format.fprintf fmt "%s:%a" x print_ct y in
+
+  Format.fprintf Format.std_formatter "%a :: "
+    Parsing_ast_printer.print_pattern node.name;
+  Tools.print_list Format.std_formatter print_sign ~sep:" * " signs_in;
+    Format.fprintf Format.std_formatter " -> ";
+  Tools.print_list Format.std_formatter print_sign  ~sep:" * " signs_out;
+
+  Format.fprintf Format.std_formatter "\n";
+  (* Format.printf "%a :: %a -> %a \n" *)
+    (* Parsing_ast_printer.print_pattern node.name *)
+    (* print_ct node_clk_ins *)
+(* print_ct node_clk_outs; *)
+
   let clk1 = node_clk_ins in
   let clk2 = node_clk_outs in
   let xs1 = node.inputs in

@@ -13,7 +13,8 @@ open Sequential_ast_printer
 open Proof_printer
 open Sequentialize
 open Codegen
-open Imperative_ast
+open Imperative_ast2
+open Clocking_ast
 
 
 (** Variables from command-line args **)
@@ -85,7 +86,7 @@ let create_node mapper str =
   match str.pstr_desc with
   | Pstr_extension (({txt="node";_},PStr [s]),_) ->
     begin match s.pstr_desc with
-      | Pstr_value (_,[v]) ->
+    | Pstr_value (_,[v]) ->
         let _node = mk_node v.pvb_pat v.pvb_expr in
         let _norm_node = if !no_auto then _node else normalize_node _node in
         let _sched_node = if !no_auto then _node else schedule _norm_node in
@@ -95,7 +96,7 @@ let create_node mapper str =
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           typ_env := Minitypes.typ_node !typ_env _sched_node;
           let (global_env, local_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
-          Format.printf "\n (** Clocked node **) \n%a\n" Clocking_ast_printer.print_node (_cnode,!verbose);
+          if !verbose then Format.printf "\n (** Clocked node **) \n%a\n" Clocking_ast_printer.print_node (_cnode,!verbose);
           let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
           if !check then Format.printf "Checking : %b \n" checked;
           if checked then
@@ -121,8 +122,8 @@ let create_node mapper str =
 let lustre_mapper argv =
   { default_mapper with structure =
                           fun mapper st ->
-                            let stl = List.map (create_node mapper) st in
-                            List.flatten stl }
+                          let stl = List.map (create_node mapper) st in
+                          List.flatten stl }
 
 (** Entry point **)
 let _ =
