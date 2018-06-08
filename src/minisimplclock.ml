@@ -1,5 +1,68 @@
 open Clocking_ast
 open Parsing_ast
+open Clocking_ast_printer
+
+
+let rec carriers ck = match ck with
+  | CkBase -> []
+  | CkVariable { value = c } -> carriers c
+  | Ckon (ck,s)
+  | Ckonnot (ck,s) -> s::(carriers ck)
+  | _ -> failwith "carriers"
+
+let rec carriers_list ct = match ct with
+  | Ck ck -> carriers ck
+  | CkTuple (Ck c::cks) -> (carriers c)@(carriers_list (CkTuple cks))
+  | CkTuple [] -> []
+  | _ -> failwith "carriers_list "
+
+let rec subst_base ck ck' =
+  match ck with
+  | CkBase -> ck'
+  | CkVariable { value = c } -> subst_base c ck'
+  | Ckon (ck,s) -> Ckon(subst_base ck ck',s)
+  | Ckonnot (ck,s) -> Ckon(subst_base ck ck',s)
+  | _ -> failwith "subst_base"
+
+let app_sigma sigma x =
+  try List.assoc x sigma with _ -> x
+
+let rec subst ck sigma =
+  match ck with
+  | CkBase -> CkBase
+  | CkUnknown -> failwith "subst : unknown"
+  | CkVariable { value = c} -> subst c sigma
+  | Ckon (ck,s) -> Ckon(subst ck sigma, app_sigma sigma s)
+  | Ckonnot (ck,s) -> Ckonnot(subst ck sigma, app_sigma sigma s)
+
+
+let rec subst_names cks sigma =
+  match cks with
+  | [] -> []
+  | c::cks -> (subst c sigma)::(subst_names cks sigma)
+
+let rec subst_ct ct sigma =
+  match ct with
+  | Ck ck -> [Ck (subst ck sigma)]
+  | CkTuple (Ck c::cks) -> (Ck (subst c sigma)) :: (subst_ct (CkTuple cks) sigma)
+  | CkTuple [] -> []
+  | _ -> failwith "subst_ct"
+
+let rec clk_subst_fun xs es s =
+  match xs,es with
+  | [], [] -> Some []
+  | [x], [e] -> if List.mem s x then None else Some []
+  |  x::xs,  Variable y::es ->
+    if List.mem s x then
+      begin match clk_subst_fun xs es s with
+        | Some sigma -> Some ((x,y)::sigma)
+        | None -> None
+      end
+    else clk_subst_fun xs es s
+  |  x::xs, e::es ->
+    if List.mem s x then None else clk_subst_fun xs es s
+  | _, _ -> None
+
 
 (** Printing **)
 
@@ -11,27 +74,27 @@ let tvar_name n =
     if q = 0 then s else (name_of q)^s
   in "'"^(name_of n)
 
-let rec print_ck fmt c =
-  match c with
-  | CkBase -> Format.fprintf fmt "base"
-  | CkUnknown -> Format.fprintf fmt "?"
-  | CkVariable { index = n; value = CkUnknown } ->
-    Format.fprintf fmt "'%d" n
-  | CkVariable { index = n; value = c } ->
-    Format.fprintf fmt "%a" print_ck c
-  | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
-  | Ckonnot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
-
-let rec print_ct fmt c =
-  let rec print_tuple fmt l =
-    match l with
-      [] -> ()
-    | [c] -> Format.fprintf fmt "%a" print_ct c
-    | c::cs -> Format.fprintf fmt "%a * %a" print_ct c print_tuple cs
-  in
-  match c with
-  | Ck ck -> print_ck fmt ck
-  | CkTuple cks -> Format.fprintf fmt "(%a)" print_tuple cks
+(* let rec print_ck fmt c =
+ *   match c with
+ *   | CkBase -> Format.fprintf fmt "base"
+ *   | CkUnknown -> Format.fprintf fmt "?"
+ *   | CkVariable { index = n; value = CkUnknown } ->
+ *     Format.fprintf fmt "'%d" n
+ *   | CkVariable { index = n; value = c } ->
+ *     Format.fprintf fmt "%a" print_ck c
+ *   | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
+ *   | Ckonnot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
+ *
+ * let rec print_ct fmt c =
+ *   let rec print_tuple fmt l =
+ *     match l with
+ *       [] -> ()
+ *     | [c] -> Format.fprintf fmt "%a" print_ct c
+ *     | c::cs -> Format.fprintf fmt "%a * %a" print_ct c print_tuple cs
+ *   in
+ *   match c with
+ *   | Ck ck -> print_ck fmt ck
+ *   | CkTuple cks -> Format.fprintf fmt "(%a)" print_tuple cks *)
 
 
 (** Variables **)
@@ -112,6 +175,24 @@ let rec unify_ck c1 c2 =
        else raise (Unify_ck (t1,t2))
      | _ -> raise (Unify_ck (t1, t2)))
   with Occurs -> raise (Unify_ck (t1,t2))
+
+let rec get_subst ck1 ck2 =
+  match shorten_ck ck1, shorten_ck ck2 with
+  | Ckon(ck,s), Ckon(ck',s') -> (s,s')::(get_subst ck ck')
+  | Ckonnot(ck,s), Ckonnot(ck',s') -> (s,s')::(get_subst ck ck')
+  | CkBase, CkBase -> []
+  (* | CkUnknown, CkUnknown -> [] *)
+  | _ -> []
+(* | _ -> failwith "get_subst" *)
+
+let rec get_subst_ct ck1 ck2 =
+  match shorten_ct ck1 , shorten_ct ck2 with
+  | Ck ck1 , Ck ck2 -> get_subst ck1 ck2
+  | CkTuple [] , CkTuple [] -> []
+  | CkTuple cks1 , CkTuple cks2 ->
+    List.fold_left2 (fun acc x y -> get_subst_ct x y @ acc) [] cks1 cks2
+  | _ -> failwith "get_subst_ct"
+
 
 let rec unify_ct c1 c2 =
   let c1 = shorten_ct c1 in
@@ -240,8 +321,6 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
   try
     begin
       match e.e_desc with
-      (* | Unit -> Ck Base *)
-      (* | Value _ -> Ck CBase *)
       | Call y ->
         { ce_desc = CCall y; ce_loc = e.e_loc; ce_clk = Ck CkBase }
       | Unit ->
@@ -309,10 +388,29 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
          * let es' = match es with [h] -> h | _ -> { ce_desc = CETuple es;
          *                                           ce_clk = ck;
          *                                           ce_loc = ee.e_loc} in *)
-         let es' = { ce_desc = CUnit; ce_clk = cks2 ; ce_loc = ee.e_loc} in
+         let param = clk_expr delta gamma ee in
+         let s = carriers_list cks1 @ carriers_list cks2 in
+         Format.printf "carriers = ";
+         List.iter (Format.printf "%s") s;
+         let pclocks = match param.ce_clk with
+           | CkTuple cks -> cks
+           | Ck ck -> [Ck ck]
+         in
+         let fclocks = match cks1 with
+           | CkTuple cks -> cks
+           | Ck ck -> [Ck ck]
+         in
+         let sigma = List.map2 (get_subst_ct) fclocks pclocks in
+         let sigma = List.flatten sigma in
+         List.iter (fun (x,y) -> Format.printf "%s->%s  " x y) sigma;
+         let pclocks = List.fold_left (fun acc x -> subst_ct x sigma::acc) [] pclocks in
+         let pclocks = List.flatten pclocks in
+         List.iter2 (unify_ct) pclocks fclocks;
+         (* let es' = { ce_desc = ; ce_clk = cks2 ; ce_loc = ee.e_loc} in *)
+         let es' = param in
          { ce_desc = CApplication(id,num,es') ;
-          ce_loc = e.e_loc;
-          ce_clk = cks2 }
+           ce_loc = e.e_loc;
+           ce_clk = cks2 }
       | Whennot (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
@@ -333,8 +431,12 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         unify_ct (Ck (Ckon(u,x))) t2.ce_clk;
         unify_ct (Ck (Ckonnot(u,x))) t3.ce_clk;
         { ce_desc = CMerge (t1,t2,t3); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
+      | ETuple es ->
+        let es' = List.map (clk_expr delta gamma) es in
+        let c = CkTuple (List.map (fun e -> e.ce_clk) es') in
+        { ce_desc = CETuple es'; ce_loc = e.e_loc ; ce_clk = c}
       | _ ->
-        let s = Format.asprintf "%a : todo" Parsing_ast_printer.print_expression e in
+        let s = Format.asprintf "%a : todo clocking" Parsing_ast_printer.print_expression e in
         Error.print_error e.e_loc s
     end
   with Unify_ct (c1,c2) ->

@@ -165,9 +165,9 @@ let rec printml_expression fmt exp =
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
   | IApplication (c,i,num,e) -> Format.fprintf fmt "%s%d_app (%a)"
-                              i
-                              num
-                             printml_expression e
+                                  i
+                                  num
+                                  printml_expression e
   | IApplication_init (i,e) ->
      Format.fprintf fmt "%s (%a)"
                              i

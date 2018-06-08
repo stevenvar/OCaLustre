@@ -89,11 +89,11 @@ let rec check_lexp_of_cexpression (ce:cexpression) =
       Error.print_error ce.ce_loc s
   with WrongClock ck ->
     let s = Format.asprintf "%a : wrong clock"
-        Minisimplclock.print_ck ck in
+        Clocking_ast_printer.print_ck ck in
     Error.print_error ce.ce_loc s
      | WrongCt ct ->
        let s = Format.asprintf "%a : wrong ct"
-           Minisimplclock.print_ct ct in
+           Clocking_ast_printer.print_ct ct in
        Error.print_error ce.ce_loc s
 
 
@@ -147,11 +147,11 @@ let check_equation_of_equation { cpattern; cexpression; cclock } =
       EqDef (char_list_of_string s,clk,ce)
   with WrongClock ck ->
     let s = Format.asprintf "%a : wrong clock"
-        Minisimplclock.print_ck ck in
+        Clocking_ast_printer.print_ck ck in
     Error.print_error cexpression.ce_loc s
   | WrongCt ct ->
        let s = Format.asprintf "%a : wrong ct"
-           Minisimplclock.print_ct ct in
+           Clocking_ast_printer.print_ct ct in
        Error.print_error cexpression.ce_loc s
 
 let rec check_equations_of_equations eqs =
@@ -192,11 +192,11 @@ let check_env_of_env env  =
       (char_list_of_string s, check_clock_of_clock_scheme clk)
     with WrongClock ck ->
       let s = Format.asprintf "%a : wrong clock"
-          Minisimplclock.print_ck ck in
+          Clocking_ast_printer.print_ck ck in
       Error.print_error Location.none s
        | WrongCt ct ->
          let s = Format.asprintf "%a : wrong ct"
-             Minisimplclock.print_ct ct in
+             Clocking_ast_printer.print_ct ct in
          Error.print_error Location.none s
 
   in
@@ -213,11 +213,11 @@ let check_global_env_of_global_env global : globalclockenv =
       (name, ((inc,inp),(outc,outp)))
     with WrongClock ck ->
       let s = Format.asprintf "%a : wrong clock"
-          Minisimplclock.print_ck ck in
+          Clocking_ast_printer.print_ck ck in
       Error.print_error Location.none s
        | WrongCt ct ->
          let s = Format.asprintf "%a : wrong ct"
-             Minisimplclock.print_ct ct in
+             Clocking_ast_printer.print_ct ct in
          Error.print_error Location.none s
 
   in

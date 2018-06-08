@@ -7,8 +7,8 @@ let%node merger (c,a,b) ~return:y =
    y := merge c a b
 
 let%node call_merger (d,x,y) ~return:k =
-  k := merger(d,(x [@ when d]),(y [@ whennot d]))
+  k := merger(d,(x [@ when d]),(y [@ whenot d]))
 
 let%node main () ~return:k =
-  tictoc := true >>> (false >>> tictoc);
+  tictoc := true ->> (false ->> tictoc);
   k := call_merger(tictoc,1,2)

@@ -222,7 +222,7 @@ let rec typ_expr gamma e =
       match e.e_desc with
       | Unit -> TUnit
       | Call _ -> new_vartyp ()
-        (* failwith "cannot type call" *)
+      | Value Nil -> new_vartyp ()
       | Value (Integer _) ->
         TInt
       | Value (Bool _) ->

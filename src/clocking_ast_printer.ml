@@ -4,6 +4,29 @@ open Parsing_ast_printer
 open Clocking_ast
 
 
+let rec print_ck fmt c =
+  match c with
+  | CkBase -> Format.fprintf fmt "base"
+  | CkUnknown -> Format.fprintf fmt "?"
+  | CkVariable { index = n; value = CkUnknown } ->
+    Format.fprintf fmt "'%d" n
+  | CkVariable { index = n; value = c } ->
+    Format.fprintf fmt "%a" print_ck c
+  | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
+  | Ckonnot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
+
+let rec print_ct fmt c =
+  let rec print_tuple fmt l =
+    match l with
+      [] -> ()
+    | [c] -> Format.fprintf fmt "%a" print_ct c
+    | c::cs -> Format.fprintf fmt "%a * %a" print_ct c print_tuple cs
+  in
+  match c with
+  | Ck ck -> print_ck fmt ck
+  | CkTuple cks -> Format.fprintf fmt "(%a)" print_tuple cks
+
+
 let rec print_expression fmt (ce:cexpression) =
   let rec print_expression_list fmt el =
     match el with
@@ -15,7 +38,7 @@ let rec print_expression fmt (ce:cexpression) =
   in
   match ce.ce_desc with
   | CVariable i -> Format.fprintf fmt "%a"
-                    print_ident i
+                     print_ident i
   | CArray e -> Format.fprintf fmt "[| %a |]" print_expression_list e
   | CArray_get (e,e') -> Format.fprintf fmt "%a.(%a)"
                            print_expression e
@@ -49,7 +72,9 @@ let rec print_expression fmt (ce:cexpression) =
                            print_preop op
                            print_expression e1
 
-  | CValue v -> print_value fmt v
+  | CValue v -> Format.fprintf fmt "(%a:%a)"
+                  print_value v
+                  print_ct ce.ce_clk
   | CArrow (e1,e2) -> Format.fprintf fmt "(%a -> %a)"
                        print_expression e1
                        print_expression e2
@@ -74,10 +99,10 @@ let rec print_expression fmt (ce:cexpression) =
 
 
 let print_equation fmt (eq,vars) =
-  Format.fprintf fmt "\t (%a : todo) = todo ;\n"
+  Format.fprintf fmt "\t (%a : %a) = %a;\n"
     print_pattern eq.cpattern
-    (* print_ct eq.cclock *)
-    (* print_expression eq.cexpression *)
+    print_ct eq.cclock
+    print_expression eq.cexpression
 
 let rec print_equations fmt (eqs,vars) =
   match eqs with
@@ -91,11 +116,12 @@ let print_node fmt (node,verbose) =
   let cs = node.cnode_clock in
   let (gv,t) = cs in
   if verbose then
-  Format.fprintf fmt "node %a %a returns:%a = \n%a"
+  Format.fprintf fmt "node %a (%a:%a) returns:(%a:%a) = \n%a"
     print_pattern node.cname
     print_pattern node.cinputs
+    print_ct node.cinputs_clk
     print_pattern node.coutputs
-    (* Minisimplclock.print_ct t *)
+    print_ct node.coutputs_clk
     print_equations (node.cequations,gv)
   else
     Format.fprintf fmt "%a \n%!"
