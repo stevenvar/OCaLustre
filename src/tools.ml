@@ -80,7 +80,7 @@ let rec string_list_of_pattern p =
     match p.p_desc with
     | Ident i -> i::[]
     | Typed (p,t) -> string_list_of_pattern p
-    | PUnit -> []
+    | PUnit -> ["()"]
     | Tuple tl ->
       List.fold_left (fun acc x -> acc @ string_list_of_pattern x ) [] tl
 

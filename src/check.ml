@@ -3,6 +3,8 @@ open Tools
 open Clocking_ast
 open Parsing_ast
 
+
+
 let char_list_of_string s =
   let rec acc i l =
     if i < 0 then l
@@ -30,7 +32,6 @@ let string_of_char_list cl =
   in
   let b = loop cl 0 in
   Bytes.to_string b
-
 
 exception WrongClock of ck
 exception WrongCt of ct
