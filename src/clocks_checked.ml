@@ -1,4 +1,6 @@
 
+
+
 (** val app : 'a1 list -> 'a1 list -> 'a1 list **)
 
 let rec app l m =
@@ -71,6 +73,29 @@ type ident_pair = ident*ident
 type xlist = ident list
 
 type lident_pair = ident_pair list
+
+
+
+let string_of_char_list cl =
+  let s = Bytes.make (List.length cl) ' ' in
+  let rec loop cl i =
+    match cl with
+    | [] -> s
+    | c::cl -> Bytes.set s i c; loop cl (i+1)
+  in
+  let b = loop cl 0 in
+  Bytes.to_string b
+
+let rec print_clock fmt c =
+  match c with
+  | Cbase -> Format.fprintf fmt "Cbase"
+  | Con (c,s) -> Format.printf "%a on %s" print_clock c (string_of_char_list s)
+  | Conot (c,s) -> Format.printf "%a on not %s" print_clock c (string_of_char_list s)
+
+let rec iter_nelist f l =
+  match l with
+  | Nebase x -> f x
+  | Necons (x,l) -> f x; iter_nelist f l
 
 (** val subst_ck : clock -> clock -> clock **)
 
@@ -361,6 +386,7 @@ let rec well_clocked_eq g c = function
       | None -> false)
    | None -> false)
 | EqApp (xs, ck, f, es) ->
+   (* Format.fprintf Format.std_formatter "ck=%a\n" print_clock ck; *)
   let fck = clockof_global_var g f in
   (match fck with
    | Some p ->
@@ -401,25 +427,20 @@ let rec well_clocked_eq g c = function
     globalclockenv -> clockenv -> equation nelist -> bool **)
 
 let rec well_clocked_eqs g c = function
-| Nebase eq -> well_clocked_eq g c eq
-| Necons (e, eqs0) -> (&&) (well_clocked_eq g c e) (well_clocked_eqs g c eqs0)
+  | Nebase eq ->
+     let wc = well_clocked_eq g c eq in
+     (* Format.fprintf Format.std_formatter "wc = %b" wc; *)
+     wc
+| Necons (e, eqs0) ->
+   let wc = (well_clocked_eq g c e) in
+   let wcs = (well_clocked_eqs g c eqs0) in
+   (* Format.fprintf Format.std_formatter "wc = %b / wcs = %b" wc wcs; *)
+   wc && wcs
+
+
+
 
 (** val well_clocked_node : globalclockenv -> clockenv -> d -> bool **)
-
-
-
-let rec print_clock fmt c =
-  match c with
-  | Cbase -> Format.fprintf fmt "Cbase"
-  | Con (c,s) -> Format.printf "%a on %s" print_clock c (Check.string_of_char_list s)
-  | Conot (c,s) -> Format.printf "%a on not %s" print_clock c (Check.string_of_char_list s)
-
-let rec iter_nelist f l =
-  match l with
-  | Nebase x -> f x
-  | Necons (x,l) -> f x; iter_nelist f l
-
-
 
 let rec well_clocked_node g c = function
   | Mk_node (_, xs, cks, ys, cks', eqns) ->
@@ -428,9 +449,13 @@ let rec well_clocked_node g c = function
     let out_clocks = clockof_vars c ys in
     (match in_clocks with
      | Some c0 ->
-       let open Check in
-       iter_nelist (fun s -> print_clock Format.std_formatter s) c0;
        (match out_clocks with
-        | Some d0 -> (&&) ((&&) (clocks_eqb cks c0) (clocks_eqb cks' d0)) chk
+        | Some d0 ->
+           (* iter_nelist (fun s -> print_clock Format.std_formatter s) c0; *)
+           (* iter_nelist (fun s -> print_clock Format.std_formatter s) cks; *)
+           (* iter_nelist (fun s -> print_clock Format.std_formatter s) d0; *)
+           (* iter_nelist (fun s -> print_clock Format.std_formatter s) cks'; *)
+           (* Format.fprintf Format.std_formatter "%b" chk; *)
+           (&&) ((&&) (clocks_eqb cks c0) (clocks_eqb cks' d0)) chk
         | None -> false)
      | None -> false)

@@ -56,8 +56,9 @@ let rec print_expression fmt (ce:cexpression) =
       print_expression e1
       print_expression e2
       print_expression e3
-  | CApplication (i,_,e) ->
-     Format.fprintf fmt "(%a %a)"
+  | CApplication (i,_,c,e) ->
+     Format.fprintf fmt "(%a)(%a %a)"
+                    print_ck c
                     print_ident i
                     print_expression e
   | CCall (e) ->

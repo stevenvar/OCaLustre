@@ -40,13 +40,14 @@ let simpl_env = ref []
 let typ_env = ref []
 
 (** Printing funs **)
-let print_steps _node _norm_node _sched_node _icnode =
+let print_steps _node _norm_node _sched_node _cnode _icnode =
    Format.fprintf
                 Format.std_formatter
-                "(** Parsed Node **) \n %a \n (** Normalized Node **) \n %a (** Scheduled Node **) : \n %a \n (** Imperative Function **) \n %a"
+                "(** Parsed Node **) \n %a \n (** Normalized Node **) \n %a (** Scheduled Node **) : \n %a \n (** Clocked Node **) \n %a \n (** Imperative Function **) \n %a"
                 print_node _node
                 print_node _norm_node
                 print_node _sched_node
+                Clocking_ast_printer.print_node (_cnode,!verbose)
                 Imperative_ast2.printml_node _icnode
 
 let print_why node =
@@ -94,9 +95,8 @@ let create_node mapper str =
           if !lustre then Lustre_printer.to_lustre_file _node;
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
-          typ_env := Minitypes.typ_node !typ_env _sched_node;
-          let (global_env, local_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node in
-          if !verbose then Format.printf "\n (** Clocked node **) \n%a\n" Clocking_ast_printer.print_node (_cnode,!verbose);
+          typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
+          let (global_env, local_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node !clocks in
           let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
           if !check then Format.printf "Checking : %b \n" checked;
           if checked then
@@ -105,8 +105,8 @@ let create_node mapper str =
               if !just_clock then [%str ] else
                 begin
                   let _icnode = Compiling_w_clocks.compile_cnode _cnode in
-                  if !verbose then
-                    print_steps _node _norm_node _sched_node _icnode;
+                  if !verbose then (
+                    print_steps _node _norm_node _sched_node _cnode _icnode);
                   if not !nonalloc then create_functional_code _icnode
                   else create_imperative_code _sched_node
                 end

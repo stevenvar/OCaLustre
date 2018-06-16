@@ -23,7 +23,7 @@ type cexpression = { ce_desc : cexp_desc ; ce_clk : ct; ce_loc : Location.t }
 and cexp_desc =
   | CAlternative of cexpression * cexpression * cexpression
   | CCondact of (bool*ident) list * cexpression
-  | CApplication of ident * int * cexpression
+  | CApplication of ident * int * ck * cexpression
   | CInfixOp of inf_operator * cexpression * cexpression
   | CPrefixOp of pre_operator * cexpression
   | CValue of value

@@ -426,7 +426,7 @@ let rec lookup_typ env p =
   with Not_found ->
     Error.print_error p.p_loc ("Unbound variable "^s)
 
-let typ_node gamma node =
+let typ_node gamma node types =
   reset_vartyp ();
   let vars = get_all_vars node in
   let vars = List.map Tools.string_of_pattern vars in
@@ -445,7 +445,8 @@ let typ_node gamma node =
   let node_typ = TArrow(ckins,ckouts) in
   (* print_env env; *)
   let node_typ_scheme = generalize_typ [] node_typ in
-  Format.printf "%a : %a \n"
+  if types then
+  Format.printf "\n%a : %a \n"
     Parsing_ast_printer.print_pattern node.name
     print_typ_scheme node_typ_scheme;
   ((Tools.string_of_pattern node.name,node_typ_scheme))::gamma

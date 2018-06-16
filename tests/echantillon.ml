@@ -25,10 +25,10 @@ let%node call_sampler (k) ~return:(y) =
  *   y = sampler(1,k);
  *   w = sampler_inv(2,k);
  *   z = merge k y w
- * 
+ *
  * let%node call_sampler2 () ~return:(y) =
  *   (y,k) = sampler2(1)
- * 
+ *
  * let%node merger (x,y,z) ~return:(k,v) =
  *   v = y;
  *   k = merge x y z  *)

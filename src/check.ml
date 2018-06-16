@@ -48,7 +48,7 @@ let rec check_clock_of_clock (c:ct) =
   in
   match c with
   | Ck c -> aux c
-  | CkTuple cs -> failwith "cktuple"
+  | CkTuple cs -> raise (WrongCt c)
 
 (* raise (WrongCt c) *)
 
@@ -126,26 +126,27 @@ let rec print_chk fmt c =
 
 let check_equation_of_equation { cpattern; cexpression; cclock } =
   try
-    let clk = check_clock_of_clock cclock in
-    (* Format.printf "Clock of %a : %a \n" Parsing_ast_printer.print_pattern cpattern print_chk clk; *)
     let s = try string_of_pattern cpattern with _ -> "tuple" in
     match cexpression.ce_desc with
     | CFby (e1,e2) ->
-      let le = check_lexp_of_cexpression e2 in
-      let c = const_of_cexpression e1 in
-      EqFby (char_list_of_string s, clk, c, le)
-    | CApplication (i,n,e) ->
-      let le = match e.ce_desc with CETuple e -> e | _ -> [e] in
-      let le = List.map check_lexp_of_cexpression le in
-      let cs = match cpattern.p_desc
-        with Tuple t -> List.map string_of_pattern t
+       let clk = check_clock_of_clock cclock in
+       let le = check_lexp_of_cexpression e2 in
+       let c = const_of_cexpression e1 in
+       EqFby (char_list_of_string s, clk, c, le)
+    | CApplication (i,n,c,e) ->
+       let le = match e.ce_desc with CETuple e -> e | _ -> [e] in
+       let le = List.map check_lexp_of_cexpression le in
+       let cs = match cpattern.p_desc
+         with Tuple t -> List.map string_of_pattern t
            | _ -> [s]
       in
       let cs = List.map char_list_of_string cs in
       let cs = nelist_of_list cs in
-      EqApp (cs,clk,char_list_of_string i, nelist_of_list le)
-    | _ -> let ce = check_cexp_of_cexpression cexpression in
-      EqDef (char_list_of_string s,clk,ce)
+      EqApp (cs,check_clock_of_clock (Ck c),char_list_of_string i, nelist_of_list le)
+    | _ ->
+       let clk = check_clock_of_clock cclock in
+       let ce = check_cexp_of_cexpression cexpression in
+       EqDef (char_list_of_string s,clk,ce)
   with WrongClock ck ->
     let s = Format.asprintf "%a : wrong clock"
         Clocking_ast_printer.print_ck ck in

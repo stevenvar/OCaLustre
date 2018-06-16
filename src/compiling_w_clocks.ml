@@ -7,7 +7,7 @@ open Tools
 
 let rec extract_conds c =
   begin
-    match c with
+    match Minisimplclock.shorten_ck c with
     | Ckon (x,c) ->
       (true,c)::(extract_conds x)
     | Ckonnot (x,c) ->
@@ -21,17 +21,6 @@ let rec get_condition c =
   | CkTuple cs -> List.fold_left (fun acc x -> acc@get_condition x)
                          []
                          cs
-  (* let open Carriers in
-   * match c with
-   * | Carrier(s,c) -> get_condition c
-   * | On (c, ck) -> (true,string_of_carrier ck)::get_condition c
-   * | Onnot (c, ck) -> (false,string_of_carrier ck)::get_condition c
-   * | CTuple cl -> List.fold_left (fun acc c -> (get_condition c)@acc) [] cl
-   * | Var { value = Unknown } -> []
-   * | Var { value = t } -> get_condition t
-   * | _ ->
-   *   let s = Format.asprintf "get_condition : %a" Clocks.print_clock (c,[]) in
-   *   failwith s *)
 
 let compile_preop op =
   match op with
@@ -64,7 +53,7 @@ let rec compile_expression_init i e c =
   match d with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
-  | CApplication (i,num, e) -> IApplication(get_condition c,i,num,ce e)
+  | CApplication (i,num,c, e) -> IApplication(get_condition (Ck c),i,num,ce e)
   (* | Condact (l,e') -> ICondact(l,ce e') *)
   | CCall e -> ICall e
   | CInfixOp (op,e1,e2) -> IInfixOp(compile_infop op, ce e1, ce e2)
@@ -95,8 +84,8 @@ let rec compile_expression_step i e c =
   match d with
   | CValue v -> IValue v
   | CVariable s -> IVariable s
-  | CApplication (i,num,e') ->
-    let conds = get_condition c in
+  | CApplication (i,num,c,e') ->
+    let conds = get_condition (Ck c) in
     IApplication(conds,i,num,ce e')
   | CCall e -> ICall e
   | CInfixOp (op,e1,e2) ->
@@ -164,10 +153,12 @@ let get_updates_init eqs =
 let get_updates_step eqs =
   let aux eq l =
     match eq.cexpression.ce_desc with
-    | CFby (e1,e2) -> { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
+    | CFby (e1,e2) ->
+       let cond = get_condition eq.cclock in
+       { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
                         i_expression = compile_expression_step
                             (get_ident eq.cpattern) e2 eq.cclock;
-                        i_condition = get_condition eq.cclock }::l
+                        i_condition = cond }::l
     | CPre e -> { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
                   i_expression = compile_expression_step
                       (get_ident eq.cpattern) e eq.cclock;
@@ -192,7 +183,7 @@ let get_app_inits eqs =
    let rec aux (p,e) l =
      match e.ce_desc with
      (* | Condact(k,e) -> aux (p,e) l *)
-    | CApplication (i,num,e) ->
+    | CApplication (i,num,c,e) ->
        let app = { p with p_desc = Ident (i^(string_of_int num)^"_app")} in
        { i_pattern = app ;
          i_expression =
