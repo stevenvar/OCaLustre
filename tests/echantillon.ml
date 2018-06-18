@@ -16,9 +16,28 @@ let%node sampler2 x ~return:(y,c) =
   y = x --@ c
 
 
-let%node call_sampler (k) ~return:(y) =
-  (* k = true; *)
-  y = sampler(1,k)
+let%node call_sampler (k) ~return:(y,p,q) =
+  y = sampler(1,k);
+  (p,q) = sampler2(4 --@ k)
+
+let%node cpt (x) ~return:y =
+  y = x
+
+let%node watch (sec) ~return:(min,hour,h,m,s) =
+  s = cpt (60 [@when sec]);
+  min = (s = 60);
+  m = cpt (60 [@when min]);
+  hour = (m = 60);
+  h = cpt (24 [@when hour])
+
+let%node ex_const ( v,c,d ) ~return:x =
+  k = 0 [@when c];
+w = merge d v (0 [@when c] [@whennot d]);
+x = merge c w 1
+
+(* let%node ex_const ( v,c,d ) ~return:x = *)
+(* w = merge d v ((0 [@when c]) [@whennot d]); *)
+(* x = merge c w (1 [@when c ]) *)
 
 (* let%node call_sampler () ~return:(y,w,z) =
  *   k = true;

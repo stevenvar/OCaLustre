@@ -100,8 +100,12 @@ let rec get_idents l e =
     l
 
 (** Extract name of a clock in an OCaml attribute **)
-let extract_clock attr =
-  let (sl,p) = attr in
+let extract_clock (s,p) =
+  let b = match s.txt with
+    | "when" -> true
+    | "whennot" -> false
+    | _ -> Error.syntax_error s.loc "wrong attribute"
+  in
   match p with
   | PStr str ->
     begin
@@ -112,14 +116,15 @@ let extract_clock attr =
           | Pstr_eval (e,attr) ->
             begin
               match e.pexp_desc with
-              | Pexp_ident {txt = (Lident v); loc} -> e
+              | Pexp_ident {txt = (Lident v); loc} -> (b,Some e)
               | _ -> Error.syntax_error e.pexp_loc "the clock should only be an ident"
             end
           | _ -> Error.syntax_error x.pstr_loc "wrong form of clock"
         end
-      | _ -> [%expr () ] (* don't return an error, because 'if then else' uses this *)
+      | _ -> (false,None)
     end
-  | _ -> Error.syntax_error sl.loc "wrong attribute"
+  | _ -> Error.syntax_error s.loc "wrong attribute"
+
 
 (** Extract the int in a Pexp_constant **)
 let get_int e =
@@ -143,12 +148,15 @@ let make_expression e =
     | _ -> Error.print_error e.pexp_loc "Not an array update"
   and mk_expr e =
     let attr = e.pexp_attributes in
-    let clk = if attr <> [] then
-        let a = List.hd attr in
-        let (sl,pl) = a in
-        Some (sl,extract_clock a)
-      else None
-    in
+    (* Format.printf "Number of attributes : %d \n" (List.length attr); *)
+    let clocks = List.map extract_clock attr in
+
+    (* let clk = if attr <> [] then *)
+        (* let a = List.hd attr in *)
+        (* let (sl,pl) = a in *)
+        (* Some (sl,extract_clock a) *)
+      (* else None *)
+    (* in *)
     let exp = match e with
       | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
       | { pexp_desc = Pexp_tuple el ; pexp_loc ; pexp_attributes} ->
@@ -308,17 +316,17 @@ let make_expression e =
             Pprintast.expression e in
         Error.syntax_error e.pexp_loc s
     in
-    match clk with
-    |  Some (sl,clk) ->
-      begin
-        match sl.txt with
-        | "when" -> { exp with e_desc = When (exp,mk_expr clk)}
-        | "whenot" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
-        | "whennot" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
-        | "when_not" -> { exp with e_desc = Whennot (exp,mk_expr clk)}
-        | _ -> Error.print_error clk.pexp_loc "Wrong attribute"
-      end
-    | None -> exp
+    let create_sampled e cl =
+      let rec aux l acc =
+        match l with
+        | [] -> acc
+        | (true, Some s)::t -> aux t ({ e_desc = When (acc,mk_expr s) ; e_loc = e.e_loc})
+        | (false, Some s)::t -> aux t ({ e_desc = Whennot (acc,mk_expr s) ; e_loc = e.e_loc})
+        | (_, None)::t -> aux t acc
+      in
+      aux cl e
+    in
+    create_sampled exp clocks
   in
   mk_expr e
 
