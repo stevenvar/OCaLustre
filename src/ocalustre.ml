@@ -96,15 +96,15 @@ let create_node mapper str =
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
-          let (global_env, local_env, _cnode) = Minisimplclock.clk_node !simpl_env _sched_node !clocks in
+          let (global_env, local_env, _cnode) = Clocking_ocl.clk_node !simpl_env _sched_node !clocks in
           let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
-          if !check then Format.printf "Checking : %b \n" checked;
+          if !check then Format.printf "Checking of %a : %b \n" print_pattern _cnode.cname checked;
           if checked then
             begin
               simpl_env := global_env;
               if !just_clock then [%str ] else
                 begin
-                  let _icnode = Compiling_w_clocks.compile_cnode _cnode in
+                  let _icnode = Compiling_ocl.compile_cnode _cnode in
                   if !verbose then (
                     print_steps _node _norm_node _sched_node _cnode _icnode);
                   if not !nonalloc then create_functional_code _icnode

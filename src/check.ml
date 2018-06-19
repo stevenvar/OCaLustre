@@ -36,7 +36,7 @@ let string_of_char_list cl =
 exception WrongClock of ck
 exception WrongCt of ct
 let rec check_clock_of_clock (c:ct) =
-  let c = Minisimplclock.shorten_ct c in
+  let c = Clocking_ocl.shorten_ct c in
   let rec aux c =
     match c with
     | Clocking_ast.CkBase -> Cbase
@@ -165,8 +165,8 @@ let rec check_equations_of_equations eqs =
 let check_node_of_node n =
   let cins = n.cinputs_clk in
   let couts = n.coutputs_clk in
-  (* Minisimplclock.print_ct Format.std_formatter cins; *)
-   (* Minisimplclock.print_ct Format.std_formatter couts; *)
+  (* Clocking_ocl.print_ct Format.std_formatter cins; *)
+   (* Clocking_ocl.print_ct Format.std_formatter couts; *)
 
   Mk_node (
       (char_list_of_string (string_of_pattern n.cname)),

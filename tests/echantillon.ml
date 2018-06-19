@@ -31,9 +31,8 @@ let%node watch (sec) ~return:(min,hour,h,m,s) =
   h = cpt (24 [@when hour])
 
 let%node ex_const ( v,c,d ) ~return:x =
-  k = 0 [@when c];
-w = merge d v (0 [@when c] [@whennot d]);
-x = merge c w 1
+  w = merge d v (0 [@when c] [@whennot d]);
+  x = merge c w 1
 
 (* let%node ex_const ( v,c,d ) ~return:x = *)
 (* w = merge d v ((0 [@when c]) [@whennot d]); *)
@@ -46,8 +45,11 @@ x = merge c w 1
  *   z = merge k y w
  *
  * let%node call_sampler2 () ~return:(y) =
- *   (y,k) = sampler2(1)
- *
- * let%node merger (x,y,z) ~return:(k,v) =
- *   v = y;
- *   k = merge x y z  *)
+ *   (y,k) = sampler2(1) *)
+
+let%node merger (x,y,z) ~return:(k,v) =
+  v = y;
+  k = merge x y z
+let%node call_sampler_slower (d,e) ~return:w =
+  (* d = c [@when e]; *)
+  w = sampler(8 [@when e],d)

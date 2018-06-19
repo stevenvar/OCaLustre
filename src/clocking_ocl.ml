@@ -32,11 +32,13 @@ let rec carriers_list ct = match ct with
 
 let rec subst_base ck ck' =
   match ck with
+  | CkUnknown -> ck
+    (* failwith "subst_base : unknown" *)
   | CkBase -> ck'
   | CkVariable { value = c } -> subst_base c ck'
   | Ckon (ck,s) -> Ckon(subst_base ck ck',s)
   | Ckonnot (ck,s) -> Ckonnot(subst_base ck ck',s)
-  | _ -> failwith "subst_base"
+  (* | _ -> failwith "subst_base" *)
 
 let rec subst_base_ct ct ck' =
   match ct with
@@ -50,6 +52,7 @@ let rec subst ck sigma =
   match ck with
   | CkBase -> CkBase
   | CkUnknown -> failwith "subst : unknown"
+  | CkVariable { value = CkUnknown} -> ck
   | CkVariable { value = c} -> subst c sigma
   | Ckon (ck,s) -> Ckon(subst ck sigma, app_sigma sigma s)
   | Ckonnot (ck,s) -> Ckonnot(subst ck sigma, app_sigma sigma s)
@@ -63,13 +66,16 @@ let rec subst_names cks sigma =
 
 let rec subst_ct ct sigma =
   match ct with
-  | Ck ck -> [Ck (subst ck sigma)]
-  | CkTuple (Ck c::cks) -> (Ck (subst c sigma)) :: (subst_ct (CkTuple cks) sigma)
-  | CkTuple [] -> []
+  | Ck ck -> Ck (subst ck sigma)
+  | CkTuple (Ck c::cks) ->
+    let cks = List.map (fun c -> subst_ct c sigma) cks in
+    let c = subst c sigma in
+    CkTuple (Ck c::cks)
+  | CkTuple [] -> CkTuple []
   | _ -> failwith "subst_ct"
 
 let subst_list sigma l =
-  List.fold_left (fun acc x -> subst_ct x sigma@acc) [] l
+  List.fold_left (fun acc x -> subst_ct x sigma ::acc) [] l
 
 let rec get_subst xs es s =
   match xs,es with
@@ -80,7 +86,8 @@ let rec get_subst xs es s =
       (x,y)::sigma
     else get_subst xs es s
   |  x::xs, e::es ->
-    if List.mem x s then (failwith "get_subst") else get_subst xs es s
+    if List.mem x s then (failwith "parameters that are clocks must be given a name") else
+      get_subst xs es s
   | _, _ -> failwith "get_subst"
 
 
@@ -244,6 +251,28 @@ let rec get_cond_ct c1 c2 =
 
 (** Generalization **)
 
+
+let generalize_sign (cin,cout) =
+  let v = new_varclk () in
+  let generalize_ck c =
+    let rec aux c =
+      match c with
+      | CkBase -> v
+      | CkUnknown -> failwith "generalize"
+      | Ckon (ck,x) -> Ckon(aux ck,x)
+      | Ckonnot (ck,x) -> Ckonnot(aux ck,x)
+      | CkVariable { index = n ; value = t } ->
+        CkVariable {index = n; value = aux t}
+    in
+    aux c
+  in
+  let rec aux c =
+    match c with
+    | Ck ck -> Ck (generalize_ck ck)
+    | CkTuple cts -> CkTuple (List.map aux cts)
+  in
+  (aux cin,aux cout)
+
 (* returns clk vars *)
 let vars_of_clk tau =
   let rec vars vs v =
@@ -396,20 +425,15 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
       | Application (id,num,ee) ->
          let (cks1,xs1,cks2,xs2) = try List.assoc id delta
           with Not_found ->
-            let s = Format.asprintf "Unbound variable : %s" id in
+            let s = Format.asprintf "Unbound node : %s" id in
             Error.print_error e.e_loc s
          in
          (* Format.printf "Input clocks = %a\n" print_ct cks1; *)
          (* Format.printf "Output clocks = %a\n" print_ct cks2; *)
          let s = carriers_list cks1 @ carriers_list cks2 in
          let param = clk_expr delta gamma ee in
-         (* let c = get_cond_ct cks1 param.ce_clk in *)
-         (* let cks1' = subst_base_ct (cks1) c in *)
-         (* Format.printf "cks1' = %a\n" print_ct cks1'; *)
-         (* Format.printf "Param clocks = %a\n" print_ct param.ce_clk; *)
-         (* let param_clks = split_ct param.ce_clk in *)
-         (* let input_clks = split_ct cks1 in *)
-         let output_clks = split_ct cks2 in
+         let (gin,gout) = generalize_sign (cks1,cks2) in
+         unify_ct gin param.ce_clk;
          let params = match param.ce_desc with
            | CETuple e -> e
            | _ -> [param]
@@ -418,19 +442,12 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
          let sigma = get_subst xs1 params s in
          let xs2 = Tools.string_list_of_pattern xs2 in
          let sigma2 = get_subst_vars xs2 !outputs s in
-         (* List.iter (fun (x,y) -> Format.printf "%s->%s\n" x y ) sigma;
-          * List.iter (fun (x,y) -> Format.printf "%s->%s\n" x y ) sigma2; *)
-         (* let input_clks = subst_list sigma input_clks in *)
-         let output_clks = subst_list sigma output_clks in
-         let output_clks = subst_list sigma2 output_clks in
-         (* List.iter (Format.printf "Input clocks = %a\n" print_ct) input_clks;
-          * List.iter (Format.printf "Output clocks = %a\n" print_ct) output_clks; *)
+         let gout = subst_ct gout sigma in
+         let gout = subst_ct gout sigma2 in
          let c = get_cond_ct cks1 param.ce_clk in
-         (* let input_clks = List.map (fun d -> subst_base_ct d c) input_clks in *)
-         let output_clks = List.map (fun d -> subst_base_ct d c) output_clks in
-         { ce_desc = CApplication(id,num,c,param) ;
+         { ce_desc = CApplication(id,num,c,param);
            ce_loc = e.e_loc;
-           ce_clk = group_ct output_clks }
+           ce_clk = gout }
       | Whennot (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in

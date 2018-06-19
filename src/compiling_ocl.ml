@@ -7,7 +7,7 @@ open Tools
 
 let rec extract_conds c =
   begin
-    match Minisimplclock.shorten_ck c with
+    match Clocking_ocl.shorten_ck c with
     | Ckon (x,c) ->
       (true,c)::(extract_conds x)
     | Ckonnot (x,c) ->
