@@ -390,7 +390,7 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         { ce_desc = CVariable n; ce_loc = e.e_loc; ce_clk = s }
       | PrefixOp (op,e) ->
         let t = clk_expr delta gamma e in
-        t
+        { ce_desc = CPrefixOp (op,t) ; ce_loc = e.e_loc; ce_clk = t.ce_clk }
       | InfixOp (op,e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in

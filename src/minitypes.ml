@@ -229,6 +229,7 @@ let rec typ_expr gamma e =
         TBool
       | Value (Float _) ->
         TFloat
+      | Value (Enum _) -> TInt
       | Variable n ->
         let sigma = try List.assoc n gamma
           with Not_found ->
