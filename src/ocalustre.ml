@@ -26,6 +26,7 @@ let why = ref false
 let nonalloc = ref false
 let check = ref false
 let typing = ref false
+let print_types = ref false
 let not_printed_wrapper = ref true
 let just_clock = ref false
 let main = ref ""
@@ -60,7 +61,7 @@ let create_imperative_code node =
   let _seq_node = seq_node node outputs_env in
   if !verbose then print_s_node Format.std_formatter _seq_node;
   let str = tocaml_node _seq_node in
-  if !typing then
+  if !print_types then
     Print_type.print_type str;
   str
 
@@ -95,7 +96,7 @@ let create_node mapper str =
           if !lustre then Lustre_printer.to_lustre_file _node;
           if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
-          typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
+          if !typing then typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
           let (global_env, local_env, _cnode) = Clocking_ocl.clk_node !simpl_env _sched_node !clocks in
           let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
           if !check then Format.printf "Checking of %a : %b \n" print_pattern _cnode.cname checked;
@@ -134,9 +135,10 @@ let _ =
                   ("-a", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
                   ("-m", Arg.Set_string main, "Generate main function");
                   ("-i", Arg.Set clocks, "Prints node clocks");
+                  ("-t", Arg.Set typing, "Prints node type");
                   ("-clk", Arg.Set just_clock, "Just infer clocks, and stop");
                   ("-check_clocks", Arg.Set check, "Check clock inference");
-                  ("-t", Arg.Set typing, "Prints node types");]
+                  ("-t", Arg.Set print_types, "Prints node types");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;
   register "ocalustre" lustre_mapper
