@@ -90,7 +90,12 @@ let create_node mapper str =
     begin match s.pstr_desc with
     | Pstr_value (_,[v]) ->
         let _node = mk_node v.pvb_pat v.pvb_expr in
-        let _norm_node = if !no_auto then _node else normalize_node _node in
+        (* let _norm_node = if !no_auto then _node else normalize_node _node in *)
+        let _norm_node = if !no_auto then _node else Normalize2.norm_node _node in
+         Format.fprintf
+                Format.std_formatter
+                "%a"
+                print_node _node;
         let _sched_node = if !no_auto then _node else schedule _norm_node in
         begin
           if !lustre then Lustre_printer.to_lustre_file _node;
