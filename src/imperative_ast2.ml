@@ -164,15 +164,18 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
-  | IApplication (c,i,num,e) -> Format.fprintf fmt "%s%d_app (%a)"
+  | IApplication (c,i,num,e) -> Format.fprintf fmt "(%s%d_app %a)"
                                   i
                                   num
                                   printml_expression e
   | IApplication_init (i,e) ->
-     Format.fprintf fmt "%s (%a)"
+     Format.fprintf fmt "(%s %a)"
                              i
                              printml_expression e
-  | ICall e -> Format.fprintf fmt "(_____)"
+  (* | ICall e -> Format.fprintf fmt "🐫" *)
+  | ICall e ->
+    let s = Pprintast.string_of_expression e in
+    Format.fprintf fmt "🐫 %s 🐫" s
   | IConstr s -> Format.fprintf fmt "%s" s
   | IETuple el -> Format.fprintf fmt "(%a)"
                     printml_expressions el

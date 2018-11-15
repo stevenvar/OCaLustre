@@ -19,8 +19,8 @@ let fresh x =
 let rec norm_exp x exp =
   match exp.e_desc with
   | InfixOp (op,e1,e2) ->
-    let (d1,e1') = norm_exp (fresh x) e1 in
-    let (d2,e2') = norm_exp (fresh x) e2 in
+    let (d1,e1') = norm_exp x e1 in
+    let (d2,e2') = norm_exp x e2 in
     (d1@d2, { exp with e_desc = InfixOp(op,e1',e2') })
   | Fby(k,e) ->
     let x = fresh x in
@@ -29,9 +29,9 @@ let rec norm_exp x exp =
      let eq',var' = new_eq x exp' in
      (eq'::d,var')
   | Alternative(e1,e2,e3) ->
-    let (d1,e1') = norm_exp (fresh x) e1 in
-    let (d2,e2') = norm_exp (fresh x) e2 in
-    let (d3,e3') = norm_exp (fresh x) e3 in
+    let (d1,e1') = norm_exp x e1 in
+    let (d2,e2') = norm_exp x e2 in
+    let (d3,e3') = norm_exp x e3 in
     (d1@d2@d3, { exp with e_desc = Alternative(e1',e2',e3') })
   | PrefixOp(op,e) ->
     let (d,e') = norm_exp x e in
@@ -43,9 +43,9 @@ let rec norm_exp x exp =
     let (d,e') = norm_exp x e1 in
     (d, { exp with e_desc = Whennot(e',e2) })
   | Merge(e1,e2,e3) ->
-    let (d1,e1') = norm_exp (fresh x) e1 in
-    let (d2,e2') = norm_exp (fresh x) e2 in
-    let (d3,e3') = norm_exp (fresh x) e3 in
+    let (d1,e1') = norm_exp x e1 in
+    let (d2,e2') = norm_exp x e2 in
+    let (d3,e3') = norm_exp x e3 in
     (d1@d2@d3, { exp with e_desc = Merge(e1',e2',e3') })
   | Application (f,n,e) ->
     let x = fresh x in
@@ -53,6 +53,12 @@ let rec norm_exp x exp =
     let exp' = { exp with e_desc = Application(f,n,e') } in
     let eq',var' = new_eq x exp' in
     (eq'::d,var')
+  | ETuple (el) ->
+    let (d,el) = List.fold_left (fun (ds',es') e ->
+        let (d',e') = norm_exp x e in
+        (d'@ds', e'::es')) ([],[]) el
+    in
+    (d,{ exp with e_desc = ETuple (List.rev el) } )
   | _ -> ([],exp)
 
 
