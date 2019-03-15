@@ -4,7 +4,7 @@ open Ident
 let string_of_path p =
   let open Path in
   match p with
-  | Pident i -> i.name
+  | Pident i -> Ident.name i
   | Pdot _ -> "."
   | Papply _ -> "*"
 

@@ -155,22 +155,59 @@ let tocaml_init i acc =
   tocaml_inits (i.i_init_apps@i.i_init_fby) acc
 
 
-let tocaml_main inode =
+let tocaml_main inode delay =
   let name = expr_of_pattern inode.i_name in
-  let input_fun = suffix_pattern ~suf:"_inputs" inode.i_name in
-  let input_fun = expr_of_pattern input_fun in
-  let output_fun = suffix_pattern ~suf:"_outputs" inode.i_name in
-  let output_fun = expr_of_pattern output_fun in
-  [%stri
-    let () =
-      let open IO in
-           let main = [%e name] ()  in
-           while true do
-           let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
-           let [%p pat_of_pattern inode.i_outputs ] =
-             main [%e expr_of_pattern inode.i_inputs] in
-           [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
-         done ]
+  let init_funp = suffix_pattern ~suf:"_init" inode.i_name in
+  let init_fun = expr_of_pattern init_funp in
+  let input_funp = suffix_pattern ~suf:"_step_in" inode.i_name in
+  let input_fun = expr_of_pattern input_funp in
+  let output_funp = suffix_pattern ~suf:"_step_out" inode.i_name in
+  let output_fun = expr_of_pattern output_funp in
+  if delay < 0 then
+    [%stri 
+
+  
+   let () =
+     let module IO = struct
+         let [%p pat_of_pattern init_funp ] = fun () -> failwith "TODO" 
+         let [%p pat_of_pattern input_funp ] = fun () -> failwith "TODO" 
+         let [%p pat_of_pattern output_funp ] = fun [%p pat_of_pattern inode.i_outputs ] -> failwith "TODO" 
+       end
+     in
+     
+     let open IO in
+     [%e init_fun ] ();
+     let main = [%e name] ()  in
+     while true do
+       let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
+       let [%p pat_of_pattern inode.i_outputs ] =
+         main [%e expr_of_pattern inode.i_inputs] in
+       [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
+     done ]
+  else
+    [%stri 
+
+  
+   let () =
+     let module IO = struct
+         let [%p pat_of_pattern init_funp ] = fun () -> failwith "TODO" 
+         let [%p pat_of_pattern input_funp ] = fun () -> failwith "TODO" 
+         let [%p pat_of_pattern output_funp ] = fun [%p pat_of_pattern inode.i_outputs ] -> failwith "TODO" 
+       end
+     in
+     
+     let open IO in
+     [%e init_fun ] ();
+     let main = [%e name] ()  in
+     while true do
+       let _delay_ms = millis () in
+       let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
+       let [%p pat_of_pattern inode.i_outputs ] =
+         main [%e expr_of_pattern inode.i_inputs] in
+       [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
+       let _delay_ms = millis () - _delay_ms in
+       delay([%e (Ast_convenience.int delay) ] - _delay_ms)
+     done ]
 
 let tocaml_node inode =
   let name = stringloc_of_pattern (inode.i_name) in

@@ -25,6 +25,7 @@ let no_auto = ref false
 let why = ref false
 let nonalloc = ref false
 let check = ref false
+let delay = ref (-1)
 let typing = ref false
 let print_types = ref false
 let not_printed_wrapper = ref true
@@ -67,7 +68,7 @@ let create_imperative_code node =
 
 let create_functional_code (node:Imperative_ast2.imp_node) =
   let stri = if !main = string_of_pattern node.i_name then
-      [Extracting2.tocaml_main node]
+      [Extracting2.tocaml_main node !delay]
     else []
   in
   let str = Extracting2.tocaml_node node::stri in
@@ -141,6 +142,7 @@ let _ =
                   ("-m", Arg.Set_string main, "Generate main function");
                   ("-i", Arg.Set clocks, "Prints node clocks");
                   ("-t", Arg.Set typing, "Prints node type");
+                  ("-d", Arg.Set_int delay, "Set a main loop frequency (in ms delay)");
                   ("-clk", Arg.Set just_clock, "Just infer clocks, and stop");
                   ("-check_clocks", Arg.Set check, "Check clock inference");
                   ("-t", Arg.Set print_types, "Prints node types");]
