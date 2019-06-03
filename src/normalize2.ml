@@ -87,6 +87,7 @@ let rec norm_eqn eq =
                             let exp = { eq.expression with e_desc = ETuple es } in
                             let (ds,es') =  norm_eqn {pattern = pat; expression = exp } in
                             (ds@d@[es'],e')
+      | Application (f,n,e) -> ([],eq)
       | _ -> failwith "nope"
       end
   | Tuple [] -> failwith "nil"
