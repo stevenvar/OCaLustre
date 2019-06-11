@@ -138,7 +138,7 @@ let _ =
                   ("-y", Arg.Set why, "Prints whyml code");
                   ("-n", Arg.Set no_auto, "Don't normalize, don't schedule");
                   ("-l", Arg.Set lustre, "Prints lustre node");
-                  ("-a", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
+                  ("-na", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
                   ("-m", Arg.Set_string main, "Generate main function");
                   ("-i", Arg.Set clocks, "Prints node clocks");
                   ("-t", Arg.Set typing, "Prints node type");

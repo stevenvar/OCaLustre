@@ -91,7 +91,7 @@ let rec get_subst xs es s =
   | _, _ -> failwith "get_subst"
 
 
-let rec get_subst_vars xs es s =
+let rec get_subst_vars (xs:Parsing_ast.ident list) es s =
   match xs,es with
   | [], [] -> []
   |  x::xs, y::ys ->
@@ -99,7 +99,11 @@ let rec get_subst_vars xs es s =
       let sigma = get_subst_vars xs ys s in
       (x,y)::sigma
     else get_subst_vars xs ys s
-  | _, _ -> failwith "get_subst_vars"
+  | _, _ ->
+     let s = List.fold_left (fun acc x -> x^acc) "" xs in
+     let s' = List.fold_left (fun acc x -> x^acc) "" es in
+     let s'' = Printf.sprintf "get_subst_vars : %s / %s" s s' in
+     failwith s''
 
 (** Printing **)
 

@@ -327,15 +327,18 @@ let expr_of_string s =
 
 let tocaml_main inode =
   let name = str_of_pattern inode.i_name in
-  [%stri
-    let () =
-      let open IO in
-           let main = [%e (Exp.ident (lid_of_ident name))] ()  in
-           while true do
-           let [%p pat_of_pattern inode.i_inputs ] = [%e Exp.ident (lid_of_ident ~suffix:"_inputs" name)] () in
-           let [%p pat_of_pattern inode.i_outputs ] = main  [%e tocaml_inputs_expr inode ] in
-           [%e Exp.ident (lid_of_ident ~suffix:"_outputs" name)] [%e tocaml_outputs_expr inode ]
-         done ]
+  let oc = open_out (name^"_io.ml") in
+  let input = Printf.sprintf "let input_%s () = (* TODO *) \n" name in
+  output_string oc input
+  (* [%stri
+   *   let () =
+   *     let open IO in
+   *          let main = [%e (Exp.ident (lid_of_ident name))] ()  in
+   *          while true do
+   *          let [%p pat_of_pattern inode.i_inputs ] = [%e Exp.ident (lid_of_ident ~suffix:"_inputs" name)] () in
+   *          let [%p pat_of_pattern inode.i_outputs ] = main  [%e tocaml_inputs_expr inode ] in
+   *          [%e Exp.ident (lid_of_ident ~suffix:"_outputs" name)] [%e tocaml_outputs_expr inode ]
+   *        done ] *)
 
 let tocaml_node inode =
   let name = stringloc_of_ident (str_of_pattern inode.i_name) in

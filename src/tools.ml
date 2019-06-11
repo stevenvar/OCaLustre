@@ -69,11 +69,18 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
 
 let rec string_of_pattern ?(prefix="") ?(suffix="") p =
   let open Parsing_ast in
+  let rec aux l =
+    match l with
+    | [] -> ""
+    | [p] -> string_of_pattern p
+    | p::t -> (string_of_pattern p)^","^(aux t)
+  in
   match p.p_desc with
   | Ident i -> prefix^i^suffix;
   | Typed (p,t) -> string_of_pattern p
   | PUnit -> "()"
-  | _ -> failwith "string_of_pattern : no tuple !"
+  | Tuple pl ->
+     "("^aux pl^")"
 
 let rec string_list_of_pattern p =
     let open Parsing_ast in

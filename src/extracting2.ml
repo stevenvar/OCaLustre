@@ -155,59 +155,94 @@ let tocaml_init i acc =
   tocaml_inits (i.i_init_apps@i.i_init_fby) acc
 
 
+let create_io_file inode =
+  let name = string_of_pattern inode.i_name in
+  let file_name = (name^"_io.ml") in
+  if not (Sys.file_exists file_name) then
+    begin
+      let oc = open_out file_name in
+      let init = Printf.sprintf "let init_%s () = (* TODO *) \n" name in
+      let input_params = string_of_pattern inode.i_inputs in
+      let input = Printf.sprintf "let input_%s () = (* TODO *) in %s \n" name input_params in
+      let output_params = string_of_pattern inode.i_outputs in
+      let output = Printf.sprintf "let output_%s %s = (* TODO *) \n" name output_params in
+      output_string oc init;
+      if input_params <> "()" then
+        output_string oc input;
+      output_string oc output
+    end
+
+
 let tocaml_main inode delay =
+  create_io_file inode;
   let name = expr_of_pattern inode.i_name in
-  let init_funp = suffix_pattern ~suf:"_init" inode.i_name in
+  let module_name = (String.capitalize_ascii (string_of_pattern inode.i_name^"_io")) in
+  let init_funp = prefix_pattern ~pre:"init_" inode.i_name in
   let init_fun = expr_of_pattern init_funp in
-  let input_funp = suffix_pattern ~suf:"_step_in" inode.i_name in
+  let input_funp = prefix_pattern ~pre:"input_" inode.i_name in
   let input_fun = expr_of_pattern input_funp in
-  let output_funp = suffix_pattern ~suf:"_step_out" inode.i_name in
+  let output_funp = prefix_pattern ~pre:"output_" inode.i_name in
   let output_fun = expr_of_pattern output_funp in
-  if delay < 0 then
-    [%stri 
-
-  
-   let () =
-     let module IO = struct
-         let [%p pat_of_pattern init_funp ] = fun () -> failwith "TODO" 
-         let [%p pat_of_pattern input_funp ] = fun () -> failwith "TODO" 
-         let [%p pat_of_pattern output_funp ] = fun [%p pat_of_pattern inode.i_outputs ] -> failwith "TODO" 
-       end
-     in
-     
-     let open IO in
-     [%e init_fun ] ();
-     let main = [%e name] ()  in
-     while true do
-       let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
-       let [%p pat_of_pattern inode.i_outputs ] =
-         main [%e expr_of_pattern inode.i_inputs] in
-       [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
-     done ]
+  if delay <= 0 then
+      let eloop =  if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
+                     [%expr
+                         [%e init_fun ] ();
+                      let main = [%e name] ()  in
+                      while true do
+                        let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
+                        let [%p pat_of_pattern inode.i_outputs ] =
+                          main [%e expr_of_pattern inode.i_inputs] in
+                        [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
+                      done ]
+                   else
+                     [%expr
+                         [%e init_fun ] ();
+                      let main = [%e name] ()  in
+                      while true do
+                        let [%p pat_of_pattern inode.i_outputs ] =
+                          main () in
+                        [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
+                      done ]
+      in
+    [%stri
+     let () =
+       [%e (Exp.open_ Asttypes.Fresh (lid_of_ident module_name) eloop)]
+    ]
   else
-    [%stri 
-
-  
-   let () =
-     let module IO = struct
-         let [%p pat_of_pattern init_funp ] = fun () -> failwith "TODO" 
-         let [%p pat_of_pattern input_funp ] = fun () -> failwith "TODO" 
-         let [%p pat_of_pattern output_funp ] = fun [%p pat_of_pattern inode.i_outputs ] -> failwith "TODO" 
-       end
-     in
-     
-     let open IO in
-     [%e init_fun ] ();
-     let main = [%e name] ()  in
-     while true do
-       let _delay_ms = millis () in
-       let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
-       let [%p pat_of_pattern inode.i_outputs ] =
-         main [%e expr_of_pattern inode.i_inputs] in
-       [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
-       let _delay_ms = millis () - _delay_ms in
-       delay([%e (Ast_convenience.int delay) ] - _delay_ms)
-     done ]
+    let eloop = if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
+                  [%expr
+                      [%e init_fun ] ();
+                   let main = [%e name] ()  in
+                   while true do
+                     let _delay_ms = Avr.millis () in
+                     let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
+                     let [%p pat_of_pattern inode.i_outputs ] =
+                       main [%e expr_of_pattern inode.i_inputs] in
+                     [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
+                     let _delay_ms = Avr.millis () - _delay_ms in
+                     delay([%e (Ast_convenience.int delay) ] - _delay_ms)
+                   done
+                  ]
+                else
+                  [%expr
+                      [%e init_fun ] ();
+                   let main = [%e name] ()  in
+                   while true do
+                     let _delay_ms = Avr.millis () in
+                     let [%p pat_of_pattern inode.i_outputs ] =
+                       main () in
+                     [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
+                     let _delay_ms = Avr.millis () - _delay_ms in
+                     delay([%e (Ast_convenience.int delay) ] - _delay_ms)
+                   done
+                  ]
+    in
+    [%stri
+     let () =
+       [%e (Exp.open_ Asttypes.Fresh (lid_of_ident module_name)
+              (eloop))
+       ]
+    ]
 
 let tocaml_node inode =
   let name = stringloc_of_pattern (inode.i_name) in
