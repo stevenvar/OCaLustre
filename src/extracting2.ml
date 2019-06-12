@@ -16,16 +16,16 @@ let rec tocaml_cond_list cl =
       let e2 = tocaml_cond_list t in
       [%expr [%e e1] && [%e e2]]
 
-let rec tocaml_imperative_updates e el =
+let rec tocaml_imperative_updates e el n =
   let rec loop l =
     match l with
     | [] -> e
     | (e1,e2)::t ->
-      let e1 = tocaml_expression e1 in
-      let e2 = tocaml_expression e2 in
+      let e1 = tocaml_expression e1 n in
+      let e2 = tocaml_expression e2 n in
       Exp.sequence [%expr tab.([%e e1]) <- [%e e2]] (loop t)
   in loop el
-and tocaml_expression e =
+and tocaml_expression e n =
   let open Parsing_ast in
   match e.i_desc with
   | IValue (String s) -> Ast_convenience.str ~loc:e.i_loc s
@@ -36,94 +36,115 @@ and tocaml_expression e =
   | IValue (Bool true) -> Ast_convenience.constr ~loc:e.i_loc "true" []
   | IValue (Bool false) ->  Ast_convenience.constr ~loc:e.i_loc "false" []
   | IETuple t -> Ast_convenience.tuple ~loc:e.i_loc
-                   (List.map (fun i -> tocaml_expression i) t)
+                   (List.map (fun i -> tocaml_expression i n) t)
   | IVariable i -> Ast_convenience.evar ~loc:e.i_loc i
   | IRef i ->  [%expr ![%e Exp.ident ~loc:e.i_loc (lid_of_ident i) ]  ]
-  | IRefDef e -> [%expr ref [%e tocaml_expression e ] ]
-  | IArray el -> Exp.array ~loc:e.i_loc (List.map tocaml_expression el)
+  | IRefDef e -> [%expr ref [%e tocaml_expression e n] ]
+  | IArray el -> Exp.array ~loc:e.i_loc (List.map (fun e -> tocaml_expression e n) el)
   | IArray_fold (e,f,acc) ->
-    [%expr Array.fold_left [%e f] [%e tocaml_expression acc] ([%e tocaml_expression e]) ]
+    [%expr Array.fold_left [%e f] [%e tocaml_expression acc n] ([%e tocaml_expression e n]) ]
   | IArray_map (e,f) ->
-    [%expr Array.map [%e f] [%e tocaml_expression e] ]
+    [%expr Array.map [%e f] [%e tocaml_expression e n] ]
   | IArray_get (e,e') ->
-    [%expr [%e tocaml_expression e].([%e tocaml_expression e']) ]
+    [%expr [%e tocaml_expression e n].([%e tocaml_expression e' n]) ]
   | IImperative_update (e,pe) ->
-    let e = tocaml_expression e in
-    [%expr let tab = Array.copy [%e e] in [%e tocaml_imperative_updates e pe] ; tab ]
-  | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e ] ]
-  | IPrefixOp (INeg, e) -> [%expr ~- [%e tocaml_expression e ] ]
-  | IPrefixOp (INegf, e) -> [%expr ~-. [%e tocaml_expression e ] ]
+    let e = tocaml_expression e n in
+    [%expr let tab = Array.copy [%e e] in [%e tocaml_imperative_updates e pe n] ; tab ]
+  | IPrefixOp (INot, e) -> [%expr not [%e tocaml_expression e n] ]
+  | IPrefixOp (INeg, e) -> [%expr ~- [%e tocaml_expression e n] ]
+  | IPrefixOp (INegf, e) -> [%expr ~-. [%e tocaml_expression e n] ]
   | IInfixOp (IDiff,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] <> [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] <> [%e tocaml_expression e2 n ]]
   | IInfixOp (IEquals,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] = [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] = [%e tocaml_expression e2 n ]]
   | IInfixOp (IMod,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] mod [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] mod [%e tocaml_expression e2 n ]]
   | IInfixOp (IPlus,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] + [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] + [%e tocaml_expression e2 n ]]
   | IInfixOp (IMinus,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] - [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] - [%e tocaml_expression e2 n ]]
   | IInfixOp (ITimes,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] * [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] * [%e tocaml_expression e2 n ]]
   | IInfixOp (IDiv,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] / [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] / [%e tocaml_expression e2 n ]]
   | IInfixOp (IPlusf,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] +. [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] +. [%e tocaml_expression e2 n ]]
   | IInfixOp (IMinusf,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] -. [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] -. [%e tocaml_expression e2 n ]]
   | IInfixOp (ITimesf,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] *. [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] *. [%e tocaml_expression e2 n ]]
   | IInfixOp (IDivf,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ]  /. [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ]  /. [%e tocaml_expression e2 n ]]
   | IInfixOp (IInf,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] < [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] < [%e tocaml_expression e2 n ]]
   | IInfixOp (IInfe,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] <= [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] <= [%e tocaml_expression e2 n ]]
   | IInfixOp (ISup,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] > [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] > [%e tocaml_expression e2 n ]]
   | IInfixOp (ISupe,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] >= [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] >= [%e tocaml_expression e2 n ]]
   | IInfixOp (IOr,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n ] || [%e tocaml_expression e2 n ]]
   | IInfixOp (IAnd,e1,e2) ->
-    [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
+    [%expr [%e tocaml_expression e1 n] && [%e tocaml_expression e2 n ]]
   | IApplication (c,id, num, e) ->
-    let e' = tocaml_expression e in
+     let rec dispatch n accu =
+       if n = 0 then accu
+       else dispatch (n-1) ([%expr Obj.magic ()]::accu)
+     in
+
+    let e' = tocaml_expression e n in
     let cl = tocaml_cond_list c in
-    let n = string_of_int num in
-    let exp = [%expr [%e (Exp.ident (lid_of_ident (id^n^"_app")))] [%e e' ]] in
+    let n' = string_of_int num in
+    let exp = [%expr [%e (Exp.ident (lid_of_ident (id^n'^"_app")))] [%e e' ]] in
+
     begin
       match c with
       | [] -> exp
-      | _ -> [%expr if [%e cl] then [%e exp] else Obj.magic ()]
+      | _ ->
+             if n <= 1 then
+               [%expr if [%e cl] then [%e exp] else Obj.magic () ]
+             else
+               let magics =
+               { pexp_desc = Parsetree.Pexp_tuple (dispatch n []);
+                 pexp_loc = e'.pexp_loc;
+                 pexp_attributes = [] }
+             in
+               [%expr if [%e cl] then [%e exp] else [%e magics ]]
     end
   | ICondact(l,e) ->
-    let e' = tocaml_expression e in
+    let e' = tocaml_expression e n in
     (* let b' = Ast_convenience.constr (string_of_bool b) [] in *)
     (* let i = Ast_convenience.evar i in *)
     let cl = tocaml_cond_list l in
     [%expr if [%e cl] then [%e e'] else Obj.magic ()]
   | IApplication_init (id,e) ->
-    let e' = tocaml_expression e in
+    let e' = tocaml_expression e n in
     [%expr [%e (Exp.ident (lid_of_ident (id)))] [%e e']]
   | IAlternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
-        [%expr [%e (tocaml_expression e1)]]
-        [%expr  [%e (tocaml_expression e2)] ]
-        (Some ( [%expr  [%e tocaml_expression e3 ]]))
+        [%expr [%e (tocaml_expression e1 n)]]
+        [%expr  [%e (tocaml_expression e2 n)] ]
+        (Some ( [%expr  [%e tocaml_expression e3 n]]))
     ]
     ]
   | IUnit -> [%expr ()]
   | IConstr _ -> [%expr ()]
   | ICall e ->
     [%expr [%e e ]]
-  (* | _ -> failwith "todo" *)
+(* | _ -> failwith "todo" *)
+
+let rec nb_pattern (p : Parsing_ast.pattern) =
+  match p.p_desc with
+  | Ident _ | PUnit -> 1
+  | Typed (p,_) -> nb_pattern p
+  | Tuple pl -> List.fold_left (fun acc x -> (nb_pattern x)+acc) 0 pl
 
 let tocaml_eq_list el acc =
   let tocaml_eq e acc =
     let x = e.i_pattern in
     let ppat = pat_of_pattern x in
-    let pexpr = tocaml_expression e.i_expression in
+    let pexpr = tocaml_expression e.i_expression (nb_pattern x) in
     [%expr let [%p ppat] = [%e pexpr] in [%e acc ]]
   in
   List.fold_left (fun l e -> tocaml_eq e l) acc (List.rev el)
@@ -131,11 +152,11 @@ let tocaml_eq_list el acc =
 let tocaml_updates l acc =
   let rec aux { i_condition = c; i_pattern = p; i_expression = e } acc =
     let cond = tocaml_cond_list c in
-    let p = expr_of_pattern p in
-    let e = tocaml_expression e in
+    let p' = expr_of_pattern p in
+    let e = tocaml_expression e (nb_pattern p) in
     match c with
-    | [] -> [%expr [%e p] := [%e e]; [%e acc]]
-    | _ -> [%expr if [%e cond] then [%e p] := [%e e]; [%e acc] ]
+    | [] -> [%expr [%e p'] := [%e e]; [%e acc]]
+    | _ -> [%expr if [%e cond] then [%e p'] := [%e e]; [%e acc] ]
   in
   List.fold_left (fun acc u -> aux u acc) acc l
 
@@ -147,7 +168,7 @@ let tocaml_step inode =
 let tocaml_inits il acc =
   let aux {i_pattern = p ; i_expression = e}  acc =
       [%expr let [%p pat_of_pattern p] =
-               [%e tocaml_expression e] in [%e acc]]
+               [%e tocaml_expression e (nb_pattern p)] in [%e acc]]
   in
   List.fold_left (fun acc i -> aux i acc) acc il
 
@@ -169,7 +190,8 @@ let create_io_file inode =
       output_string oc init;
       if input_params <> "()" then
         output_string oc input;
-      output_string oc output
+      output_string oc output;
+      raise (Location.Error (Location.error ~loc:inode.i_name.p_loc ("I/O functions for node "^name^" where not available : the file "^file_name^" has been created")))
     end
 
 
@@ -214,12 +236,12 @@ let tocaml_main inode delay =
                       [%e init_fun ] ();
                    let main = [%e name] ()  in
                    while true do
-                     let _delay_ms = Avr.millis () in
+                     let _delay_ms = millis () in
                      let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
                      let [%p pat_of_pattern inode.i_outputs ] =
                        main [%e expr_of_pattern inode.i_inputs] in
                      [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
-                     let _delay_ms = Avr.millis () - _delay_ms in
+                     let _delay_ms = millis () - _delay_ms in
                      delay([%e (Ast_convenience.int delay) ] - _delay_ms)
                    done
                   ]
@@ -228,11 +250,11 @@ let tocaml_main inode delay =
                       [%e init_fun ] ();
                    let main = [%e name] ()  in
                    while true do
-                     let _delay_ms = Avr.millis () in
+                     let _delay_ms = millis () in
                      let [%p pat_of_pattern inode.i_outputs ] =
                        main () in
                      [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
-                     let _delay_ms = Avr.millis () - _delay_ms in
+                     let _delay_ms = millis () - _delay_ms in
                      delay([%e (Ast_convenience.int delay) ] - _delay_ms)
                    done
                   ]

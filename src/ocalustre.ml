@@ -67,12 +67,13 @@ let create_imperative_code node =
   str
 
 let create_functional_code (node:Imperative_ast2.imp_node) =
-  let stri = if !main = string_of_pattern node.i_name then
-      [Extracting2.tocaml_main node !delay]
-    else []
-  in
-  let str = Extracting2.tocaml_node node::stri in
-  str
+    let stri = if !main = string_of_pattern node.i_name then
+                 [Extracting2.tocaml_main node !delay]
+               else []
+    in
+    let str = Extracting2.tocaml_node node::stri in
+    str
+
 
 (** Function that maps structure_items of the form :
 
@@ -127,10 +128,8 @@ let create_node mapper str =
 
 (** Custom mapper **)
 let lustre_mapper argv =
-  { default_mapper with structure =
-                          fun mapper st ->
-                          let stl = List.map (create_node mapper) st in
-                          List.flatten stl }
+  { default_mapper with
+    structure = fun mapper st -> let stl = List.map (create_node mapper) st in List.flatten stl }
 
 (** Entry point **)
 let _ =
