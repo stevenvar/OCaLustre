@@ -6,7 +6,6 @@ let nb = ref 0
 
 
 (* Functions for exploding tuples : (a,b) = 1,2 becomes a=1;b=2  *)
-
 let explode_pattern p =
   match p.p_desc with
   | Tuple pl -> pl
@@ -180,7 +179,6 @@ let seq_exp_list e name =
   seq_exp_list e [] |> List.rev
 
 (* Convert equations for the init function *)
-
 let seq_eqs_zero eqs sname env =
   let rec seq_exp e =
     let sexp = { s_e_desc = S_Unit ; s_e_loc = e.e_loc} in
@@ -275,7 +273,6 @@ let seq_eqs_zero eqs sname env =
 
 
 (* Convert equations for the step function  *)
-
 let rec seq_eqs_next eqs name env =
   let rec seq_exp s e =
     let sexp = { s_e_desc = S_Unit; s_e_loc = e.e_loc } in

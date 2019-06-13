@@ -276,7 +276,7 @@ let rec tocaml_state_zero s name =
     pexp_attributes = []
   }
 
-(* create function _0 *)
+(* create function _init *)
 let tocaml_s_zero (f:s_fun) =
   let name = stringloc_of_string ((string_of_pattern f.s_name)^"_init") in
   let ins = f.s_inputs in
@@ -292,7 +292,7 @@ let tocaml_s_zero (f:s_fun) =
         [%e fun_of_list ins (tocaml_eq_list eqs st)]
     ]
 
-(* create function _next *)
+(* create function _step *)
 let tocaml_s_next (f:s_fun) =
   let name = stringloc_of_string ((string_of_pattern f.s_name)^"_step") in
   let ins = f.s_inputs in

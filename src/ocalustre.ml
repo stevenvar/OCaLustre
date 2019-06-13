@@ -11,7 +11,7 @@ open Normalizing
 open Sequential_ast
 open Sequential_ast_printer
 open Proof_printer
-open Sequentialize
+open Sequentialize2
 open Codegen
 open Imperative_ast2
 open Clocking_ast
@@ -116,7 +116,7 @@ let create_node mapper str =
                   if !verbose then (
                     print_steps _node _norm_node _sched_node _cnode _icnode);
                   if not !nonalloc then create_functional_code _icnode
-                  else create_imperative_code _sched_node
+                  else create_imperative_code _cnode
                 end
             end
           else
