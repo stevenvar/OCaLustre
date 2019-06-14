@@ -61,7 +61,8 @@ let print_why node =
 let create_imperative_code node =
   let _seq_node = seq_node node outputs_env in
   if !verbose then print_s_node Format.std_formatter _seq_node;
-  let str = tocaml_node _seq_node in
+  Printf.printf "%s vs %s\n" !main (string_of_pattern _seq_node.s_name);
+  let str = Codegen.tocaml_node _seq_node (!main = string_of_pattern _seq_node.s_name) 0 in
   if !print_types then
     Print_type.print_type str;
   str
@@ -94,14 +95,14 @@ let create_node mapper str =
         let _node = mk_node v.pvb_pat v.pvb_expr in
         (* let _norm_node = if !no_auto then _node else normalize_node _node in *)
         let _norm_node = if !no_auto then _node else Normalize2.norm_node _node in
-         Format.fprintf
+        if !verbose then Format.fprintf
                 Format.std_formatter
                 "%a"
                 print_node _node;
         let _sched_node = if !no_auto then _node else schedule _norm_node in
         begin
           if !lustre then Lustre_printer.to_lustre_file _node;
-          if !why then print_why _sched_node;
+          (* if !why then print_why _sched_node; *)
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           if !typing then typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
           let (global_env, local_env, _cnode) = Clocking_ocl.clk_node !simpl_env _sched_node !clocks in
@@ -134,7 +135,7 @@ let lustre_mapper argv =
 (** Entry point **)
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
-                  ("-y", Arg.Set why, "Prints whyml code");
+                  (* ("-y", Arg.Set why, "Prints whyml code"); *)
                   ("-n", Arg.Set no_auto, "Don't normalize, don't schedule");
                   ("-l", Arg.Set lustre, "Prints lustre node");
                   ("-na", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");

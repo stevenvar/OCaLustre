@@ -308,8 +308,94 @@ let tocaml_s_next (f:s_fun) =
         [%e fun_of_list ins (tocaml_eq_list eqs st)]
     ]
 
-let tocaml_node s_node =
+
+
+let create_io_file inode =
+  let name = string_of_pattern inode.s_name in
+  let file_name = (name^"_io.ml") in
+  if not (Sys.file_exists file_name) then
+    begin
+      let oc = open_out file_name in
+      let init = Printf.sprintf "(* initialization function *)\nlet initialize () = (* TODO *) () \n" in
+      let input_params = inode.s_zero.s_inputs in
+      let inputs = List.map (fun x -> Printf.sprintf "let input_%s_%s () = (* TODO *) in %s \n" name x x) input_params in
+      let output_params = List.fold_left (fun acc x -> x^" "^acc) "" inode.s_next.s_outputs in
+      let output = Printf.sprintf "let output_%s %s = (* TODO *) \n" name output_params in
+      output_string oc init;
+      output_string oc "(* Input functions *)\n";
+      List.iter (fun fi -> output_string oc fi) inputs;
+      output_string oc "(* Output function *)\n";
+      output_string oc output;
+      raise (Location.Error (Location.error ~loc:inode.s_name.p_loc ("I/O functions for node "^name^" where not available : the file "^file_name^" has been created")))
+    end
+
+
+open Tools
+
+let rec all_input_funs name l e =
+  match l with
+  | [] -> e
+  | h::t ->
+     let p = { p_desc = Ident h ; p_loc = Location.none } in
+     let fp = prefix_pattern ~pre:("input_"^name^"_") p in
+     let f = expr_of_pattern fp in
+     [%expr let [%p pat_of_pattern p ] = [%e f ] () in
+                [%e all_input_funs name t e ] ]
+
+
+
+
+let tocaml_main inode delay =
+  create_io_file inode;
+  let name = string_of_pattern inode.s_name in
+  let module_name = (String.capitalize_ascii (string_of_pattern inode.s_name^"_io")) in
+  (* let initialize_funp = suffix_pattern ~suf:"_initialize" inode.s_name in *)
+  (* let initialize_fun = expr_of_pattern initialize_funp in *)
+  let init_funp = suffix_pattern ~suf:"_init" inode.s_name in
+  let init_fun = expr_of_pattern init_funp in
+  let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in
+  let inputs = List.map expr_of_pattern inputsp in
+  let inputs = List.map (fun x -> (Nolabel,x)) inputs in
+  let output_funp = prefix_pattern ~pre:"output_" inode.s_name in
+  let output_fun = expr_of_pattern output_funp in
+  let apply_init = Exp.apply init_fun inputs in
+  let update_funp = suffix_pattern ~suf:"_step" inode.s_name in
+  let update_fun = expr_of_pattern update_funp in
+  let state = {p_desc = Ident "_st"; p_loc = Location.none} in
+  let update_inputsp = state::inputsp in
+  let update_inputs = List.map expr_of_pattern update_inputsp in
+  let update_inputs = List.map (fun x -> (Nolabel,x)) update_inputs in
+  let apply_update = Exp.apply update_fun update_inputs in
+  let state_expr = expr_of_pattern state  in
+  let outputs = List.map (fun x -> (Exp.field state_expr (lid_of_ident (name^"_out_"^x)) )) inode.s_next.s_outputs in
+  let outputs = List.map (fun x -> (Nolabel,x)) outputs in
+  let apply_output = Exp.apply output_fun outputs in
+
+  let e = [%expr let _st = [%e apply_init ] in
+                     [%e apply_output] ;
+                     while true do
+                       [%e all_input_funs name inode.s_zero.s_inputs
+                       apply_update ] ;
+                       [%e apply_output ] done ] in
+  let eloop =  [%expr
+                   initialize ();
+
+                [%e all_input_funs name inode.s_zero.s_inputs e] ]
+
+  in
+  [%stri
+   let () =
+     [%e (Exp.open_ Asttypes.Fresh (lid_of_ident module_name) eloop)]
+  ]
+
+
+
+let tocaml_node s_node is_main d =
   let typ = tocaml_type s_node.s_type in
   let f0 = tocaml_s_zero s_node.s_zero in
   let fn = tocaml_s_next s_node.s_next in
-  [typ;f0;fn]
+  if is_main then
+    let fmain = tocaml_main s_node d in
+    [typ;f0;fn;fmain]
+  else
+    [typ;f0;fn]
