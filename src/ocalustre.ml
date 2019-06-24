@@ -61,7 +61,6 @@ let print_why node =
 let create_imperative_code node =
   let _seq_node = seq_node node outputs_env in
   if !verbose then print_s_node Format.std_formatter _seq_node;
-  Printf.printf "%s vs %s\n" !main (string_of_pattern _seq_node.s_name);
   let str = Codegen.tocaml_node _seq_node (!main = string_of_pattern _seq_node.s_name) 0 in
   if !print_types then
     Print_type.print_type str;

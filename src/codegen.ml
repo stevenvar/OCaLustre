@@ -279,7 +279,7 @@ let rec tocaml_state_zero s name =
 
 (* create function _init *)
 let tocaml_s_zero (f:s_fun) =
-  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_init") in
+  let name = stringloc_of_string ((string_of_pattern f.s_name)^"_alloc") in
   let ins = f.s_inputs in
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_zero f.s_state f.s_name in
@@ -352,7 +352,7 @@ let tocaml_main inode delay =
   let module_name = (String.capitalize_ascii (string_of_pattern inode.s_name^"_io")) in
   (* let initialize_funp = suffix_pattern ~suf:"_initialize" inode.s_name in *)
   (* let initialize_fun = expr_of_pattern initialize_funp in *)
-  let init_funp = suffix_pattern ~suf:"_init" inode.s_name in
+  let init_funp = suffix_pattern ~suf:"_alloc" inode.s_name in
   let init_fun = expr_of_pattern init_funp in
   let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in
   let inputs = List.map expr_of_pattern inputsp in
@@ -373,7 +373,6 @@ let tocaml_main inode delay =
   let apply_output = Exp.apply output_fun outputs in
 
   let e = [%expr let _st = [%e apply_init ] in
-                     [%e apply_output] ;
                      while true do
                        [%e all_input_funs name inode.s_zero.s_inputs
                        apply_update ] ;
@@ -381,7 +380,7 @@ let tocaml_main inode delay =
   let eloop =  [%expr
                    initialize ();
 
-                [%e all_input_funs name inode.s_zero.s_inputs e] ]
+                [%e e] ]
 
   in
   [%stri

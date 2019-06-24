@@ -251,7 +251,7 @@ let seq_eqs_zero eqs sname env =
           let eq =
             { s_pattern = Parsing_ocl.mk_pattern (i^(string_of_int !nb)^"_state");
               s_expression =
-                { s_e_desc = S_Application_init (i^"_init",!nb, [{ seq.s_expression with s_e_desc =  S_Unit}] );
+                { s_e_desc = S_Application_init (i^"_alloc",!nb, [{ seq.s_expression with s_e_desc =  S_Unit}] );
                   s_e_loc = eq.cexpression.ce_loc }
             } in
           eq::seq::(aux eqs)
