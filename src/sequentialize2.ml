@@ -186,55 +186,55 @@ let seq_eqs_zero eqs sname env =
   let rec seq_exp e =
     let sexp = { s_e_desc = S_Unit ; s_e_loc = e.ce_loc} in
     match e.ce_desc with
-    | CValue v -> { sexp with s_e_desc = S_Value v }
-    | CVariable s -> { sexp with s_e_desc = S_Variable s }
-    | CApplication (i,num,c,e) ->
-       (* let conds = get_condition (Ck c) in *)
-      (try
-         let outputs = List.assoc i !env in
-         mk_outputs
-           ({ sexp with s_e_desc = S_Variable (i^string_of_int !nb^"_state")})
-           i
-           outputs
-       with Not_found -> Error.print_error e.ce_loc ("unknown node "^i))
-    | CArray _
-    | CArray_get _
-    | CArray_fold _
-    | CArray_map _
-    | CImperative_update _ -> failwith "todo"
-    | CCall e ->
-      { sexp with s_e_desc = S_Call e }
-    | CInfixOp (op,e1,e2) ->
-      { sexp with s_e_desc =
-                    S_InfixOp(seq_infop op,
-                              seq_exp e1,
-                              seq_exp e2)
-      }
-    | CPrefixOp (op, e) ->
-      { sexp with s_e_desc = S_PrefixOp (seq_preop op, seq_exp e) }
-    | CAlternative (e1,e2,e3) ->
-      { sexp with s_e_desc = S_Alternative (seq_exp e1,
-                                            seq_exp e2,
-                                            seq_exp e3) }
-    | CUnit -> { sexp with s_e_desc = S_Unit}
-    | CArrow (e1,e2) -> seq_exp e1
-    (* | CPre e -> assert false *)
-    | CFby (e,e') -> seq_exp e
-    | CWhen (e',i) ->
-      { sexp with s_e_desc = (seq_exp e').s_e_desc}      
-    | CWhennot (e',i) ->
-      { sexp with s_e_desc = (seq_exp e').s_e_desc}
-    | CETuple el ->
-      let iel = List.map (fun e -> seq_exp e) el in
-      { sexp with s_e_desc = S_ETuple (iel) }
-    | CMerge (e1,e2,e3) ->
-       (* failwith "I don't work with clocks yet" *)
-      { sexp with s_e_desc =
-                    S_Alternative (seq_exp e1,
-                                   seq_exp e2,
-                                   seq_exp e3)
-      }
-    | _ -> failwith "cannot convert"
+    (* | CValue v -> { sexp with s_e_desc = S_Value v }
+     * | CVariable s -> { sexp with s_e_desc = S_Variable s }
+     * | CApplication (i,num,c,e) ->
+     *    (\* let conds = get_condition (Ck c) in *\)
+     *   (try
+     *      let outputs = List.assoc i !env in
+     *      mk_outputs
+     *        ({ sexp with s_e_desc = S_Variable (i^string_of_int !nb^"_state")})
+     *        i
+     *        outputs
+     *    with Not_found -> Error.print_error e.ce_loc ("unknown node "^i))
+     * | CArray _
+     * | CArray_get _
+     * | CArray_fold _
+     * | CArray_map _
+     * | CImperative_update _ -> failwith "todo"
+     * | CCall e ->
+     *   { sexp with s_e_desc = S_Call e }
+     * | CInfixOp (op,e1,e2) ->
+     *   { sexp with s_e_desc =
+     *                 S_InfixOp(seq_infop op,
+     *                           seq_exp e1,
+     *                           seq_exp e2)
+     *   }
+     * | CPrefixOp (op, e) ->
+     *   { sexp with s_e_desc = S_PrefixOp (seq_preop op, seq_exp e) }
+     * | CAlternative (e1,e2,e3) ->
+     *   { sexp with s_e_desc = S_Alternative (seq_exp e1,
+     *                                         seq_exp e2,
+     *                                         seq_exp e3) }
+     * | CUnit -> { sexp with s_e_desc = S_Unit}
+     * | CArrow (e1,e2) -> seq_exp e1
+     * (\* | CPre e -> assert false *\) *)
+     | CFby (e,e') -> seq_exp e
+     (* | CWhen (e',i) ->
+     *   { sexp with s_e_desc = (seq_exp e').s_e_desc}      
+     * | CWhennot (e',i) ->
+     *   { sexp with s_e_desc = (seq_exp e').s_e_desc}
+     * | CETuple el ->
+     *   let iel = List.map (fun e -> seq_exp e) el in
+     *   { sexp with s_e_desc = S_ETuple (iel) }
+     * | CMerge (e1,e2,e3) ->
+     *    (\* failwith "I don't work with clocks yet" *\)
+     *   { sexp with s_e_desc =
+     *                 S_Alternative (seq_exp e1,
+     *                                seq_exp e2,
+     *                                seq_exp e3)
+     *   } *)
+    | _ -> { sexp with s_e_desc = (S_Magic) }
   in
   let rec aux l =
     match l with
@@ -251,7 +251,7 @@ let seq_eqs_zero eqs sname env =
           let eq =
             { s_pattern = Parsing_ocl.mk_pattern (i^(string_of_int !nb)^"_state");
               s_expression =
-                { s_e_desc = S_Application_init (i^"_init",!nb, seq_exp_list e' sname);
+                { s_e_desc = S_Application_init (i^"_init",!nb, [{ seq.s_expression with s_e_desc =  S_Unit}] );
                   s_e_loc = eq.cexpression.ce_loc }
             } in
           eq::seq::(aux eqs)
@@ -269,7 +269,9 @@ let seq_eqs_zero eqs sname env =
 let seq_zero name inputs outputs state env eqs =
   let sname = string_of_pattern name in
   let eqs = eqs@(update_all_fby eqs) in
+  nb := 0;
   let eqs = seq_eqs_zero eqs sname env in
+  nb := 0;
   { s_name = name;
     s_inputs = inputs;
     s_outputs = outputs;
@@ -415,6 +417,7 @@ let rec seq_eqs_next eqs name env =
 let seq_next name inputs outputs state env eqs =
   let sname = string_of_pattern name in
   let eqs = eqs@(update_all_fby eqs) in
+  nb := 0;
   let eqs = seq_eqs_next eqs sname env in
   nb := 0;
   { s_name = name;

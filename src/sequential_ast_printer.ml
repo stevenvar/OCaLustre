@@ -89,6 +89,7 @@ let rec print_s_expression fmt (exp,name) =
                 print_s_list t
   in
   match exp.s_e_desc with
+  | S_Magic -> Format.fprintf fmt "Obj.magic ()"
   | S_Value c -> print_value fmt c
   | S_Variable v ->  Format.fprintf fmt "%s" v
   | S_Ref s -> Format.fprintf fmt "state.%a_%s" print_pattern name s

@@ -16,6 +16,7 @@ let lid_of_ident ?(prefix="") ?(suffix="") i =
 (* creates OCaml's AST Exp from s_expression *)
 let rec tocaml_expression e =
   match e.s_e_desc with
+  | S_Magic -> [%expr Obj.magic () ]
   | S_Value (Nil) -> [%expr Obj.magic () ]
   | S_Value (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
   | S_Value (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
