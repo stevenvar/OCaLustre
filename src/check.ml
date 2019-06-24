@@ -92,6 +92,7 @@ let rec check_constant_of_constant k =
   | Integer _ -> Kint
   | Float _ -> Kfloat
   | Bool _ -> Kbool
+  | Enum _ -> Kint (* little hack : constructors can be seen as ints : it does not change the clocking semantics (it's useful because the formal specification does not mention that a fby can have an enum on the left side...)  *)
   | _ -> invalid_arg "check_constant_of_constant"
 
 let rec check_lexp_of_cexpression (ce:cexpression) =
@@ -195,6 +196,8 @@ let check_equation_of_equation { cpattern; cexpression; cclock } =
     | CApplication (i,n,c,e) ->
        let le = match e.ce_desc with CETuple es -> check_lexps_of_cexpressions es | _ -> check_lexps_of_cexpressions [e]  in 
       EqApp (check_pattern_of_pattern cpattern,check_clock_of_clock (Ck c),char_list_of_string i, le)
+    | CCall ocaml -> 
+       EqEval (check_pattern_of_pattern cpattern, check_clock_of_clock cclock ,char_list_of_string "ocaml_expr")
     | _ ->
        let clk = check_clock_of_clock cclock in
        let ce = check_cexp_of_cexpression cexpression in
@@ -270,6 +273,6 @@ let check_node global local n =
   let cn = check_node_of_node n in
   let global = check_global_env_of_global_env global in
   let local = check_env_of_env local in
-  print_chk_env Format.std_formatter local;
   let b = well_clocked_prog [(local,cn)] global in 
+  if not b then print_chk_env Format.std_formatter local;
   b

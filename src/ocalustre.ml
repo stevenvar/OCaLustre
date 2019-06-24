@@ -106,7 +106,7 @@ let create_node mapper str =
           if !typing then typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
           let (global_env, local_env, _cnode) = Clocking_ocl.clk_node !simpl_env _sched_node !clocks in
           let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
-          if !check then Format.printf "Checking of %a : %b \n" print_pattern _cnode.cname checked;
+          if !check then Format.printf "Checking of %a : %s \n" print_pattern _cnode.cname (if checked then "OK" else "FAIL");
           if checked then
             begin
               simpl_env := global_env;
