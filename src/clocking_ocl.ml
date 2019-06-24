@@ -437,13 +437,16 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
          let s = carriers_list cks1 @ carriers_list cks2 in
          let param = clk_expr delta gamma ee in
          let (gin,gout) = generalize_sign (cks1,cks2) in
-         unify_ct gin param.ce_clk;
          let params = match param.ce_desc with
            | CETuple e -> e
            | _ -> [param]
          in
          let xs1 = Tools.string_list_of_pattern xs1 in
          let sigma = get_subst xs1 params s in
+         (* Format.fprintf Format.std_formatter "First subst ="; *)
+         (* List.iter (fun (x,y) -> Format.fprintf Format.std_formatter "(%s -> %s)\n" x y) sigma; *)
+         let gin = subst_ct gin sigma in 
+         unify_ct gin param.ce_clk;
          let xs2 = Tools.string_list_of_pattern xs2 in
          let sigma2 = get_subst_vars xs2 !outputs s in
          let gout = subst_ct gout sigma in

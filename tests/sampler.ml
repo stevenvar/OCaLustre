@@ -10,7 +10,7 @@ let%node merger (c,a,b) ~return:y =
 (* call_merger ::   (base * base * base) -> base *)
 
 let%node call_merger (d,x,y) ~return:k =
-  k := merger(d,(x [@ when d]),(y [@ whenot d]))
+  k := merger(d,(x [@ when d]),(y [@ whennot d]))
 
 let%node main (c) ~return:k =
   tictoc := true ->> (false ->> tictoc);

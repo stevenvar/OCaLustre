@@ -1,112 +1,135 @@
 
+val negb : bool -> bool
+
 val app : 'a1 list -> 'a1 list -> 'a1 list
 
-val string_dec : char list -> char list -> bool
+val eq_bool : bool -> bool -> bool
 
-type 'a nelist =
-| Nebase of 'a
-| Necons of 'a * 'a nelist
+val eq_ascii : char -> char -> bool
 
-type ident = char list
+type identifier = char list
 
-type operator =
-| Op
+val eq_identifier : identifier -> identifier -> bool
+
+type type_constr = char list
+
+type ocaml_expr = char list
+
+val eq_ocaml_expr : ocaml_expr -> ocaml_expr -> bool
+
+type unop =
+| Unopminus
+| Unopminusf
+| Unopnot
+
+type constant =
+| Kint
+| Kfloat
+| Kbool
+
+type binop =
+| Binopop_int
+| Binopop_float
+| Binopop_compare
+| Binopop_bool
 
 type clock =
-| Cbase
-| Con of clock * ident
-| Conot of clock * ident
-
-type const =
-| Cc
+| Ckbase
+| Ckon of clock * identifier
+| Ckonnot of clock * identifier
+| Cktuple of clock * clock
+| Ckarrow of clock * clock
 
 type lexp =
-| Econst of const * clock
-| Evar of ident
-| Ebinop of operator * lexp * lexp
-| Ewhen of lexp * ident
-| Ewhenot of lexp * ident
+| Eunit of clock
+| Econst of constant * clock
+| Evar of identifier
+| Econstructor of type_constr * clock
+| Ebinop of lexp * binop * lexp
+| Eunop of unop * lexp
+| Ewhen of lexp * identifier
+| Ewhennot of lexp * identifier
 
 type cexp =
-| Eexp of lexp
-| Emerge of ident * cexp * cexp
-| Eif of lexp * cexp * cexp
+| Ceexp of lexp
+| Cemerge of identifier * cexp * cexp
+| Ceif of lexp * cexp * cexp
 
-type lexps = lexp nelist
+type pattern =
+| Patp_unit
+| Patp_var of identifier
+| Patp_tuple of identifier * pattern
 
-type lidents = ident nelist
-
-type lclocks = clock nelist
+type lexps =
+| Esone_exp of lexp
+| Escons_exps of lexp * lexps
 
 type equation =
-| EqDef of ident * clock * cexp
-| EqFby of ident * clock * const * lexp
-| EqApp of lidents * clock * ident * lexps
-| EqTuple of lidents * lclocks * lexps
+| EqDef of pattern * clock * cexp
+| EqFby of pattern * clock * constant * lexp
+| EqApp of pattern * clock * identifier * lexps
+| EqEval of pattern * clock * ocaml_expr
 
-type leqns = equation nelist
+type leqns =
+| Eqseqs_one of equation
+| Eqseqs_cons of equation * leqns
 
-type tau = clock nelist*ident nelist
+type c = (char list*clock) list
 
-type d =
-| Mk_node of ident * lidents * lclocks * lidents * lclocks * leqns
+type nodedef =
+| Nodemk_node of identifier * pattern * pattern * leqns
 
-type ident_pair = ident*ident
+val eq_clock : clock -> clock -> bool
 
-type xlist = ident list
+type sign =
+| Signcons of pattern * clock * pattern * clock
 
-type lident_pair = ident_pair list
+type s = identifier list
+
+type h = (char list*sign) list
+
+val assoc : char list -> c -> clock option
+
+val assoc_global : char list -> h -> sign option
+
+val apply_subst : clock -> identifier -> identifier -> clock
+
+val apply_substs : (identifier*identifier) list -> clock -> clock
+
+val carriers : clock -> s
 
 val subst_ck : clock -> clock -> clock
 
-val subst_base : lclocks -> clock -> lclocks
+val mem_S : char list -> identifier list -> bool
 
-val clockof : clock -> xlist
+val e_subst_fun_var :
+  identifier -> identifier -> identifier list -> (identifier*identifier) list option
 
-val clocks : lclocks -> xlist
+val e_subst_fun_exp : identifier -> lexps -> identifier list -> (identifier*identifier) list option
 
-val ident_eqb : char list -> char list -> bool
+val e_subst_fun : pattern -> lexps -> identifier list -> (identifier*identifier) list option
 
-val assoc_sub : char list -> (char list*char list) list -> char list
+val p_subst_fun_vars :
+  identifier -> identifier -> identifier list -> (identifier*identifier) list option
 
-val subst_name_ck : clock -> lident_pair -> clock
+val p_subst_fun : pattern -> pattern -> identifier list -> (identifier*identifier) list option
 
-val subst_names : clock nelist -> lident_pair -> clock nelist
+val clockof_exp : c -> lexp -> clock option
 
-type clockenv = (char list*clock) list
+val clockof_exps : c -> lexps -> clock option
 
-type globalclockenv = (char list*(tau*tau)) list
+val eq_ident : identifier -> identifier -> bool
 
-val assoc : char list -> clockenv -> clock option
+val eq_ck : clock -> clock -> bool
 
-val assoc_global : char list -> globalclockenv -> (tau*tau) option
+val clockof_cexp : c -> cexp -> clock option
 
-val mem_S : char list -> xlist -> bool
+val clockof_pat : c -> pattern -> clock option
 
-val clock_eqb : clock -> clock -> bool
+val well_clocked_equation : equation -> h -> c -> bool
 
-val clocks_eqb : clock nelist -> clock nelist -> bool
+val well_clocked_eqns : leqns -> h -> c -> bool
 
-val clk_subst_fun :
-  char list nelist -> lexp nelist -> xlist -> (char list*ident) list option
+val clockof_node : nodedef -> h -> c -> sign option
 
-val clk_subst_var_fun :
-  lidents -> lidents -> xlist -> (ident*ident) list option
-
-val clockof_var : clockenv -> ident -> clock option
-
-val clockof_global_var : globalclockenv -> ident -> (tau*tau) option
-
-val clockof_vars : clockenv -> ident nelist -> clock nelist option
-
-val clockof_lexp : clockenv -> lexp -> clock option
-
-val clockof_lexps : clockenv -> lexp nelist -> clock nelist option
-
-val clockof_cexp : clockenv -> cexp -> clock option
-
-val well_clocked_eq : globalclockenv -> clockenv -> equation -> bool
-
-val well_clocked_eqs : globalclockenv -> clockenv -> equation nelist -> bool
-
-val well_clocked_node : globalclockenv -> clockenv -> d -> bool
+val well_clocked_prog : (c*nodedef) list -> h -> bool

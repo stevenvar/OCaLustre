@@ -1,5 +1,9 @@
 
+(** val negb : bool -> bool **)
 
+let negb = function
+| true -> false
+| false -> true
 
 (** val app : 'a1 list -> 'a1 list -> 'a1 list **)
 
@@ -8,344 +12,373 @@ let rec app l m =
   | [] -> m
   | a :: l1 -> a :: (app l1 m)
 
-(** val string_dec : char list -> char list -> bool **)
+(** val eq_bool : bool -> bool -> bool **)
 
-let rec string_dec s x =
-  match s with
-  | [] -> (match x with
+let eq_bool x y =
+  if x then if y then true else false else if y then false else true
+
+(** val eq_ascii : char -> char -> bool **)
+
+let eq_ascii x y =
+  (* If this appears, you're using Ascii internals. Please don't *)
+ (fun f c ->
+  let n = Char.code c in
+  let h i = (n land (1 lsl i)) <> 0 in
+  f (h 0) (h 1) (h 2) (h 3) (h 4) (h 5) (h 6) (h 7))
+    (fun x0 x1 x2 x3 x4 x5 x6 x7 ->
+    (* If this appears, you're using Ascii internals. Please don't *)
+ (fun f c ->
+  let n = Char.code c in
+  let h i = (n land (1 lsl i)) <> 0 in
+  f (h 0) (h 1) (h 2) (h 3) (h 4) (h 5) (h 6) (h 7))
+      (fun b7 b8 b9 b10 b11 b12 b13 b14 ->
+      if eq_bool x0 b7
+      then if eq_bool x1 b8
+           then if eq_bool x2 b9
+                then if eq_bool x3 b10
+                     then if eq_bool x4 b11
+                          then if eq_bool x5 b12
+                               then if eq_bool x6 b13 then eq_bool x7 b14 else false
+                               else false
+                          else false
+                     else false
+                else false
+           else false
+      else false)
+      y)
+    x
+
+type identifier = char list
+
+(** val eq_identifier : identifier -> identifier -> bool **)
+
+let rec eq_identifier s0 x0 =
+  match s0 with
+  | [] -> (match x0 with
            | [] -> true
            | _::_ -> false)
-  | a::s0 ->
-    (match x with
+  | a::s1 ->
+    (match x0 with
      | [] -> false
-     | a0::s1 -> if (=) a a0 then string_dec s0 s1 else false)
+     | a0::s2 -> if eq_ascii a a0 then eq_identifier s1 s2 else false)
 
-type 'a nelist =
-| Nebase of 'a
-| Necons of 'a * 'a nelist
+type type_constr = char list
 
-type ident = char list
+type ocaml_expr = char list
 
-type operator =
-| Op
+(** val eq_ocaml_expr : ocaml_expr -> ocaml_expr -> bool **)
+
+let rec eq_ocaml_expr s0 x0 =
+  match s0 with
+  | [] -> (match x0 with
+           | [] -> true
+           | _::_ -> false)
+  | a::s1 ->
+    (match x0 with
+     | [] -> false
+     | a0::s2 -> if eq_ascii a a0 then eq_ocaml_expr s1 s2 else false)
+
+type unop =
+| Unopminus
+| Unopminusf
+| Unopnot
+
+type constant =
+| Kint
+| Kfloat
+| Kbool
+
+type binop =
+| Binopop_int
+| Binopop_float
+| Binopop_compare
+| Binopop_bool
 
 type clock =
-| Cbase
-| Con of clock * ident
-| Conot of clock * ident
-
-type const =
-| Cc
+| Ckbase
+| Ckon of clock * identifier
+| Ckonnot of clock * identifier
+| Cktuple of clock * clock
+| Ckarrow of clock * clock
 
 type lexp =
-| Econst of const * clock
-| Evar of ident
-| Ebinop of operator * lexp * lexp
-| Ewhen of lexp * ident
-| Ewhenot of lexp * ident
+| Eunit of clock
+| Econst of constant * clock
+| Evar of identifier
+| Econstructor of type_constr * clock
+| Ebinop of lexp * binop * lexp
+| Eunop of unop * lexp
+| Ewhen of lexp * identifier
+| Ewhennot of lexp * identifier
 
 type cexp =
-| Eexp of lexp
-| Emerge of ident * cexp * cexp
-| Eif of lexp * cexp * cexp
+| Ceexp of lexp
+| Cemerge of identifier * cexp * cexp
+| Ceif of lexp * cexp * cexp
 
-type lexps = lexp nelist
+type pattern =
+| Patp_unit
+| Patp_var of identifier
+| Patp_tuple of identifier * pattern
 
-type lidents = ident nelist
-
-type lclocks = clock nelist
+type lexps =
+| Esone_exp of lexp
+| Escons_exps of lexp * lexps
 
 type equation =
-| EqDef of ident * clock * cexp
-| EqFby of ident * clock * const * lexp
-| EqApp of lidents * clock * ident * lexps
-| EqTuple of lidents * lclocks * lexps
+| EqDef of pattern * clock * cexp
+| EqFby of pattern * clock * constant * lexp
+| EqApp of pattern * clock * identifier * lexps
+| EqEval of pattern * clock * ocaml_expr
 
-type leqns = equation nelist
+type leqns =
+| Eqseqs_one of equation
+| Eqseqs_cons of equation * leqns
 
-type tau = clock nelist*ident nelist
+type c = (char list*clock) list
 
-type d =
-| Mk_node of ident * lidents * lclocks * lidents * lclocks * leqns
+type nodedef =
+| Nodemk_node of identifier * pattern * pattern * leqns
 
-type ident_pair = ident*ident
+(** val eq_clock : clock -> clock -> bool **)
 
-type xlist = ident list
+let rec eq_clock c0 x0 =
+  match c0 with
+  | Ckbase -> (match x0 with
+               | Ckbase -> true
+               | _ -> false)
+  | Ckon (ck, x) ->
+    (match x0 with
+     | Ckon (ck0, x1) -> if eq_clock ck ck0 then eq_ocaml_expr x x1 else false
+     | _ -> false)
+  | Ckonnot (ck, x) ->
+    (match x0 with
+     | Ckonnot (ck0, x1) -> if eq_clock ck ck0 then eq_ocaml_expr x x1 else false
+     | _ -> false)
+  | Cktuple (ck, ck') ->
+    (match x0 with
+     | Cktuple (ck0, ck'0) -> if eq_clock ck ck0 then eq_clock ck' ck'0 else false
+     | _ -> false)
+  | Ckarrow (ck, ck') ->
+    (match x0 with
+     | Ckarrow (ck0, ck'0) -> if eq_clock ck ck0 then eq_clock ck' ck'0 else false
+     | _ -> false)
 
-type lident_pair = ident_pair list
+type sign =
+| Signcons of pattern * clock * pattern * clock
 
+type s = identifier list
 
+type h = (char list*sign) list
 
-let string_of_char_list cl =
-  let s = Bytes.make (List.length cl) ' ' in
-  let rec loop cl i =
-    match cl with
-    | [] -> s
-    | c::cl -> Bytes.set s i c; loop cl (i+1)
-  in
-  let b = loop cl 0 in
-  Bytes.to_string b
+(** val assoc : char list -> c -> clock option **)
 
-let rec print_clock fmt c =
-  match c with
-  | Cbase -> Format.fprintf fmt "Cbase"
-  | Con (c,s) -> Format.printf "%a on %s" print_clock c (string_of_char_list s)
-  | Conot (c,s) -> Format.printf "%a on not %s" print_clock c (string_of_char_list s)
+let rec assoc x = function
+| [] -> None
+| p :: l0 -> let y,c0 = p in if eq_identifier x y then Some c0 else assoc x l0
 
-let rec iter_nelist f l =
-  match l with
-  | Nebase x -> f x
-  | Necons (x,l) -> f x; iter_nelist f l
+(** val assoc_global : char list -> h -> sign option **)
+
+let rec assoc_global x = function
+| [] -> None
+| p :: l0 -> let y,c0 = p in if eq_identifier x y then Some c0 else assoc_global x l0
+
+(** val apply_subst : clock -> identifier -> identifier -> clock **)
+
+let rec apply_subst c0 x' y' =
+  match c0 with
+  | Ckbase -> c0
+  | Ckon (c1, x) ->
+    if eq_identifier x x' then Ckon ((apply_subst c1 x' y'), y') else Ckon ((apply_subst c1 x' y'), x)
+  | Ckonnot (c1, x) ->
+    if eq_identifier x x'
+    then Ckonnot ((apply_subst c1 x' y'), y')
+    else Ckonnot ((apply_subst c1 x' y'), x)
+  | Cktuple (ck1, ck2) -> Cktuple ((apply_subst ck1 x' y'), (apply_subst ck2 x' y'))
+  | Ckarrow (ck1, ck2) -> Ckarrow ((apply_subst ck1 x' y'), (apply_subst ck2 x' y'))
+
+(** val apply_substs : (identifier*identifier) list -> clock -> clock **)
+
+let rec apply_substs s0 c0 =
+  match s0 with
+  | [] -> c0
+  | y0 :: sigma' -> let x,y = y0 in apply_substs sigma' (apply_subst c0 x y)
+
+(** val carriers : clock -> s **)
+
+let rec carriers = function
+| Ckbase -> []
+| Ckon (ck, x) -> x :: (carriers ck)
+| Ckonnot (ck, x) -> x :: (carriers ck)
+| Cktuple (ck1, ck2) -> app (carriers ck1) (carriers ck2)
+| Ckarrow (ck1, ck2) -> app (carriers ck1) (carriers ck2)
 
 (** val subst_ck : clock -> clock -> clock **)
 
 let rec subst_ck x1 x2 =
   match x1 with
-  | Cbase -> x2
-  | Con (ck, x) -> Con ((subst_ck ck x2), x)
-  | Conot (ck, x) -> Conot ((subst_ck ck x2), x)
+  | Ckbase -> x2
+  | Ckon (ck, x) -> Ckon ((subst_ck ck x2), x)
+  | Ckonnot (ck, x) -> Ckonnot ((subst_ck ck x2), x)
+  | Cktuple (ck1, ck2) -> Cktuple ((subst_ck ck1 x2), (subst_ck ck2 x2))
+  | Ckarrow (ck1, ck2) -> Ckarrow ((subst_ck ck1 x2), (subst_ck ck2 x2))
 
-(** val subst_base : lclocks -> clock -> lclocks **)
-
-let rec subst_base x1 x2 =
-  match x1 with
-  | Nebase ck -> Nebase (subst_ck ck x2)
-  | Necons (ck, cks) -> Necons ((subst_ck ck x2), (subst_base cks x2))
-
-(** val clockof : clock -> xlist **)
-
-let rec clockof = function
-| Cbase -> []
-| Con (ck, x) -> x :: (clockof ck)
-| Conot (ck, x) -> x :: (clockof ck)
-
-(** val clocks : lclocks -> xlist **)
-
-let rec clocks = function
-| Nebase ck -> clockof ck
-| Necons (ck, cks) -> app (clockof ck) (clocks cks)
-
-(** val ident_eqb : char list -> char list -> bool **)
-
-let ident_eqb s1 s2 =
-  if string_dec s1 s2 then true else false
-
-(** val assoc_sub : char list -> (char list*char list) list -> char list **)
-
-let rec assoc_sub x = function
-| [] -> x
-| p :: l0 -> let y,c = p in if ident_eqb x y then c else assoc_sub x l0
-
-(** val subst_name_ck : clock -> lident_pair -> clock **)
-
-let rec subst_name_ck x1 x2 =
-  match x1 with
-  | Cbase -> Cbase
-  | Con (ck, x) -> Con ((subst_name_ck ck x2), (assoc_sub x x2))
-  | Conot (ck, x) -> Conot ((subst_name_ck ck x2), (assoc_sub x x2))
-
-(** val subst_names : clock nelist -> lident_pair -> clock nelist **)
-
-let rec subst_names cks sigma =
-  match cks with
-  | Nebase c -> Nebase (subst_name_ck c sigma)
-  | Necons (c, cks0) ->
-    Necons ((subst_name_ck c sigma), (subst_names cks0 sigma))
-
-type clockenv = (char list*clock) list
-
-type globalclockenv = (char list*(tau*tau)) list
-
-(** val assoc : char list -> clockenv -> clock option **)
-
-let rec assoc x = function
-| [] -> None
-| p :: l0 -> let y,c = p in if ident_eqb x y then Some c else assoc x l0
-
-(** val assoc_global : char list -> globalclockenv -> (tau*tau) option **)
-
-let rec assoc_global x = function
-| [] -> None
-| p :: l0 ->
-  let y,c = p in if ident_eqb x y then Some c else assoc_global x l0
-
-(** val mem_S : char list -> xlist -> bool **)
+(** val mem_S : char list -> identifier list -> bool **)
 
 let rec mem_S x = function
 | [] -> false
-| y :: l0 -> if ident_eqb x y then true else mem_S x l0
+| y :: l0 -> if eq_identifier x y then true else mem_S x l0
 
-(** val clock_eqb : clock -> clock -> bool **)
+(** val e_subst_fun_var :
+    identifier -> identifier -> identifier list -> (identifier*identifier) list option **)
 
-let rec clock_eqb c1 c2 =
-  match c1 with
-  | Cbase -> (match c2 with
-              | Cbase -> true
-              | _ -> false)
-  | Con (x, c) ->
-    (match c2 with
-     | Con (y, d0) -> (&&) (clock_eqb x y) (ident_eqb c d0)
-     | _ -> false)
-  | Conot (x, c) ->
-    (match c2 with
-     | Conot (y, d0) -> (&&) (clock_eqb x y) (ident_eqb c d0)
-     | _ -> false)
+let e_subst_fun_var x y s0 =
+  if mem_S x s0 then Some ((x,y) :: []) else Some []
 
-(** val clocks_eqb : clock nelist -> clock nelist -> bool **)
+(** val e_subst_fun_exp :
+    identifier -> lexps -> identifier list -> (identifier*identifier) list option **)
 
-let rec clocks_eqb cl1 cl2 =
-  match cl1 with
-  | Nebase c ->
-    (match cl2 with
-     | Nebase d0 -> clock_eqb c d0
-     | Necons (_, _) -> false)
-  | Necons (c, cs) ->
-    (match cl2 with
-     | Nebase _ -> false
-     | Necons (d0, ds) -> (&&) (clock_eqb c d0) (clocks_eqb cs ds))
+let e_subst_fun_exp x e s0 =
+  match e with
+  | Esone_exp e0 ->
+    (match e0 with
+     | Evar y -> e_subst_fun_var x y s0
+     | _ -> if negb (mem_S x s0) then Some [] else None)
+  | Escons_exps (_, _) -> None
 
-(** val clk_subst_fun :
-    char list nelist -> lexp nelist -> xlist -> (char list*ident) list option **)
+(** val e_subst_fun : pattern -> lexps -> identifier list -> (identifier*identifier) list option **)
 
-let rec clk_subst_fun xs es s =
-  match xs with
-  | Nebase x ->
-    (match es with
-     | Nebase e ->
-       (match e with
-        | Evar y -> if mem_S x s then Some ((x,y) :: []) else Some []
-        | _ -> if mem_S x s then None else Some [])
-     | Necons (_, _) -> None)
-  | Necons (x, xs0) ->
-    (match es with
-     | Nebase _ -> None
-     | Necons (e, es0) ->
-       (match e with
-        | Evar y ->
-          if mem_S x s
-          then (match clk_subst_fun xs0 es0 s with
-                | Some sigma -> Some ((x,y) :: sigma)
-                | None -> None)
-          else clk_subst_fun xs0 es0 s
-        | _ -> if mem_S x s then None else clk_subst_fun xs0 es0 s))
+let rec e_subst_fun p e s0 =
+  match p with
+  | Patp_unit ->
+    (match e with
+     | Esone_exp e0 -> (match e0 with
+                        | Eunit _ -> Some []
+                        | _ -> None)
+     | Escons_exps (_, _) -> None)
+  | Patp_var x ->
+    (match e with
+     | Esone_exp e0 ->
+       (match e0 with
+        | Evar y -> e_subst_fun_var x y s0
+        | _ -> if negb (mem_S x s0) then Some [] else None)
+     | Escons_exps (_, _) -> None)
+  | Patp_tuple (x, p') ->
+    (match e with
+     | Esone_exp _ -> None
+     | Escons_exps (e0, es') ->
+       let s1 = e_subst_fun_exp x (Esone_exp e0) s0 in
+       let s2 = e_subst_fun p' es' s0 in
+       (match s1 with
+        | Some l -> (match s2 with
+                     | Some l' -> Some (app l l')
+                     | None -> None)
+        | None -> None))
 
-(** val clk_subst_var_fun :
-    lidents -> lidents -> xlist -> (ident*ident) list option **)
+(** val p_subst_fun_vars :
+    identifier -> identifier -> identifier list -> (identifier*identifier) list option **)
 
-let rec clk_subst_var_fun xs xs' s =
-  match xs with
-  | Nebase x ->
-    (match xs' with
-     | Nebase y -> if mem_S x s then Some ((x,y) :: []) else Some []
-     | Necons (_, _) -> None)
-  | Necons (x, xs0) ->
-    (match xs' with
-     | Nebase _ -> None
-     | Necons (y, ys) ->
-       if mem_S x s
-       then (match clk_subst_var_fun xs0 ys s with
-             | Some sigma -> Some ((x,y) :: sigma)
-             | None -> None)
-       else clk_subst_var_fun xs0 ys s)
+let p_subst_fun_vars x y s0 =
+  if mem_S x s0 then Some ((x,y) :: []) else Some []
 
-(** val clockof_var : clockenv -> ident -> clock option **)
+(** val p_subst_fun : pattern -> pattern -> identifier list -> (identifier*identifier) list option **)
 
-let rec clockof_var c x =
-  assoc x c
+let rec p_subst_fun p p' s0 =
+  match p with
+  | Patp_unit -> Some []
+  | Patp_var x ->
+    (match p' with
+     | Patp_var y -> if mem_S x s0 then Some ((x,y) :: []) else Some []
+     | _ -> if negb (mem_S x s0) then Some [] else None)
+  | Patp_tuple (x, p1') ->
+    (match p' with
+     | Patp_tuple (y, p2') ->
+       let s1 = p_subst_fun_vars x y s0 in
+       let s2 = p_subst_fun p1' p2' s0 in
+       (match s1 with
+        | Some l -> (match s2 with
+                     | Some l' -> Some (app l l')
+                     | None -> None)
+        | None -> None)
+     | _ -> None)
 
-(** val clockof_global_var : globalclockenv -> ident -> (tau*tau) option **)
+(** val clockof_exp : c -> lexp -> clock option **)
 
-let rec clockof_global_var c x =
-  assoc_global x c
-
-(** val clockof_vars : clockenv -> ident nelist -> clock nelist option **)
-
-let rec clockof_vars c = function
-| Nebase h ->
-  (match clockof_var c h with
-   | Some c0 -> Some (Nebase c0)
-   | None -> None)
-| Necons (h, t) ->
-  let ck = clockof_var c h in
-  let ckt = clockof_vars c t in
-  (match ck with
-   | Some ck0 ->
-     (match ckt with
-      | Some ckt0 -> Some (Necons (ck0, ckt0))
-      | None -> None)
-   | None -> None)
-
-(** val clockof_lexp : clockenv -> lexp -> clock option **)
-
-let rec clockof_lexp c = function
+let rec clockof_exp c0 = function
+| Eunit ck -> Some ck
 | Econst (_, ck) -> Some ck
-| Evar x -> assoc x c
-| Ebinop (_, e1, e2) ->
-  let c1 = clockof_lexp c e1 in
-  let c2 = clockof_lexp c e2 in
+| Evar x -> assoc x c0
+| Econstructor (_, ck) -> Some ck
+| Ebinop (e1, _, e2) ->
+  let c1 = clockof_exp c0 e1 in
+  let c2 = clockof_exp c0 e2 in
   (match c1 with
-   | Some a ->
+   | Some ck1 ->
      (match c2 with
-      | Some b -> if clock_eqb a b then Some a else None
+      | Some ck2 -> if eq_clock ck1 ck2 then Some ck1 else None
       | None -> None)
    | None -> None)
-| Ewhen (e, c0) ->
-  let c1 = clockof_lexp c e in
-  let c2 = assoc c0 c in
+| Eunop (_, e) -> clockof_exp c0 e
+| Ewhen (e, x) ->
+  let c1 = clockof_exp c0 e in
+  let c2 = assoc x c0 in
   (match c1 with
-   | Some a ->
+   | Some ck1 ->
      (match c2 with
-      | Some b -> if clock_eqb a b then Some (Con (a, c0)) else None
+      | Some ck2 -> if eq_clock ck1 ck2 then Some (Ckon (ck1, x)) else None
       | None -> None)
    | None -> None)
-| Ewhenot (e, c0) ->
-  let c1 = clockof_lexp c e in
-  let c2 = assoc c0 c in
+| Ewhennot (e, x) ->
+  let c1 = clockof_exp c0 e in
+  let c2 = assoc x c0 in
   (match c1 with
-   | Some a ->
+   | Some ck1 ->
      (match c2 with
-      | Some b -> if clock_eqb a b then Some (Conot (a, c0)) else None
+      | Some ck2 -> if eq_clock ck1 ck2 then Some (Ckonnot (ck1, x)) else None
       | None -> None)
    | None -> None)
 
-(** val clockof_lexps : clockenv -> lexp nelist -> clock nelist option **)
+(** val clockof_exps : c -> lexps -> clock option **)
 
-let rec clockof_lexps c = function
-| Nebase h ->
-  (match clockof_lexp c h with
-   | Some c0 -> Some (Nebase c0)
-   | None -> None)
-| Necons (h, t) ->
-  let ck = clockof_lexp c h in
-  let ckt = clockof_lexps c t in
-  (match ck with
-   | Some ck0 ->
-     (match ckt with
-      | Some ckt0 -> Some (Necons (ck0, ckt0))
-      | None -> None)
+let rec clockof_exps c0 = function
+| Esone_exp e -> clockof_exp c0 e
+| Escons_exps (e, es0) ->
+  (match clockof_exp c0 e with
+   | Some ck -> (match clockof_exps c0 es0 with
+                 | Some cks -> Some (Cktuple (ck, cks))
+                 | None -> None)
    | None -> None)
 
-(** val clockof_cexp : clockenv -> cexp -> clock option **)
+(** val eq_ident : identifier -> identifier -> bool **)
 
-let rec clockof_cexp c = function
-| Eexp e -> clockof_lexp c e
-| Emerge (x, e1, e2) ->
-  let cx = assoc x c in
-  let c1 = clockof_cexp c e1 in
-  let c2 = clockof_cexp c e2 in
+let eq_ident x y =
+  if eq_identifier x y then true else false
+
+(** val eq_ck : clock -> clock -> bool **)
+
+let eq_ck x y =
+  if eq_clock x y then true else false
+
+(** val clockof_cexp : c -> cexp -> clock option **)
+
+let rec clockof_cexp c0 = function
+| Ceexp e -> clockof_exp c0 e
+| Cemerge (x, e1, e2) ->
+  let cx = assoc x c0 in
+  let c1 = clockof_cexp c0 e1 in
+  let c2 = clockof_cexp c0 e2 in
   (match cx with
    | Some ck ->
      (match c1 with
-      | Some c0 ->
-        (match c0 with
-         | Con (u, n) ->
+      | Some c3 ->
+        (match c3 with
+         | Ckon (ck', x') ->
            (match c2 with
-            | Some c3 ->
-              (match c3 with
-               | Conot (v, m) ->
-                 if (&&) (ident_eqb x n)
-                      ((&&) (clock_eqb ck u)
-                        ((&&) (clock_eqb u v) (ident_eqb n m)))
+            | Some c4 ->
+              (match c4 with
+               | Ckonnot (ck'', x'') ->
+                 if (&&) ((&&) ((&&) (eq_ident x x') (eq_ident x' x'')) (eq_ck ck ck'))
+                      (eq_ck ck' ck'')
                  then Some ck
                  else None
                | _ -> None)
@@ -353,109 +386,119 @@ let rec clockof_cexp c = function
          | _ -> None)
       | None -> None)
    | None -> None)
-| Eif (e, t, f) ->
-  let ce = clockof_lexp c e in
-  let ct = clockof_cexp c t in
-  let cf = clockof_cexp c f in
+| Ceif (e, t, f) ->
+  let ce = clockof_exp c0 e in
+  let ct = clockof_cexp c0 t in
+  let cf = clockof_cexp c0 f in
   (match ce with
    | Some a ->
      (match ct with
       | Some b ->
         (match cf with
-         | Some c0 ->
-           if (&&) (clock_eqb a b) (clock_eqb b c0) then Some c0 else None
+         | Some c1 -> if (&&) (eq_ck a b) (eq_ck b c1) then Some c1 else None
          | None -> None)
       | None -> None)
    | None -> None)
 
-(** val well_clocked_eq : globalclockenv -> clockenv -> equation -> bool **)
+(** val clockof_pat : c -> pattern -> clock option **)
 
-let rec well_clocked_eq g c = function
-| EqDef (i, ck, ce) ->
-  (match clockof_var c i with
-   | Some c0 ->
-     (match clockof_cexp c ce with
-      | Some d0 -> (&&) (clock_eqb c0 d0) (clock_eqb c0 ck)
-      | None -> false)
-   | None -> false)
-| EqFby (i, ck, _, e) ->
-  (match clockof_var c i with
-   | Some d0 ->
-     (match clockof_lexp c e with
-      | Some c0 -> (&&) (clock_eqb d0 c0) (clock_eqb c0 ck)
-      | None -> false)
-   | None -> false)
-| EqApp (xs, ck, f, es) ->
-   (* Format.fprintf Format.std_formatter "ck=%a\n" print_clock ck; *)
-  let fck = clockof_global_var g f in
-  (match fck with
-   | Some p ->
-     let t,t0 = p in
-     let cks1,xs1 = t in
-     let cks2,xs2 = t0 in
-     let cks3 = clockof_lexps c es in
-     let cks4 = clockof_vars c xs in
-     (match cks3 with
-      | Some cks5 ->
-        (match cks4 with
-         | Some cks6 ->
-           let s = app (clocks cks1) (clocks cks2) in
-           let sigma = clk_subst_fun xs1 es s in
-           let sigma' = clk_subst_var_fun xs2 xs s in
-           (match sigma with
-            | Some sigma0 ->
-              (match sigma' with
-               | Some sigma'0 ->
-                 (&&)
-                   (clocks_eqb cks5 (subst_base (subst_names cks1 sigma0) ck))
-                   (clocks_eqb cks6
-                     (subst_base (subst_names cks2 (app sigma'0 sigma0)) ck))
-               | None -> false)
-            | None -> false)
-         | None -> false)
-      | None -> false)
-   | None -> false)
-| EqTuple (xs, cks, es) ->
-  (match clockof_lexps c es with
-   | Some ces ->
-     (match clockof_vars c xs with
-      | Some cxs -> (&&) (clocks_eqb ces cxs) (clocks_eqb ces cks)
-      | None -> false)
-   | None -> false)
+let rec clockof_pat c0 = function
+| Patp_unit -> Some Ckbase
+| Patp_var x -> assoc x c0
+| Patp_tuple (x, p2) ->
+  let c1 = assoc x c0 in
+  let c2 = clockof_pat c0 p2 in
+  (match c1 with
+   | Some ck1 -> (match c2 with
+                  | Some ck2 -> Some (Cktuple (ck1, ck2))
+                  | None -> None)
+   | None -> None)
 
-(** val well_clocked_eqs :
-    globalclockenv -> clockenv -> equation nelist -> bool **)
+(** val well_clocked_equation : equation -> h -> c -> bool **)
 
-let rec well_clocked_eqs g c = function
-  | Nebase eq ->
-     let wc = well_clocked_eq g c eq in
-     (* Format.fprintf Format.std_formatter "wc = %b" wc; *)
-     wc
-| Necons (e, eqs0) ->
-   let wc = (well_clocked_eq g c e) in
-   let wcs = (well_clocked_eqs g c eqs0) in
-   (* Format.fprintf Format.std_formatter "wc = %b / wcs = %b" wc wcs; *)
-   wc && wcs
-
-
-
-
-(** val well_clocked_node : globalclockenv -> clockenv -> d -> bool **)
-
-let rec well_clocked_node g c = function
-  | Mk_node (_, xs, cks, ys, cks', eqns) ->
-    let chk = well_clocked_eqs g c eqns in
-    let in_clocks = clockof_vars c xs in
-    let out_clocks = clockof_vars c ys in
-    (match in_clocks with
-     | Some c0 ->
-       (match out_clocks with
-        | Some d0 ->
-           (* iter_nelist (fun s -> print_clock Format.std_formatter s) c0; *)
-           (* iter_nelist (fun s -> print_clock Format.std_formatter s) cks; *)
-           (* iter_nelist (fun s -> print_clock Format.std_formatter s) d0; *)
-           (* iter_nelist (fun s -> print_clock Format.std_formatter s) cks'; *)
-           (* Format.fprintf Format.std_formatter "%b" chk; *)
-           (&&) ((&&) (clocks_eqb cks c0) (clocks_eqb cks' d0)) chk
+let well_clocked_equation eqn h0 c0 =
+  match eqn with
+  | EqDef (p, ck, ce) ->
+    let c1 = clockof_pat c0 p in
+    let c2 = clockof_cexp c0 ce in
+    (match c1 with
+     | Some ck1 -> (match c2 with
+                    | Some ck2 -> (&&) (eq_ck ck1 ck2) (eq_ck ck2 ck)
+                    | None -> false)
+     | None -> false)
+  | EqFby (p, ck, _, e) ->
+    let c1 = clockof_pat c0 p in
+    let c2 = clockof_exp c0 e in
+    (match c1 with
+     | Some ck1 -> (match c2 with
+                    | Some ck2 -> (&&) (eq_ck ck1 ck2) (eq_ck ck2 ck)
+                    | None -> false)
+     | None -> false)
+  | EqApp (p, ck, f, es) ->
+    let sigf = assoc_global f h0 in
+    (match sigf with
+     | Some s0 ->
+       let Signcons (p1, ck1, p2, ck2) = s0 in
+       let ckp = clockof_pat c0 p in
+       let ckes = clockof_exps c0 es in
+       (match ckp with
+        | Some ckp0 ->
+          (match ckes with
+           | Some ckes0 ->
+             let s1 = app (carriers ck1) (carriers ck2) in
+             let sigma = e_subst_fun p1 es s1 in
+             let sigma' = p_subst_fun p2 p s1 in
+             (match sigma with
+              | Some sigma0 ->
+                (match sigma' with
+                 | Some sigma'0 ->
+                   let cke_subst = apply_substs sigma0 (subst_ck ck1 ck) in
+                   let ckp_subst = apply_substs (app sigma'0 sigma0) (subst_ck ck2 ck) in
+                   (&&) (eq_ck ckes0 cke_subst) (eq_ck ckp0 ckp_subst)
+                 | None -> false)
+              | None -> false)
+           | None -> false)
         | None -> false)
+     | None -> false)
+  | EqEval (p, ck, _) ->
+    let c1 = clockof_pat c0 p in
+    (match c1 with
+     | Some c2 -> (match c2 with
+                   | Ckbase -> (match ck with
+                                | Ckbase -> true
+                                | _ -> false)
+                   | _ -> false)
+     | None -> false)
+
+(** val well_clocked_eqns : leqns -> h -> c -> bool **)
+
+let rec well_clocked_eqns eqns h0 c0 =
+  match eqns with
+  | Eqseqs_one eq -> well_clocked_equation eq h0 c0
+  | Eqseqs_cons (eq, eqs) -> (&&) (well_clocked_equation eq h0 c0) (well_clocked_eqns eqs h0 c0)
+
+(** val clockof_node : nodedef -> h -> c -> sign option **)
+
+let clockof_node node h0 c0 =
+  let Nodemk_node (_, p, p', eqns) = node in
+  let c1 = clockof_pat c0 p in
+  let c' = clockof_pat c0 p' in
+  (match c1 with
+   | Some ckp ->
+     (match c' with
+      | Some ckp' -> if well_clocked_eqns eqns h0 c0 then Some (Signcons (p, ckp, p', ckp')) else None
+      | None -> None)
+   | None -> None)
+
+(** val well_clocked_prog : (c*nodedef) list -> h -> bool **)
+
+let rec well_clocked_prog prog h0 =
+  match prog with
+  | [] -> true
+  | y :: nodes ->
+    let c0,y0 = y in
+    let Nodemk_node (f, p, p', eqns) = y0 in
+    let sign0 = clockof_node (Nodemk_node (f, p, p', eqns)) h0 c0 in
+    (match sign0 with
+     | Some s0 -> well_clocked_prog nodes ((f,s0) :: h0)
      | None -> false)
