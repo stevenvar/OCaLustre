@@ -16,26 +16,26 @@ let char_list_of_string s =
  *   | [] -> failwith "empty list"
  *   | [h] -> Nebase h
  *   | h::t -> Necons (h, nelist_of_list t)
- * 
+ *
  * let rec list_of_nelist nl =
  *   match nl with
  *   | Nebase c -> [c]
  *   | Necons (c,d) -> c::(list_of_nelist d) *)
 
-let check_identifier_of_cpattern p = 
-  match p.p_desc with 
+let check_identifier_of_cpattern p =
+  match p.p_desc with
   | Ident x -> char_list_of_string x
   | _ -> invalid_arg "check_id_of_pattern"
 
-let rec pattern_of_list l = 
-  match l with 
-  | [] -> Patp_unit
+let rec pattern_of_list l =
+  match l with
+  | [] -> Patp_nil
   | [x] -> Patp_var (check_identifier_of_cpattern x)
   | x::xs -> Patp_tuple (check_identifier_of_cpattern x, pattern_of_list xs)
 
-let rec list_of_pattern p = 
-  match p with 
-  | Patp_unit -> []
+let rec list_of_pattern p =
+  match p with
+  | Patp_nil -> []
   | Patp_var x -> [x]
   | Patp_tuple (x, p) -> x::(list_of_pattern p)
 
@@ -68,8 +68,8 @@ let rec check_clock_of_clock (c:ct) =
 
 (* raise (WrongCt c) *)
 
-let rec cktuple_of_list l = 
-  match l with 
+let rec cktuple_of_list l =
+  match l with
   | [] -> invalid_arg "cktuple_of_list"
   | [ck] -> check_clock_of_clock ck
   | ck::cks -> Cktuple (check_clock_of_clock ck, cktuple_of_list cks)
@@ -83,12 +83,12 @@ let rec check_clocks_of_clocks (c:ct) =
 let rec check_clock_of_clock_scheme (g,c: clk_scheme) =
   check_clock_of_clock c
 
-let rec check_binop_of_binop op = 
-  match op with 
+let rec check_binop_of_binop op =
+  match op with
   | _ -> Binopop_int (* we don't care which binop it is as the binop doesnt interfere with the typing rule *)
 
-let rec check_constant_of_constant k = 
-  match k with 
+let rec check_constant_of_constant k =
+  match k with
   | Integer _ -> Kint
   | Float _ -> Kfloat
   | Bool _ -> Kbool
@@ -129,8 +129,8 @@ let rec check_lexp_of_cexpression (ce:cexpression) =
            Clocking_ast_printer.print_ct ct in
        Error.print_error ce.ce_loc s
 
-let rec check_lexps_of_cexpressions (ces:cexpression list) = 
-  match ces with 
+let rec check_lexps_of_cexpressions (ces:cexpression list) =
+  match ces with
     | [] -> invalid_arg "check_lexps_of_cexpressions"
     | [e] -> Esone_exp  (check_lexp_of_cexpression e)
     | e::es -> Escons_exps (check_lexp_of_cexpression e, check_lexps_of_cexpressions es)
@@ -151,16 +151,16 @@ let rec check_cexp_of_cexpression (ce:cexpression) =
 
 let const_of_cexpression ce =
   match ce.ce_desc with
-  | CValue k -> check_constant_of_constant k 
+  | CValue k -> check_constant_of_constant k
   | _ -> failwith "not a constant"
 
 
 let rec print_chk fmt c =
-  let rec print_tuple fmt l = 
-    match l with 
+  let rec print_tuple fmt l =
+    match l with
     | Cktuple (x,xs) -> Format.fprintf fmt "%a,%a" print_chk x print_tuple xs
     | _ -> print_chk fmt c
-  in 
+  in
   match c with
   | Ckbase -> Format.fprintf fmt "BASE"
   | Ckon (c,i) -> Format.fprintf fmt "(%a on %s)" print_chk c (string_of_char_list i)
@@ -169,17 +169,25 @@ let rec print_chk fmt c =
   | Ckarrow (c,c') -> Format.fprintf fmt "(%a -> %a)" print_chk c print_chk c'
 
 
-let rec check_pattern_of_pattern (cpattern: Parsing_ast.pattern) = 
-  match cpattern.p_desc with 
+let rec check_pattern_of_pattern (cpattern: Parsing_ast.pattern) =
+  match cpattern.p_desc with
     | Ident x -> Patp_var (char_list_of_string x)
     | Typed (p,s) -> check_pattern_of_pattern p
     | Tuple pl -> pattern_of_list  pl
-    | PUnit -> Patp_unit
+    | PUnit -> Patp_nil
 
 
-let rec nb_lexps es = 
-  match es with 
-  | Esone_exp _ -> 1 
+let rec check_var_of_pattern (cpattern: Parsing_ast.pattern) =
+  match cpattern.p_desc with
+    | Ident x ->  (char_list_of_string x)
+    | Typed (p,s) -> check_var_of_pattern p
+    | PUnit -> failwith "not unit"
+    | _ -> failwith "No tuples"
+
+
+let rec nb_lexps es =
+  match es with
+  | Esone_exp _ -> 1
   | Escons_exps (_,es) -> 1 + nb_lexps es
 
 
@@ -192,16 +200,16 @@ let check_equation_of_equation { cpattern; cexpression; cclock } =
        let clk = check_clock_of_clock cclock in
        let le = check_lexp_of_cexpression e2 in
        let c = const_of_cexpression e1 in
-       EqFby (check_pattern_of_pattern cpattern, clk, c, le)
+       EqFby (check_var_of_pattern cpattern, clk, c, le)
     | CApplication (i,n,c,e) ->
-       let le = match e.ce_desc with CETuple es -> check_lexps_of_cexpressions es | _ -> check_lexps_of_cexpressions [e]  in 
+       let le = match e.ce_desc with CETuple es -> check_lexps_of_cexpressions es | _ -> check_lexps_of_cexpressions [e]  in
       EqApp (check_pattern_of_pattern cpattern,check_clock_of_clock (Ck c),char_list_of_string i, le)
-    | CCall ocaml -> 
-       EqEval (check_pattern_of_pattern cpattern, check_clock_of_clock cclock ,char_list_of_string "ocaml_expr")
+    | CCall ocaml ->
+       EqEval (check_var_of_pattern cpattern, check_clock_of_clock cclock ,char_list_of_string "ocaml_expr")
     | _ ->
        let clk = check_clock_of_clock cclock in
        let ce = check_cexp_of_cexpression cexpression in
-       EqDef (check_pattern_of_pattern cpattern,clk,ce)
+       EqDef (check_var_of_pattern cpattern,clk,ce)
   with WrongClock ck ->
     let s = Format.asprintf "%a : wrong clock"
         Clocking_ast_printer.print_ck ck in
@@ -221,7 +229,7 @@ let check_node_of_node n =
   Nodemk_node (
       (char_list_of_string (string_of_pattern n.cname)),
       check_pattern_of_pattern n.cinputs,
-      check_pattern_of_pattern n.coutputs, 
+      check_pattern_of_pattern n.coutputs,
       check_equations_of_equations n.cequations
     )
 
@@ -262,17 +270,17 @@ let check_global_env_of_global_env global =
   in
   List.map aux global
 
-let rec print_chk_env fmt l = 
-  match l with 
-    | [] -> () 
+let rec print_chk_env fmt l =
+  match l with
+    | [] -> ()
     | (n,c)::xs -> Format.fprintf fmt "%s : %a \n%a" (string_of_char_list n)
                   print_chk c print_chk_env xs
-       
+
 
 let check_node global local n =
   let cn = check_node_of_node n in
   let global = check_global_env_of_global_env global in
   let local = check_env_of_env local in
-  let b = well_clocked_prog [(local,cn)] global in 
+  let b = well_clocked_prog [(local,cn)] global in
   if not b then print_chk_env Format.std_formatter local;
   b

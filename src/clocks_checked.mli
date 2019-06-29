@@ -33,100 +33,98 @@ type binop =
 | Binopop_compare
 | Binopop_bool
 
-type clock =
+type ck =
 | Ckbase
-| Ckon of clock * identifier
-| Ckonnot of clock * identifier
-| Cktuple of clock * clock
-| Ckarrow of clock * clock
+| Ckon of ck * identifier
+| Ckonnot of ck * identifier
+| Cktuple of ck * ck
+| Ckarrow of ck * ck
 
-type lexp =
-| Eunit of clock
-| Econst of constant * clock
+type e =
+| Eunit of ck
+| Econst of constant * ck
 | Evar of identifier
-| Econstructor of type_constr * clock
-| Ebinop of lexp * binop * lexp
-| Eunop of unop * lexp
-| Ewhen of lexp * identifier
-| Ewhennot of lexp * identifier
+| Econstructor of type_constr * ck
+| Ebinop of e * binop * e
+| Eunop of unop * e
+| Ewhen of e * identifier
+| Ewhennot of e * identifier
 
 type cexp =
-| Ceexp of lexp
+| Ceexp of e
 | Cemerge of identifier * cexp * cexp
-| Ceif of lexp * cexp * cexp
+| Ceif of e * cexp * cexp
 
-type pattern =
-| Patp_unit
+type xs =
+| Patp_nil
 | Patp_var of identifier
-| Patp_tuple of identifier * pattern
+| Patp_tuple of identifier * xs
 
-type lexps =
-| Esone_exp of lexp
-| Escons_exps of lexp * lexps
+type es =
+| Esone_exp of e
+| Escons_exps of e * es
 
-type equation =
-| EqDef of pattern * clock * cexp
-| EqFby of pattern * clock * constant * lexp
-| EqApp of pattern * clock * identifier * lexps
-| EqEval of pattern * clock * ocaml_expr
+type eqn =
+| EqDef of identifier * ck * cexp
+| EqFby of identifier * ck * constant * e
+| EqApp of xs * ck * identifier * es
+| EqEval of identifier * ck * ocaml_expr
 
 type leqns =
-| Eqseqs_one of equation
-| Eqseqs_cons of equation * leqns
+| Eqseqs_one of eqn
+| Eqseqs_cons of eqn * leqns
 
-type c = (char list*clock) list
+type c = (char list*ck) list
 
 type nodedef =
-| Nodemk_node of identifier * pattern * pattern * leqns
+| Nodemk_node of identifier * xs * xs * leqns
 
-val eq_clock : clock -> clock -> bool
+val eq_ck : ck -> ck -> bool
 
 type sign =
-| Signcons of pattern * clock * pattern * clock
+| Signcons of xs * ck * xs * ck
 
 type s = identifier list
 
 type h = (char list*sign) list
 
-val assoc : char list -> c -> clock option
+val assoc : char list -> c -> ck option
 
 val assoc_global : char list -> h -> sign option
 
-val apply_subst : clock -> identifier -> identifier -> clock
+val apply_subst : ck -> identifier -> identifier -> ck
 
-val apply_substs : (identifier*identifier) list -> clock -> clock
+val apply_substs : (identifier*identifier) list -> ck -> ck
 
-val carriers : clock -> s
+val carriers : ck -> s
 
-val subst_ck : clock -> clock -> clock
+val subst_ck : ck -> ck -> ck
 
 val mem_S : char list -> identifier list -> bool
 
-val e_subst_fun_var :
-  identifier -> identifier -> identifier list -> (identifier*identifier) list option
+val e_subst_fun_var : identifier -> identifier -> identifier list -> (identifier*identifier) list option
 
-val e_subst_fun_exp : identifier -> lexps -> identifier list -> (identifier*identifier) list option
+val e_subst_fun_exp : identifier -> es -> identifier list -> (identifier*identifier) list option
 
-val e_subst_fun : pattern -> lexps -> identifier list -> (identifier*identifier) list option
+val e_subst_fun : xs -> es -> identifier list -> (identifier*identifier) list option
 
-val p_subst_fun_vars :
-  identifier -> identifier -> identifier list -> (identifier*identifier) list option
+val p_subst_fun_vars : identifier -> identifier -> identifier list -> (identifier*identifier) list option
 
-val p_subst_fun : pattern -> pattern -> identifier list -> (identifier*identifier) list option
+val p_subst_fun : xs -> xs -> identifier list -> (identifier*identifier) list option
 
-val clockof_exp : c -> lexp -> clock option
+val clockof_exp : c -> e -> ck option
 
-val clockof_exps : c -> lexps -> clock option
+val clockof_exps : c -> es -> ck option
 
 val eq_ident : identifier -> identifier -> bool
 
-val eq_ck : clock -> clock -> bool
+val eq_clock : ck -> ck -> bool
 
-val clockof_cexp : c -> cexp -> clock option
+val clockof_cexp : c -> cexp -> ck option
 
-val clockof_pat : c -> pattern -> clock option
+val clockof_pat : c -> xs -> ck option
 
-val well_clocked_equation : equation -> h -> c -> bool
+val well_clocked_equation : eqn -> h -> c -> bool
 
 val well_clocked_eqns : leqns -> h -> c -> bool
 

@@ -346,7 +346,7 @@ let rec all_input_funs name l e =
 
 
 
-let tocaml_main inode delay =
+let tocaml_main inode delay wcet =
   create_io_file inode;
   let name = string_of_pattern inode.s_name in
   let module_name = (String.capitalize_ascii (string_of_pattern inode.s_name^"_io")) in
@@ -354,7 +354,8 @@ let tocaml_main inode delay =
   (* let initialize_fun = expr_of_pattern initialize_funp in *)
   let init_funp = suffix_pattern ~suf:"_alloc" inode.s_name in
   let init_fun = expr_of_pattern init_funp in
-  let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in
+  (* let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in *)
+  let inputsp = [{ p_desc = PUnit ; p_loc = Location.none }] in
   let inputs = List.map expr_of_pattern inputsp in
   let inputs = List.map (fun x -> (Nolabel,x)) inputs in
   let output_funp = prefix_pattern ~pre:"output_" inode.s_name in
@@ -372,11 +373,21 @@ let tocaml_main inode delay =
   let outputs = List.map (fun x -> (Nolabel,x)) outputs in
   let apply_output = Exp.apply output_fun outputs in
 
-  let e = [%expr let _st = [%e apply_init ] in
-                     while true do
-                       [%e all_input_funs name inode.s_zero.s_inputs
-                       apply_update ] ;
-                       [%e apply_output ] done ] in
+  let e_wcet =
+            [%expr let _st = [%e apply_init ] in
+                       begin_loop ();
+                         [%e all_input_funs name inode.s_zero.s_inputs
+                             apply_update ] ;
+                         [%e apply_output ];
+                         end_loop ();
+            ] in
+  let e_simple =
+            [%expr let _st = [%e apply_init ] in
+                       while true do
+                         [%e all_input_funs name inode.s_zero.s_inputs
+                             apply_update ] ;
+                         [%e apply_output ] done ] in
+  let e = if wcet then e_wcet else e_simple in
   let eloop =  [%expr
                    initialize ();
 
@@ -390,12 +401,12 @@ let tocaml_main inode delay =
 
 
 
-let tocaml_node s_node is_main d =
+let tocaml_node s_node is_main d wcet =
   let typ = tocaml_type s_node.s_type in
   let f0 = tocaml_s_zero s_node.s_zero in
   let fn = tocaml_s_next s_node.s_next in
   if is_main then
-    let fmain = tocaml_main s_node d in
+    let fmain = tocaml_main s_node d wcet in
     [typ;f0;fn;fmain]
   else
     [typ;f0;fn]

@@ -21,6 +21,7 @@ open Clocking_ast
 let verbose = ref false
 let clocks = ref false
 let lustre = ref false
+let wcet = ref false
 let no_auto = ref false
 let why = ref false
 let nonalloc = ref false
@@ -61,7 +62,7 @@ let print_why node =
 let create_imperative_code node =
   let _seq_node = seq_node node outputs_env in
   if !verbose then print_s_node Format.std_formatter _seq_node;
-  let str = Codegen.tocaml_node _seq_node (!main = string_of_pattern _seq_node.s_name) 0 in
+  let str = Codegen.tocaml_node _seq_node (!main = string_of_pattern _seq_node.s_name) 0 !wcet in
   if !print_types then
     Print_type.print_type str;
   str
@@ -143,6 +144,7 @@ let _ =
                   ("-t", Arg.Set typing, "Prints node type");
                   ("-d", Arg.Set_int delay, "Set a main loop frequency (in ms delay)");
                   ("-clk", Arg.Set just_clock, "Just infer clocks, and stop");
+                  ("-wcet", Arg.Set wcet, "Create bytecode compatible with bytecrawler");
                   ("-check_clocks", Arg.Set check, "Check clock inference");
                   ("-t", Arg.Set print_types, "Prints node types");]
   in let usage_msg = "OCaLustre : "

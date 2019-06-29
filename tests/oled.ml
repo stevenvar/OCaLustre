@@ -41,7 +41,7 @@ let%node boot () ~return:(cs,dc,spi,ok) =
                (0xA1 >>> (0xC8 >>> (0x81 >>> (0xCF >>> (0xD9 >>>
                (0xF1 >>> (0xAF >>> (0x20 >>> 0x00)))))))))))
 
-let%node game () ~return:(cs,dc,spi) = 
+let%node game () ~return:(cs,dc,spi) =
   (cs,dc,spi) := send_lcd_data 42
 
 let%node main () ~return:(cs,dc,spi) =

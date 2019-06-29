@@ -77,8 +77,8 @@ let mk_state (n:Clocking_ast.cnode) =
 
 let rec update_fby eq l =
   match eq.cexpression.ce_desc with
-  | CFby (x,e) -> { cclock = eq.cclock ; 
-                    cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ; 
+  | CFby (x,e) -> { cclock = eq.cclock ;
+                    cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ;
                     cexpression = e}::l
   | _ -> l
 
@@ -186,7 +186,8 @@ let seq_eqs_zero eqs sname env =
   let rec seq_exp e =
     let sexp = { s_e_desc = S_Unit ; s_e_loc = e.ce_loc} in
     match e.ce_desc with
-    (* | CValue v -> { sexp with s_e_desc = S_Value v }
+    | CValue v -> { sexp with s_e_desc = S_Value v }
+    (*
      * | CVariable s -> { sexp with s_e_desc = S_Variable s }
      * | CApplication (i,num,c,e) ->
      *    (\* let conds = get_condition (Ck c) in *\)
@@ -219,9 +220,9 @@ let seq_eqs_zero eqs sname env =
      * | CUnit -> { sexp with s_e_desc = S_Unit}
      * | CArrow (e1,e2) -> seq_exp e1
      * (\* | CPre e -> assert false *\) *)
-     | CFby (e,e') -> seq_exp e
+     | CFby (e,e') -> Printf.printf "FBY"; seq_exp e
      (* | CWhen (e',i) ->
-     *   { sexp with s_e_desc = (seq_exp e').s_e_desc}      
+     *   { sexp with s_e_desc = (seq_exp e').s_e_desc}
      * | CWhennot (e',i) ->
      *   { sexp with s_e_desc = (seq_exp e').s_e_desc}
      * | CETuple el ->
@@ -278,22 +279,22 @@ let seq_zero name inputs outputs state env eqs =
     s_state = state;
     s_eqs = eqs}
 
-let mk_condition (l:(bool * Clocking_ast.ident) list) = 
+let mk_condition (l:(bool * Clocking_ast.ident) list) =
   let sexp = { s_e_desc = S_Unit ; s_e_loc = Location.none } in
-  let rec loop l acc = 
-    match l with 
+  let rec loop l acc =
+    match l with
     | [] -> acc
-    | [(b,v)] -> 
+    | [(b,v)] ->
        let var = {sexp with s_e_desc = S_Variable v} in
        let v = {sexp with s_e_desc = S_Value (Bool b)} in
-       let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in 
+       let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in
        { sexp with s_e_desc = S_InfixOp (S_And, e, acc) }
-    | (b,v)::l' -> 
+    | (b,v)::l' ->
        let var = {sexp with s_e_desc = S_Variable v} in
        let v = {sexp with s_e_desc = S_Value (Bool b)} in
-       let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in 
+       let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in
        loop l' { sexp with s_e_desc = S_InfixOp (S_And, e, acc) }
-  in 
+  in
   loop l {sexp with s_e_desc = S_Value (Bool true) }
 
 (* Convert equations for the step function  *)
@@ -381,7 +382,7 @@ let rec seq_eqs_next eqs name env =
       begin match eq.cexpression.ce_desc with
       (* For applications, we need to add another line to update the state ...  *)
       | CApplication(i,num,c, e') ->
-         let conds = get_condition (Ck c) in          
+         let conds = get_condition (Ck c) in
          incr nb;
          let seq = { s_pattern = eq.cpattern;
                      s_expression = seq_exp s eq.cexpression } in

@@ -406,7 +406,8 @@ let mk_inv b =
 (** Parse a pattern **)
 let rec parse_patt p =
   match p.ppat_desc with
-  | Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc }
+  |  Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc }
+  | Ppat_any ->  { p_desc = Ident "_" ; p_loc = p.ppat_loc }
   | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }
   | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> parse_patt x) l) ;
                       p_loc = p.ppat_loc }
