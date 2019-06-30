@@ -237,6 +237,15 @@ let seq_eqs_zero eqs sname env =
      *   } *)
     | _ -> { sexp with s_e_desc = (S_Magic) }
   in
+  let split_eqs eq =
+    let seq = { s_e_desc = S_Magic ; s_e_loc = eq.cexpression.ce_loc } in
+    match eq.cpattern.p_desc with
+    | Tuple pl ->
+       List.map (fun p -> { s_pattern = p;
+                            s_expression = seq })  pl
+
+    | _ -> [{ s_pattern = eq.cpattern ; s_expression = seq} ]
+  in
   let rec aux l =
     match l with
       [] -> []
@@ -248,6 +257,7 @@ let seq_eqs_zero eqs sname env =
           let seq = { s_pattern = eq.cpattern ;
                   s_expression = seq_exp eq.cexpression }
           in
+          let seqs = split_eqs eq in
           (* let s = !nb in *)
           let eq =
             { s_pattern = Parsing_ocl.mk_pattern (i^(string_of_int !nb)^"_state");
@@ -255,7 +265,7 @@ let seq_eqs_zero eqs sname env =
                 { s_e_desc = S_Application_init (i^"_alloc",!nb, [{ seq.s_expression with s_e_desc =  S_Unit}] );
                   s_e_loc = eq.cexpression.ce_loc }
             } in
-          eq::seq::(aux eqs)
+          (eq::seqs)@(aux eqs)
         | _ ->
           let seq = { s_pattern = eq.cpattern ;
                       s_expression = seq_exp eq.cexpression }

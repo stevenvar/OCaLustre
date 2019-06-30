@@ -280,7 +280,7 @@ let rec tocaml_state_zero s name =
 (* create function _init *)
 let tocaml_s_zero (f:s_fun) =
   let name = stringloc_of_string ((string_of_pattern f.s_name)^"_alloc") in
-  let ins = f.s_inputs in
+  let ins = [] in (* f.s_inputs in *)
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_zero f.s_state f.s_name in
    match ins with
@@ -360,7 +360,7 @@ let tocaml_main inode delay wcet =
   let inputs = List.map (fun x -> (Nolabel,x)) inputs in
   let output_funp = prefix_pattern ~pre:"output_" inode.s_name in
   let output_fun = expr_of_pattern output_funp in
-  let apply_init = Exp.apply init_fun inputs in
+  let apply_init = Exp.apply init_fun [] in
   let update_funp = suffix_pattern ~suf:"_step" inode.s_name in
   let update_fun = expr_of_pattern update_funp in
   let state = {p_desc = Ident "_st"; p_loc = Location.none} in
