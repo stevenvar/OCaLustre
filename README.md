@@ -124,9 +124,9 @@ let%node sampler (x,c) ~return:y =
 
 Clocks are equivalent to a type system and the type of the previous example is :
 
-```('a * (ck_a : 'a)) -> ('a on ck_a)```
+```(base * (ck_a : base)) -> (base on ck_a)```
 
-With ```'a``` being a clock variable and ```(c : 'a)``` meaning that ```c```is a clock itself on the clock ```'a```
+With ```base``` being the implicit faster clock of the node and ```(c : base)``` meaning that ```c```is a clock itself on the clock ```base```
 
 
 - The ```[@ whennot _]``` ("when not") annotation is the counterpart of ```[@ when _ ]```and produces a value only when its clock is ```false```
@@ -141,7 +141,7 @@ let%node sampler (x1,x2,c) ~return:y =
    y := a + b
 ```
 
-and has the following clock : ```('a * 'a * (ck_a : 'a)) -> ('a on ck_a) ```
+and has the following clock : ```(base * base * (ck_a : base)) -> (base on ck_a) ```
 
 But the following example is incorrect :
 
@@ -163,7 +163,7 @@ let%node tictoc c ~return:y =
   b := 2 [@ whennot c];
   y := merge c a b
 
-let%node call_tictoc () ~return:d = 
+let%node call_tictoc () ~return:d =
   c := true >>> (false >>> c);
   d := tictoc c
 ```
@@ -176,7 +176,7 @@ let%node call_tictoc () ~return:d =
 
 ## Quick install
 
-OCaLustre is still a prototype! But if you really want to try it out, just do :
+OCaLustre is still a prototype! But if you want to try it out, just do :
 
 ```
   oasis setup && ./configure && make && make install
@@ -193,7 +193,7 @@ Or as a ppx preprocessor :
 ocamlc -ppx ocalustre tests/foo.ml
 ```
 
-### Generation of the main loop 
+### Generation of the main loop
 
 ```
 ocamlfind ppx_tools/rewriter "ocalustre -main my_main_node" ocalustre_file.ml -o ocaml_file.ml
@@ -201,41 +201,6 @@ ocamlfind ppx_tools/rewriter "ocalustre -main my_main_node" ocalustre_file.ml -o
 
 The ```-main``` option, followed by the name of the principal node, generates the global loop of the program. Next, you just need to fill the correct input/output functions for this node in the generated ocaml file.
 
-## Example
+### Todo
 
-This OCaLustre code (tests/fibo.ml) :
-
-```ocaml
-
-let%node fibonacci () ~return:(f) =
-  f := 0 >>> ((1 >>> f) + f)
-
-```
-
-compiled with :
-
-```
-ocamlfind ppx_tools/rewriter "./ocalustre.native -main fibonacci" tests/fibo.ml -o tests/fibo_generated.ml
-```
-
-generates the following file :
-
-```ocaml
-let fibonacci () =                                                                                                      
-  let st_f = ref 0 in
-  let st__aux_1 = ref 1 in
-  let fibonacci_step () =
-    let _aux_1 = !st__aux_1 in
-    let f = !st_f in st__aux_1 := f; st_f := (_aux_1 + f); f in
-  fibonacci_step
-  
-let () =
-  let input_fibonacci () = () in
-  let output_fibonacci f = failwith "FILL HERE" in
-  let main = fibonacci () in
-  while true do
-    let inputs = input_fibonacci () in
-    let outputs = main inputs in output_fibonacci outputs done
-```
-
-and, by replacing ```failwith "FILL HERE``` with ```print_int f```, we thus get an OCaml program that displays the fibonacci sequence : `0, 1, 1, 2, 3, 5, 8, 13, ...`
+I still need to properly include in this prototype the "call" operator that allows application of an OCaml function inside a node
