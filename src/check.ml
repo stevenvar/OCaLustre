@@ -204,8 +204,13 @@ let check_equation_of_equation { cpattern; cexpression; cclock } =
     | CApplication (i,n,c,e) ->
        let le = match e.ce_desc with CETuple es -> check_lexps_of_cexpressions es | _ -> check_lexps_of_cexpressions [e]  in
       EqApp (check_pattern_of_pattern cpattern,check_clock_of_clock (Ck c),char_list_of_string i, le)
-    | CCall ocaml ->
-       EqEval (check_var_of_pattern cpattern, check_clock_of_clock cclock ,char_list_of_string "ocaml_expr")
+    | CCall (f,el) ->
+       EqEval (check_var_of_pattern cpattern,
+               check_clock_of_clock cclock ,
+               char_list_of_string ( f),
+               check_lexp_of_cexpression (List.hd el),
+               List.map check_lexp_of_cexpression (List.tl el)
+         )
     | _ ->
        let clk = check_clock_of_clock cclock in
        let ce = check_cexp_of_cexpression cexpression in

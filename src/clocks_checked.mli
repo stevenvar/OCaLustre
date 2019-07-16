@@ -13,9 +13,9 @@ val eq_identifier : identifier -> identifier -> bool
 
 type type_constr = char list
 
-type ocaml_expr = char list
+type h = char list
 
-val eq_ocaml_expr : ocaml_expr -> ocaml_expr -> bool
+val eq_h : h -> h -> bool
 
 type unop =
 | Unopminus
@@ -68,7 +68,7 @@ type eqn =
 | EqDef of identifier * ck * cexp
 | EqFby of identifier * ck * constant * e
 | EqApp of xs * ck * identifier * es
-| EqEval of identifier * ck * ocaml_expr
+| EqEval of identifier * ck * h * e * e list
 
 type leqns =
 | Eqseqs_one of eqn
@@ -86,11 +86,11 @@ type sign =
 
 type s = identifier list
 
-type h = (char list*sign) list
+type h0 = (char list*sign) list
 
 val assoc : char list -> c -> ck option
 
-val assoc_global : char list -> h -> sign option
+val assoc_global : char list -> h0 -> sign option
 
 val apply_subst : ck -> identifier -> identifier -> ck
 
@@ -102,15 +102,22 @@ val subst_ck : ck -> ck -> ck
 
 val mem_S : char list -> identifier list -> bool
 
-val e_subst_fun_var : identifier -> identifier -> identifier list -> (identifier*identifier) list option
+val e_subst_fun_var :
+  identifier -> identifier -> identifier list -> (identifier*identifier) list
+  option
 
-val e_subst_fun_exp : identifier -> es -> identifier list -> (identifier*identifier) list option
+val e_subst_fun_exp :
+  identifier -> es -> identifier list -> (identifier*identifier) list option
 
-val e_subst_fun : xs -> es -> identifier list -> (identifier*identifier) list option
+val e_subst_fun :
+  xs -> es -> identifier list -> (identifier*identifier) list option
 
-val p_subst_fun_vars : identifier -> identifier -> identifier list -> (identifier*identifier) list option
+val p_subst_fun_vars :
+  identifier -> identifier -> identifier list -> (identifier*identifier) list
+  option
 
-val p_subst_fun : xs -> xs -> identifier list -> (identifier*identifier) list option
+val p_subst_fun :
+  xs -> xs -> identifier list -> (identifier*identifier) list option
 
 val clockof_exp : c -> e -> ck option
 
@@ -124,10 +131,12 @@ val clockof_cexp : c -> cexp -> ck option
 
 val clockof_pat : c -> xs -> ck option
 
-val well_clocked_equation : eqn -> h -> c -> bool
+val clockof_params : c -> e -> e list -> ck option
 
-val well_clocked_eqns : leqns -> h -> c -> bool
+val well_clocked_equation : eqn -> h0 -> c -> bool
 
-val clockof_node : nodedef -> h -> c -> sign option
+val well_clocked_eqns : leqns -> h0 -> c -> bool
 
-val well_clocked_prog : (c*nodedef) list -> h -> bool
+val clockof_node : nodedef -> h0 -> c -> sign option
+
+val well_clocked_prog : (c*nodedef) list -> h0 -> bool
