@@ -14,7 +14,7 @@ Here is an OcaLustre node that takes two streams a and b, and produces a stream 
 
 ```ocaml
 let%node example (a,b) ~return:(c) =
-  c := a + b
+  c = a + b
 ```
 
 ## Published versions
@@ -27,9 +27,9 @@ A french description of a more complete version has been described here : https:
 
 ```ocaml
 let%node <ident> <inputs> ~return:<outputs> =
-  <out> := <expr>;
+  <out> = <expr>;
   ...
-  <out> := <expr>
+  <out> = <expr>
 
 ```
 with
@@ -60,26 +60,26 @@ with
 NB: The sequence of assignations can be listed in any order (even if a variable in an expression has not yet been assigned), for example:
 ```ocaml
 let%node foo () ~return:(a,c,b) =
-  c := b + a;
-  b := a * 3;
-  a := 7
+  c = b + a;
+  b = a * 3;
+  a = 7
 ```
 
 is - at compile time - automatically transformed into :
 
 ```ocaml
 let%node foo () ~return:(a,c,b) =
-  a := 7;
-  b := a * 3;
-  c := b + a
+  a = 7;
+  b = a * 3;
+  c = b + a
 ```
 
 Note that scenarios where streams mutually depend on each others (ie. causality loops) are rejected during compilation :
 
 ```ocaml
 let%node causloop () ~return:(a,b) =
-  a := 7 + b;
-  b := a - 2
+  a = 7 + b;
+  b = a - 2
 ```
 ```
   Error:Causality loop in node causloop including these variables : b a
@@ -91,7 +91,7 @@ let%node causloop () ~return:(a,b) =
 
 For example :
 ```ocaml
-  n := 0 --> 1
+  n = 0 --> 1
 ```
 produces `0, 1, 1, 1, ...`
 
@@ -99,14 +99,14 @@ produces `0, 1, 1, 1, ...`
 
 For example :
 ```ocaml
-  n := 0 --> (pre n + 1)
+  n = 0 --> (pre n + 1)
 ```
 means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the stream of natural integers : `0, 1, 2, 3, 4, ...`
 
 - The ```>>>``` operator (``followed by'' in Lustre / Lucid) is the initialized delay operator. It is is used to define a stream as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
 
 ```ocaml
-   n := 0 >>> (n + 1)
+   n = 0 >>> (n + 1)
 ```
 
 means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants (i.e. it's also the stream of natural integers).
@@ -119,7 +119,7 @@ For example, in the following example, we return the value of x only when c is t
 ```ocaml
 
 let%node sampler (x,c) ~return:y =
-   y := x [@ when c]
+   y = x [@ when c]
 ```
 
 Clocks are equivalent to a type system and the type of the previous example is :
@@ -136,9 +136,9 @@ With ```base``` being the implicit faster clock of the node and ```(c : base)```
 ```ocaml
 
 let%node sampler (x1,x2,c) ~return:y =
-   a := x1 [@ when c];
-   b := x2 [@ when c];
-   y := a + b
+   a = x1 [@ when c];
+   b = x2 [@ when c];
+   y = a + b
 ```
 
 and has the following clock : ```(base * base * (ck_a : base)) -> (base on ck_a) ```
@@ -148,9 +148,9 @@ But the following example is incorrect :
 ```ocaml
 
 let%node sampler (x1,x2,c,d) ~return:y =
-   a := x1 [@ when c];
-   b := x2 [@ when d];
-   y := a + b
+   a = x1 [@ when c];
+   b = x2 [@ when d];
+   y = a + b
 ```
 
 - You can combine two streams on complementary clocks ( ```'a on x```and ```'a on not x```) by using the ```merge``` operator. The result is on clock ```'a```
@@ -159,13 +159,13 @@ In the following example, we return the value ```1``` half the time, and the val
 
 ```ocaml
 let%node tictoc c ~return:y =
-  a := 1 [@ when c];
-  b := 2 [@ whennot c];
-  y := merge c a b
+  a = 1 [@ when c];
+  b = 2 [@ whennot c];
+  y = merge c a b
 
 let%node call_tictoc () ~return:d =
-  c := true >>> (false >>> c);
-  d := tictoc c
+  c = true >>> (false >>> c);
+  d = tictoc c
 ```
 
 ## Requirements
