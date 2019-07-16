@@ -40,8 +40,6 @@ with
        | <ident> <param> (* function application *)
        | <expr> <binop> <expr>
        | <value> ->> <expr>
-       | <expr> --> <expr>
-       | pre <expr>
        | <unop> <expr>
        | <value>
        | (<expr>,*)
@@ -87,29 +85,13 @@ let%node causloop () ~return:(a,b) =
 
 ## Synchronous Operators
 
- - The ```-->``` operator is the initialization operator : it initializes a stream with a value for the first instant and another value for the next instants.
-
-For example :
-```ocaml
-  n = 0 --> 1
-```
-produces `0, 1, 1, 1, ...`
-
-- The ```pre``` operator is the memory operator : it returns the value of the stream at the previous instant.
-
-For example :
-```ocaml
-  n = 0 --> (pre n + 1)
-```
-means that n is equal to 0 at the first instant and then to its previous value + 1 for the next instants. Thus, n is the stream of natural integers : `0, 1, 2, 3, 4, ...`
-
-- The ```>>>``` operator (``followed by'' in Lustre / Lucid) is the initialized delay operator. It is is used to define a stream as a value for the first instant and the _previous_ value of another expression for the next instants :  (it is similar to "--> pre") :
+- The ```->>``` operator (``followed by'' in Lustre / Lucid) is the initialized delay operator. It is used to define a stream as a constant value for the first instant and as the _previous_ value of another expression for the next instants :  (it is similar to "-> pre" in Lustre) :
 
 ```ocaml
-   n = 0 >>> (n + 1)
+   n = 0 ->> (n + 1)
 ```
 
-means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants (i.e. it's also the stream of natural integers).
+means that n is equal to 0 at the first instant and then to the previous value of (n + 1) for the next instants (i.e. it's the stream of natural integers).
 ## Clocks
 
 - You can use the ```[@ when _]``` annotation in order to generate streams at a slower rate. This operator takes an expression ```e``` and a clock ```ck``` (i.e. boolean flow) and produces the value of ```e``` only when ```ck``` is ```true```.
