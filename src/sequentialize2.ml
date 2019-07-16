@@ -123,8 +123,9 @@ let rec seq_exp e =
   match e.ce_desc with
   | CValue v -> { sexp with s_e_desc = S_Value v}
   | CVariable s -> { sexp with s_e_desc = S_Variable s}
-  | CCall e ->
-    { sexp with s_e_desc = S_Call e }
+  | CCall (f,el) ->
+     let sel = List.map seq_exp el in
+    { sexp with s_e_desc = S_Call (f,sel) }
   | CInfixOp (op,e1,e2) ->
     { sexp with s_e_desc =
                   S_InfixOp(seq_infop op,
@@ -328,8 +329,9 @@ let rec seq_eqs_next eqs name env =
        with Not_found -> failwith ("unknown node "^i))
       in e
     (* {sexp with s_e_desc = S_Alternative(mk_condition conds,e,e)} *)
-    | CCall e ->
-      { sexp with s_e_desc = S_Call e }
+    | CCall (f,el) ->
+       let sel= List.map (fun e -> seq_exp s e) el in
+      { sexp with s_e_desc = S_Call (f,sel) }
     | CInfixOp (op,e1,e2) ->
       { sexp with s_e_desc =
                     S_InfixOp(seq_infop op,

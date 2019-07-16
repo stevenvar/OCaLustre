@@ -28,13 +28,13 @@ let rec norm_exp x exp =
      let exp' = { exp with e_desc = Fby(k,e') } in
      let eq',var' = new_eq x exp' in
      (eq'::d,var')
-  | Call ocaml -> 
-     let x = fresh x in 
-     let exp' = { exp with e_desc = Call ocaml } in 
-     let eq',var' = new_eq x exp' in 
+  | Call (f,el)  ->
+     let x = fresh x in
+     let exp' = { exp with e_desc = Call (f,el) } in
+     let eq',var' = new_eq x exp' in
      ([eq'],var')
   | Alternative(e1,e2,e3) ->
-     let x = fresh x in 
+     let x = fresh x in
      let (d1,e1') = norm_exp x e1 in
      let (d2,e2') = norm_exp x e2 in
      let (d3,e3') = norm_exp x e3 in
@@ -51,7 +51,7 @@ let rec norm_exp x exp =
     let (d,e') = norm_exp x e1 in
     (d, { exp with e_desc = Whennot(e',e2) })
   | Merge(e1,e2,e3) ->
-     let x = fresh x in 
+     let x = fresh x in
     let (d1,e1') = norm_exp x e1 in
     let (d2,e2') = norm_exp x e2 in
     let (d3,e3') = norm_exp x e3 in
@@ -82,7 +82,11 @@ let rec norm_eqn eq =
         (d,{eq with expression = {eq.expression with e_desc = Fby(k,e')}})
       | Application (f,n,e) -> let (d,e') = norm_exp x (e) in
             (d,{eq with expression = {eq.expression with e_desc = Application(f,n,e')}})
-      | Call ocaml -> ([],eq)
+      | Call (f,el) ->
+         let (d,e') = List.fold_left (fun (d,es) e ->
+                          let (_d,_e) = norm_exp x e in
+                        (d@_d,_e::es)) ([],[]) (List.tl el) in
+            (d,{eq with expression = {eq.expression with e_desc = Call (f,e')}})
       | e -> let (d,e') = norm_exp x eq.expression in
              (d,{eq with expression = e'})
     end
@@ -100,7 +104,7 @@ let rec norm_eqn eq =
                             let (ds,es') =  norm_eqn {pattern = pat; expression = exp } in
                             (ds@d@[es'],e')
       | Application (f,n,e) -> ([],eq)
-      | Call ocaml -> ([],eq)
+      | Call (f,el) -> ([],eq)
       | _ -> failwith "nope"
       end
   | Tuple [] -> failwith "nil"

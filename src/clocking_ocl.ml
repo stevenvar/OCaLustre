@@ -376,8 +376,10 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
   try
     begin
       match e.e_desc with
-      | Call y ->
-        { ce_desc = CCall y; ce_loc = e.e_loc; ce_clk = Ck CkBase }
+      | Call (f,el) ->
+         let cel = List.map (fun e -> clk_expr delta gamma e) el in
+         let t = List.fold_left (fun acc e -> (unify_ct acc e.ce_clk); e.ce_clk) ((List.hd cel).ce_clk) cel in
+        { ce_desc = CCall (f,cel); ce_loc = e.e_loc; ce_clk = t }
       | Unit ->
         let ck = Ck (new_varclk ()) in
         { ce_desc = CUnit; ce_loc = e.e_loc; ce_clk = ck }
@@ -445,7 +447,7 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
          let sigma = get_subst xs1 params s in
          (* Format.fprintf Format.std_formatter "First subst ="; *)
          (* List.iter (fun (x,y) -> Format.fprintf Format.std_formatter "(%s -> %s)\n" x y) sigma; *)
-         let gin = subst_ct gin sigma in 
+         let gin = subst_ct gin sigma in
          unify_ct gin param.ce_clk;
          let xs2 = Tools.string_list_of_pattern xs2 in
          let sigma2 = get_subst_vars xs2 !outputs s in

@@ -56,7 +56,7 @@ and exp_desc =
   (* | Current of expression *)
   | Arrow of expression * expression
   | Merge of expression * expression * expression
-  | Call of Parsetree.expression
+  | Call of ident * expression list
   | Clock of expression
   | Unit
 and inf_operator =

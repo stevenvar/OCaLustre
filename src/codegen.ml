@@ -112,8 +112,16 @@ let rec tocaml_expression e =
     ]]
   | S_Unit -> [%expr ()]
   | S_Constr _ -> [%expr ()]
-  | S_Call e ->
-    [%expr [%e e ]]
+  | S_Call (f,el) ->
+      let el' = List.map tocaml_expression el in
+    (* let pat = { p_desc = PUnit; *)
+                (* p_loc = Location.none;} in *)
+    (* let n = string_of_int num in *)
+    let l = List.map (fun e -> Nolabel,e) el' in
+    { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
+      pexp_loc = Location.none;
+      pexp_attributes = [];
+    }
 
 let rec lident_of_string s =
   {

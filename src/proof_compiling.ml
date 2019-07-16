@@ -59,8 +59,8 @@ let rec compile_pre_expression e =
   | Variable s -> S_Variable ("pre_"^s)
   | Application (i,num, e) ->
     S_Application (i, num, compile_pre_expression e)
-  | Call e ->
-    S_Call e
+  | Call (f,el) ->
+    S_Call (f,List.map compile_pre_expression el)
   | InfixOp (op,e1,e2) ->
     S_InfixOp(compile_infop op,
              compile_pre_expression e1,
@@ -89,7 +89,8 @@ let rec compile_pre_expression e =
   | Merge (e1,e2,e3) ->
     S_Alternative (compile_pre_expression e1,
                   compile_pre_expression e2,
-                   compile_pre_expression e3)
+                  compile_pre_expression e3)
+  | _ -> invalid_arg "compile_pre_expression"
 
 let rec compile_expression_step e p =
   match e.e_desc with
@@ -99,8 +100,8 @@ let rec compile_expression_step e p =
   | Variable s -> S_Variable s
   | Application (i,num, e) ->
     S_Application (i, num, compile_expression_step e p)
-  | Call e ->
-    S_Call e
+  | Call (f,el) ->
+    S_Call (f,List.map (fun e -> compile_expression_step e p) el)
   | InfixOp (op,e1,e2) ->
     S_InfixOp(compile_infop op,
              compile_expression_step e1 p,
@@ -116,10 +117,10 @@ let rec compile_expression_step e p =
     compile_pre_expression e2
   | Fby (e1,e2) -> compile_pre_expression e2
   | Clock e -> failwith "I don't work with clocks"
-  | When (e',i) -> failwith "I don't work with clocks";
-    S_Alternative (compile_expression_step i p,
-                  compile_expression_step e' p,
-                  S_Value Nil)
+  | When (e',i) -> failwith "I don't work with clocks"
+    (* S_Alternative (compile_expression_step i p,
+     *               compile_expression_step e' p,
+     *               S_Value Nil) *)
   | Whennot (e',i) ->
     S_Alternative (compile_expression_step i p,
                   S_Value Nil,

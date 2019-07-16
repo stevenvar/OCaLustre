@@ -23,7 +23,7 @@ and imp_expr_desc =
   | ICondact of (bool * ident) list * imp_expr
   | IApplication of (bool*ident) list * ident * int * imp_expr
   | IApplication_init of ident * imp_expr
-  | ICall of Parsetree.expression
+  | ICall of ident * imp_expr list
   | IRef of ident
   | IRefDef of imp_expr
   | IInfixOp of imp_infop * imp_expr * imp_expr
@@ -173,9 +173,8 @@ let rec printml_expression fmt exp =
                              i
                              printml_expression e
   (* | ICall e -> Format.fprintf fmt "🐫" *)
-  | ICall e ->
-    let s = Pprintast.string_of_expression e in
-    Format.fprintf fmt "🐫 %s 🐫" s
+  | ICall (f,el) ->
+    Format.fprintf fmt "%s %a" f printml_expressions el
   | IConstr s -> Format.fprintf fmt "%s" s
   | IETuple el -> Format.fprintf fmt "(%a)"
                     printml_expressions el

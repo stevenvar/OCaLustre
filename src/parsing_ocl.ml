@@ -66,7 +66,8 @@ let rec get_idents l e =
   | Array_get (e,e') ->
     let l = get_idents l e in
     get_idents l e'
-  | Call e -> l
+  | Call (f,el) ->
+     List.fold_left (fun acc e -> (get_idents l e)@acc) [] el
   | Application (i,_,e) ->
     get_idents l e
   | Alternative (e1,e2,e3) ->
@@ -300,16 +301,30 @@ let make_expression e =
       | [%expr clock [%e? e1]] ->
         let clock = Clock (mk_expr e1) in
         { e_desc = clock; e_loc = e.pexp_loc }
-      | [%expr call ([%e? e1]) ] ->
-        let app = Call (e1) in
-        { e_desc = app ; e_loc = e.pexp_loc }
+      (* | [%expr call [%e? e1] [%e? e2] [%e? e3] ] ->
+       *   let app = Call (e1) in
+       *   { e_desc = app ; e_loc = e.pexp_loc } *)
       | [%expr [%e? e1] [%e? e2] ] ->
         let app = Application(checkname_ident e1, get_num(), mk_expr e2) in
         { e_desc = app ; e_loc = e.pexp_loc }
       | [%expr [%e? e1] --@ not [%e? e2]] ->
         { e_desc = Whennot (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
       | [%expr [%e? e1] --@ [%e? e2]] ->
-        { e_desc = When (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
+         { e_desc = When (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
+      |  { pexp_desc = Pexp_apply (f,params);
+          pexp_loc ;
+          pexp_attributes } ->
+          begin
+            match f with
+            | [%expr call ] ->
+               { e_desc = Call(checkname_ident (snd (List.hd params)), List.map (fun (_,e) -> mk_expr e) (List.tl params));
+                 e_loc = pexp_loc;
+               }
+            | _ ->
+               let s = Format.asprintf "%a"
+                         Pprintast.expression e in
+               Error.syntax_error e.pexp_loc s
+          end
       | _ ->
         let s =
           Format.asprintf "%a"

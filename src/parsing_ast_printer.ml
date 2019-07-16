@@ -89,8 +89,8 @@ let rec print_expression fmt e =
      Format.fprintf fmt "(%a %a)"
                     print_ident i
                     print_expression e
-  | Call (e) ->
-     Format.fprintf fmt "(eval (%s))" (Pprintast.string_of_expression e)
+  | Call (f,el) ->
+     Format.fprintf fmt "(call %s %a)" f print_expression_list el
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1

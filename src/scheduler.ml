@@ -17,8 +17,8 @@ let rec get_dep_id e l  =
     get_dep_id e3 l''
   | Application (i,num,e) ->
       get_dep_id e l
-  | Call e ->
-    l
+  | Call (f,el) ->
+     List.fold_left (fun acc e -> get_dep_id e acc) l el
   | InfixOp (op, e1, e2) ->
     let l = get_dep_id e1 l in
     get_dep_id e2 l

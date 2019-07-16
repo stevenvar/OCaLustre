@@ -200,7 +200,3 @@ ocamlfind ppx_tools/rewriter "ocalustre -main my_main_node" ocalustre_file.ml -o
 ```
 
 The ```-main``` option, followed by the name of the principal node, generates the global loop of the program. Next, you just need to fill the correct input/output functions for this node in the generated ocaml file.
-
-### Todo
-
-I still need to properly include in this prototype the "call" operator that allows application of an OCaml function inside a node

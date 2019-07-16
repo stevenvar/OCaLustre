@@ -77,7 +77,7 @@ let rec whyml_expression fmt exp =
                              whyml_expression e
   | S_Application_init (i,e) ->
      Format.fprintf fmt "%s ()" i
-  | S_Call e -> Format.fprintf fmt "(_____)"
+  | S_Call (f,e) -> Format.fprintf fmt "(call _____)"
   | S_Constr s -> Format.fprintf fmt "%s" s
   | S_ExpTuple el -> Format.fprintf fmt "(%a)"
                     whyml_expressions el
@@ -113,7 +113,7 @@ let rec prefix_expression exp prefix =
                              prefix_expression e prefix)
   | S_Application_init (i,e) ->
      S_Application_init (i, prefix_expression e prefix)
-  | S_Call e -> exp
+  | S_Call (f,el) -> exp
   | S_Constr s -> exp
   | S_ExpTuple el -> S_ExpTuple (List.map (fun e -> prefix_expression e prefix) el)
 

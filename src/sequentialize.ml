@@ -108,8 +108,8 @@ let rec seq_exp e =
   match e.e_desc with
   | Value v -> { sexp with s_e_desc = S_Value v}
   | Variable s -> { sexp with s_e_desc = S_Variable s}
-  | Call e ->
-    { sexp with s_e_desc = S_Call e }
+  | Call (f,el) ->
+    { sexp with s_e_desc = S_Call (f,List.map seq_exp el) }
   | InfixOp (op,e1,e2) ->
     { sexp with s_e_desc =
                   S_InfixOp(seq_infop op,
@@ -199,8 +199,8 @@ let seq_eqs_zero eqs sname env =
     | Array_fold _
     | Array_map _
     | Imperative_update _ -> failwith "todo"
-    | Call e ->
-      { sexp with s_e_desc = S_Call e }
+    | Call (f,el) ->
+      { sexp with s_e_desc = S_Call (f, List.map seq_exp el) }
     | InfixOp (op,e1,e2) ->
       { sexp with s_e_desc =
                     S_InfixOp(seq_infop op,
@@ -290,8 +290,9 @@ let rec seq_eqs_next eqs name env =
                    name^"_"^i^string_of_int !nb^"_state")})
            i outputs
        with Not_found -> failwith ("unknown node "^i))
-    | Call e ->
-      { sexp with s_e_desc = S_Call e }
+    | Call (f,el) ->
+       let sel = List.map (fun e -> seq_exp s e) el in
+      { sexp with s_e_desc = S_Call (f,sel)}
     | InfixOp (op,e1,e2) ->
       { sexp with s_e_desc =
                     S_InfixOp(seq_infop op,

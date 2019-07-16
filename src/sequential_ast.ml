@@ -13,7 +13,7 @@ and s_expr =
   | S_Variable of ident
   | S_Application of ident * int * s_expression list
   | S_Application_init of ident * int * s_expression list
-  | S_Call of Parsetree.expression
+  | S_Call of (ident*s_expression list)
   | S_Ref of ident
   | S_RefDef of s_expression
   | S_InfixOp of s_infop * s_expression * s_expression

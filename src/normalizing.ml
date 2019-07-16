@@ -79,8 +79,9 @@ let get_ident e =
      | Application (i,num,e) ->
        let e' = kernalize e in
        { exp with e_desc = Application (i,num,e') }
-     | Call e ->
-       { exp with e_desc = Call e }
+     | Call (f,el) ->
+        let el' = List.map kernalize el in
+       { exp with e_desc = Call (f,el') }
      | InfixOp (op,e1,e2) ->
        let e1 = kernalize e1 in
        let e2 = kernalize e2 in
@@ -142,8 +143,13 @@ let rec normalize_exp l exp =
     let (eq_y,y) = new_eq_var exp' in
     let l' = eq_y::l' in
     l', y
-  | Call e ->
-    l, exp
+  | Call (f,el) ->
+      let (l',el') = List.fold_right (fun e (_l,_e) ->
+        let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
+     let exp' = { exp with e_desc = Call (f,el') } in
+     let (eq_y,y) = new_eq_var exp' in
+     let l' = eq_y::l' in
+     l', y
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in
@@ -243,8 +249,10 @@ let norm_exp l exp  =
     let l',e' = normalize_exp l e in
     let exp' = { exp with e_desc = Application (i,num,e') } in
     l', exp'
-  | Call e ->
-    l, exp
+  | Call (f,el) ->
+       let (l',el') = List.fold_right (fun e (_l,_e) ->
+        let (l,e') = normalize_exp _l e in (l@_l,e'::_e)) el (l,[]) in
+    l', { exp with e_desc = Call (f,el') }
   | InfixOp (op,e1,e2) ->
     let (l1,e1') = normalize_exp l e1 in
     let (l2,e2') = normalize_exp l1 e2 in

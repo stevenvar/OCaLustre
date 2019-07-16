@@ -130,8 +130,17 @@ and tocaml_expression e n =
     ]
   | IUnit -> [%expr ()]
   | IConstr _ -> [%expr ()]
-  | ICall e ->
-    [%expr [%e e ]]
+  | ICall (f,el) ->
+       let el' = List.map (fun e -> tocaml_expression e n) el in
+    (* let pat = { p_desc = PUnit; *)
+                (* p_loc = Location.none;} in *)
+    (* let n = string_of_int num in *)
+    let l = List.map (fun e -> Nolabel,e) el' in
+    { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
+      pexp_loc = Location.none;
+      pexp_attributes = [];
+    }
+
 (* | _ -> failwith "todo" *)
 
 let rec nb_pattern (p : Parsing_ast.pattern) =

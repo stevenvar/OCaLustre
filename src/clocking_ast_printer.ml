@@ -9,7 +9,7 @@ let rec print_ck fmt c =
   | CkBase -> Format.fprintf fmt "base"
   | CkUnknown -> Format.fprintf fmt "?"
   | CkVariable { index = n; value = CkUnknown } ->
-    Format.fprintf fmt "'%d" n
+    Format.fprintf fmt "_"
   | CkVariable { index = n; value = c } ->
     Format.fprintf fmt "%a" print_ck c
   | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
@@ -61,8 +61,8 @@ let rec print_expression fmt (ce:cexpression) =
                     print_ck c
                     print_ident i
                     print_expression e
-  | CCall (e) ->
-     Format.fprintf fmt "(eval (%s))" (Pprintast.string_of_expression e)
+  | CCall (f,el) ->
+     Format.fprintf fmt "(call %s %a)" f print_expression_list el
   | CInfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
