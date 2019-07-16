@@ -85,8 +85,8 @@ let rec norm_eqn eq =
       | Call (f,el) ->
          let (d,e') = List.fold_left (fun (d,es) e ->
                           let (_d,_e) = norm_exp x e in
-                        (d@_d,_e::es)) ([],[]) (List.tl el) in
-            (d,{eq with expression = {eq.expression with e_desc = Call (f,e')}})
+                        (d@_d,_e::es)) ([],[]) el in
+            (d,{eq with expression = {eq.expression with e_desc = Call (f,List.rev e')}})
       | e -> let (d,e') = norm_exp x eq.expression in
              (d,{eq with expression = e'})
     end
