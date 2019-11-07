@@ -86,6 +86,17 @@ let update_all_fby eqs =
   List.fold_left (fun acc eq -> update_fby eq acc) [] eqs
 
 
+let rec update_fby_zero eq l =
+  match eq.cexpression.ce_desc with
+  | CFby (x,e) -> { cclock = eq.cclock ;
+                    cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ;
+                    cexpression = x}::l
+  | _ -> l
+
+let update_all_fby_zero eqs =
+  List.fold_left (fun acc eq -> update_fby_zero eq acc) [] eqs
+
+
 let rec extract_conds c =
   begin
     match Clocking_ocl.shorten_ck c with
@@ -221,7 +232,7 @@ let seq_eqs_zero eqs sname env =
      * | CUnit -> { sexp with s_e_desc = S_Unit}
      * | CArrow (e1,e2) -> seq_exp e1
      * (\* | CPre e -> assert false *\) *)
-     | CFby (e,e') -> Printf.printf "FBY"; seq_exp e
+     | CFby (e,e') -> Printf.printf "FBY" ; seq_exp e
      (* | CWhen (e',i) ->
      *   { sexp with s_e_desc = (seq_exp e').s_e_desc}
      * | CWhennot (e',i) ->
@@ -280,7 +291,8 @@ let seq_eqs_zero eqs sname env =
 (* Create init function  *)
 let seq_zero name inputs outputs state env eqs =
   let sname = string_of_pattern name in
-  let eqs = eqs@(update_all_fby eqs) in
+  Clocking_ast_printer.print_equations Format.std_formatter (eqs,());
+  let eqs = eqs@(update_all_fby_zero eqs) in
   nb := 0;
   let eqs = seq_eqs_zero eqs sname env in
   nb := 0;

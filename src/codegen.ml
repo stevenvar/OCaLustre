@@ -328,7 +328,7 @@ let create_io_file inode =
       let init = Printf.sprintf "(* initialization function *)\nlet initialize () = (* TODO *) () \n" in
       let input_params = inode.s_zero.s_inputs in
       let inputs = List.map (fun x -> Printf.sprintf "let input_%s_%s () = (* TODO *) in %s \n" name x x) input_params in
-      let output_params = List.fold_left (fun acc x -> x^" "^acc) "" inode.s_next.s_outputs in
+      let output_params = List.fold_left (fun acc x -> acc^" "^x) "" inode.s_next.s_outputs in
       let output = Printf.sprintf "let output_%s %s = (* TODO *) \n" name output_params in
       output_string oc init;
       output_string oc "(* Input functions *)\n";
@@ -362,18 +362,20 @@ let tocaml_main inode delay wcet =
   (* let initialize_fun = expr_of_pattern initialize_funp in *)
   let init_funp = suffix_pattern ~suf:"_alloc" inode.s_name in
   let init_fun = expr_of_pattern init_funp in
-  (* let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in *)
-  let inputsp = [{ p_desc = PUnit ; p_loc = Location.none }] in
-  let inputs = List.map expr_of_pattern inputsp in
+  let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in
+  let inputs = [{ p_desc = PUnit ; p_loc = Location.none }] in
+  let inputs = List.map expr_of_pattern inputs in
   let inputs = List.map (fun x -> (Nolabel,x)) inputs in
   let output_funp = prefix_pattern ~pre:"output_" inode.s_name in
   let output_fun = expr_of_pattern output_funp in
-  let apply_init = Exp.apply init_fun [] in
+  let apply_init = Exp.apply init_fun inputs in
   let update_funp = suffix_pattern ~suf:"_step" inode.s_name in
   let update_fun = expr_of_pattern update_funp in
   let state = {p_desc = Ident "_st"; p_loc = Location.none} in
+  let inputsp = if inputsp = [] then [ {p_desc = PUnit; p_loc = Location.none }] else inputsp in
   let update_inputsp = state::inputsp in
   let update_inputs = List.map expr_of_pattern update_inputsp in
+
   let update_inputs = List.map (fun x -> (Nolabel,x)) update_inputs in
   let apply_update = Exp.apply update_fun update_inputs in
   let state_expr = expr_of_pattern state  in
@@ -390,11 +392,11 @@ let tocaml_main inode delay wcet =
                          end_loop ();
             ] in
   let e_simple =
-            [%expr let _st = [%e apply_init ] in
+            [%expr  let _st = [%e apply_init ] in 
                        while true do
                          [%e all_input_funs name inode.s_zero.s_inputs
                              apply_update ] ;
-                         [%e apply_output ] done ] in
+                         [%e apply_output ] done ] in                        
   let e = if wcet then e_wcet else e_simple in
   let eloop =  [%expr
                    initialize ();
