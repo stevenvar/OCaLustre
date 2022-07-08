@@ -101,7 +101,7 @@ let rec get_idents l e =
     l
 
 (** Extract name of a clock in an OCaml attribute **)
-let extract_clock (s,p) =
+let extract_clock { attr_name = s; attr_payload = p } =
   let b = match s.txt with
     | "when" -> true
     | "whennot" -> false
@@ -259,7 +259,7 @@ let make_expression e =
                                       e_loc = e.pexp_loc }
           | Pconst_float (f,s) -> { e_desc = Value (Float (float_of_string f)) ;
                                     e_loc = e.pexp_loc }
-          | Pconst_string (str,s) -> { e_desc = Value (String str);
+          | Pconst_string (str,_,_) -> { e_desc = Value (String str);
                                        e_loc = e.pexp_loc }
           | _ -> assert false   (* only int/float /string ftm *)
         end
