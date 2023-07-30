@@ -161,6 +161,12 @@ let%node call_tictoc () ~return:d =
 OCaLustre is still a prototype! But if you want to try it out, just do :
 
 ```
+opam pin add ocalustre git@github.com:stevenvar/OCaLustre.git
+```
+
+or
+
+```
   dune build @install && dune install 
 ```
 
