@@ -237,19 +237,9 @@ let tocaml_main inode delay =
                         [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
                       done ]
       in
-    [%stri
-     let () =
-       [%e (Exp.open_ { popen_override = Asttypes.Fresh;
-                      popen_loc = Location.none;
-                      popen_expr = {
-                        pmod_desc = Pmod_ident (lid_of_ident module_name);
-                        pmod_loc = Location.none;
-                        pmod_attributes = []
-                      };
-                      popen_attributes = []
-                    }
-            eloop)]
-    ]
+      [%stri
+        let () = [%e Exp.open_ (Opn.mk (Mod.ident (lid_of_ident module_name))) eloop]
+      ]
   else
     let eloop = if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
                   [%expr
@@ -280,17 +270,7 @@ let tocaml_main inode delay =
                   ]
     in
     [%stri
-     let () =
-       [%e (Exp.open_ { popen_override = Asttypes.Fresh;
-                        popen_loc = Location.none;
-                        popen_expr = {
-                          pmod_desc = Pmod_ident (lid_of_ident module_name);
-                          pmod_loc = Location.none;
-                          pmod_attributes = []
-                        };
-                        popen_attributes = []
-                      }
-              eloop)]
+      let () = [%e Exp.open_ (Opn.mk (Mod.ident (lid_of_ident module_name))) eloop]
     ]
 
 let tocaml_node inode =
