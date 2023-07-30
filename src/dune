@@ -1,0 +1,12 @@
+
+
+(executable
+  (name ocalustre)
+  (libraries compiler-libs.common ocaml-migrate-parsetree ppx_tools.metaquot ppxlib)
+  (modules_without_implementation clocking_ast parsing_ast)
+  (preprocess (action (run ppxfind -legacy ppx_tools.metaquot --as-pp %{input-file})))
+)
+
+(env
+  (dev
+    (flags (:standard -warn-error -A))))
