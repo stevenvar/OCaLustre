@@ -89,6 +89,8 @@ let rec get_subst xs es s =
   | _, _ -> failwith "get_subst"
 
 
+exception Incorrect_params
+
 let rec get_subst_vars (xs:Parsing_ast.ident list) es s =
   match xs,es with
   | [], [] -> []
@@ -98,10 +100,7 @@ let rec get_subst_vars (xs:Parsing_ast.ident list) es s =
       (x,y)::sigma
     else get_subst_vars xs ys s
   | _, _ ->
-    let s = List.fold_left (fun acc x -> x^acc) "" xs in
-    let s' = List.fold_left (fun acc x -> x^acc) "" es in
-    let s'' = Printf.sprintf "get_subst_vars : %s / %s" s s' in
-    failwith s''
+    raise Incorrect_params
 
 (** Printing **)
 
@@ -193,7 +192,7 @@ let rec unify_ck c1 c2 =
   with Occurs -> raise (Unify_ck (t1,t2))
 
 let unify_ct e1 e2 loc =
-  let rec aux c1 c2 = 
+  let rec aux c1 c2 =
     let c1 = shorten_ct c1 in
     let c2 = shorten_ct c2 in
     (* Format.printf "Unify %a and %a \n" print_ct c1 print_ct c2; *)
@@ -207,7 +206,7 @@ let unify_ct e1 e2 loc =
        | _ ->
          raise (Unify_ct (c1,c2,e1,e2,loc)))
     with Unify_ck (_,_) -> raise (Unify_ct (e1.ce_clk,e2.ce_clk,e1,e2,loc))
-  in 
+  in
   aux e1.ce_clk e2.ce_clk
 
 (** Instantiation **)
@@ -452,7 +451,12 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         let new_var = { ce_desc = CVariable id; ce_loc = e.e_loc; ce_clk = gin } in
         unify_ct new_var param (Some param.ce_loc);
         let xs2 = Tools.string_list_of_pattern xs2 in
-        let sigma2 = get_subst_vars xs2 !outputs s in
+        let sigma2 = begin try get_subst_vars xs2 !outputs s
+          with Incorrect_params ->
+            let s = "Incorrect number of input/output parameters" in
+            Error.print_error e.e_loc s
+        end
+        in
         let gout = subst_ct gout sigma in
         let gout = subst_ct gout sigma2 in
         let c = get_cond_ct cks1 param.ce_clk in
@@ -497,7 +501,7 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
     (* print_env gamma; *)
     let s = Format.asprintf "Clocking clash between %a::%a and %a::%a"
         print_expression e1 print_ct c1 print_expression e2 print_ct c2 in
-    let loc = Option.value ~default:e.e_loc loc in 
+    let loc = Option.value ~default:e.e_loc loc in
     Error.print_error loc s
 
 let rec clk_expr_ct delta (gamma : (string * clk_scheme) list) e =
@@ -661,7 +665,7 @@ let clk_node delta node clocks =
     let print_sign fmt (x,y) =
       if List.mem x name_clocks then
         Format.fprintf fmt "[%s:%a]" x print_ct y
-      else 
+      else
         Format.fprintf fmt "%a" print_ct y
     in
     (* check that the clocks of all flows are defined in the signature of the node: *)
@@ -695,5 +699,5 @@ let clk_node delta node clocks =
         cequations = eqs
       } in
     (globalenv,env,cnode)
-    with Clock_escaping id -> 
-      Error.print_error node.name.p_loc ("The following local clock is escaping its scope: "^id)
+  with Clock_escaping id ->
+    Error.print_error node.name.p_loc ("The following local clock is escaping its scope: "^id)
