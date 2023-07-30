@@ -154,7 +154,7 @@ let%node call_tictoc () ~return:d =
 
 - OCaml (>= 4.08)
 - ppx_tools (>= 6.5)
-- oasis
+- dune
 
 ## Quick install
 
@@ -167,7 +167,7 @@ opam pin add ocalustre git@github.com:stevenvar/OCaLustre.git
 or
 
 ```bash
-dune build @install && dune install 
+dune build @install && dune install
 ```
 
 And use it as a ppx preprocessor :
