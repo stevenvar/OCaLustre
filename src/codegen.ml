@@ -21,7 +21,7 @@ let rec tocaml_expression e =
   | S_Value (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
   | S_Value (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
   | S_Value (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
-  | S_Value (String str) -> Exp.constant (Pconst_string (str,None))
+  | S_Value (String str) -> Exp.constant (Pconst_string (str,e.s_e_loc,None))
   | S_Value (Bool true) ->
     Exp.construct {txt= Lident "true" ; loc = Location.none } None
   | S_Value (Bool false) ->
@@ -37,6 +37,7 @@ let rec tocaml_expression e =
                               lid_of_ident i);
       pexp_loc = Location.none;
       pexp_attributes = [];
+      pexp_loc_stack = []
     }
   | S_RefDef e -> [%expr ref [%e tocaml_expression e ] ]
   | S_PrefixOp (S_Not, e) -> [%expr not [%e tocaml_expression e ] ]
@@ -86,6 +87,7 @@ let rec tocaml_expression e =
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
       pexp_attributes = [];
+      pexp_loc_stack = []
     }
   | S_Application_init (id,num,el) ->
     let el' = List.map tocaml_expression el in
@@ -97,6 +99,7 @@ let rec tocaml_expression e =
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
       pexp_attributes = [];
+      pexp_loc_stack = []
     }
   | S_Alternative (e1,e2,e3) ->
     [%expr [%e Exp.ifthenelse
@@ -121,6 +124,7 @@ let rec tocaml_expression e =
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
       pexp_loc = Location.none;
       pexp_attributes = [];
+      pexp_loc_stack = []
     }
 
 let rec lident_of_string s =
@@ -138,17 +142,20 @@ let stringloc_of_string s =
 let pat_of_string s =
   { ppat_desc = Ppat_var (stringloc_of_string s);
     ppat_loc = Location.none;
-    ppat_attributes = [] }
+    ppat_attributes = [];
+    ppat_loc_stack = [] }
 
 let rec pat_of_list l =
   match l with
     [] -> { ppat_desc = Ppat_construct (lident_of_string "()", None);
             ppat_loc = Location.none;
-            ppat_attributes = [] }
+            ppat_attributes = [];
+            ppat_loc_stack = [] }
   | h::t ->
     { ppat_desc = Ppat_var (stringloc_of_string h);
       ppat_loc = Location.none;
-      ppat_attributes = [] }
+      ppat_attributes = [];
+      ppat_loc_stack = [] }
 
 
 let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
@@ -165,26 +172,31 @@ let rec pat_of_pattern p =
   match p.p_desc with
   | Ident i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
                  ppat_loc = p.p_loc ;
-                 ppat_attributes = [] }
+                 ppat_attributes = [];
+                 ppat_loc_stack = [] }
   | Tuple t ->
     let tl = List.map (fun p -> pat_of_pattern p) t in
     { ppat_desc = Ppat_tuple tl ;
       ppat_loc = p.p_loc ;
-      ppat_attributes = [] }
+      ppat_attributes = [];
+      ppat_loc_stack = [] }
   | PUnit -> { ppat_desc = Ppat_construct (lident_of_string "()" ,None);
                ppat_loc = p.p_loc ;
-               ppat_attributes = [] }
+               ppat_attributes = [];
+               ppat_loc_stack = [] }
   | Typed (p,s) ->
     let core_type = {
       ptyp_desc = Ptyp_constr(lident_of_string s,[]);
       ptyp_loc =  p.p_loc ;
       ptyp_attributes = [];
+      ptyp_loc_stack = []
     }
     in
     {
       ppat_desc = Ppat_constraint (pat_of_pattern p, core_type) ;
       ppat_loc = p.p_loc;
-      ppat_attributes = []}
+      ppat_attributes = [];
+      ppat_loc_stack = [] }
 
 
 let tocaml_eq_list el s =
@@ -207,6 +219,7 @@ let rec tocaml_type_record l =
           { ptyp_desc = Ptyp_var (String.make 1 (Char.chr (97+n)));
             ptyp_loc = Location.none;
             ptyp_attributes = [];
+            ptyp_loc_stack = []
           };
         pld_attributes = [];
         pld_loc = Location.none;
@@ -223,8 +236,9 @@ let tocaml_type_params m =
         { ptyp_desc = Ptyp_var (String.make 1 (Char.chr (97+n)));
           ptyp_loc = Location.none;
           ptyp_attributes = [];
+          ptyp_loc_stack = []
         } in
-      (ty, Invariant)::loop (n+1)
+      (ty, (NoVariance, NoInjectivity))::loop (n+1)
   in
   loop 0
 
@@ -263,9 +277,10 @@ let rec tocaml_state_next s name =
       [%expr [%e { pexp_desc = Pexp_setfield ([%expr state],
                                    lident_of_string x,
                                    Exp.ident (lident_of_string y));
-        pexp_loc = Location.none;
-        pexp_attributes = [];
-      } ] ; [%e acc ] ]
+                   pexp_loc = Location.none;
+                   pexp_attributes = [];
+                   pexp_loc_stack = []
+                 } ] ; [%e acc ] ]
     ) [%expr ()] l
 
 (* create state of fun _init *)
@@ -282,7 +297,8 @@ let rec tocaml_state_zero s name =
   in
   { pexp_desc = Pexp_record (loop l,None);
     pexp_loc = Location.none ;
-    pexp_attributes = []
+    pexp_attributes = [];
+    pexp_loc_stack = []
   }
 
 (* create function _init *)
@@ -406,7 +422,16 @@ let tocaml_main inode delay wcet =
   in
   [%stri
    let () =
-     [%e (Exp.open_ Asttypes.Fresh (lid_of_ident module_name) eloop)]
+     [%e (Exp.open_ { popen_override = Asttypes.Fresh;
+                      popen_loc = Location.none;
+                      popen_expr = {
+                        pmod_desc = Pmod_ident (lid_of_ident module_name);
+                        pmod_loc = Location.none;
+                        pmod_attributes = []
+                      };
+                      popen_attributes = []
+                    }
+            eloop)]
   ]
 
 

@@ -108,7 +108,8 @@ and tocaml_expression e n =
                let magics =
                { pexp_desc = Parsetree.Pexp_tuple (dispatch n []);
                  pexp_loc = e'.pexp_loc;
-                 pexp_attributes = [] }
+                 pexp_attributes = [];
+                 pexp_loc_stack = [] }
              in
                [%expr if [%e cl] then [%e exp] else [%e magics ]]
     end
@@ -139,6 +140,7 @@ and tocaml_expression e n =
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
       pexp_loc = Location.none;
       pexp_attributes = [];
+      pexp_loc_stack = []
     }
 
 (* | _ -> failwith "todo" *)
@@ -237,7 +239,16 @@ let tocaml_main inode delay =
       in
     [%stri
      let () =
-       [%e (Exp.open_ Asttypes.Fresh (lid_of_ident module_name) eloop)]
+       [%e (Exp.open_ { popen_override = Asttypes.Fresh;
+                      popen_loc = Location.none;
+                      popen_expr = {
+                        pmod_desc = Pmod_ident (lid_of_ident module_name);
+                        pmod_loc = Location.none;
+                        pmod_attributes = []
+                      };
+                      popen_attributes = []
+                    }
+            eloop)]
     ]
   else
     let eloop = if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
@@ -270,9 +281,16 @@ let tocaml_main inode delay =
     in
     [%stri
      let () =
-       [%e (Exp.open_ Asttypes.Fresh (lid_of_ident module_name)
-              (eloop))
-       ]
+       [%e (Exp.open_ { popen_override = Asttypes.Fresh;
+                        popen_loc = Location.none;
+                        popen_expr = {
+                          pmod_desc = Pmod_ident (lid_of_ident module_name);
+                          pmod_loc = Location.none;
+                          pmod_attributes = []
+                        };
+                        popen_attributes = []
+                      }
+              eloop)]
     ]
 
 let tocaml_node inode =
