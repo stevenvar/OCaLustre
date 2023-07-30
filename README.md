@@ -152,8 +152,8 @@ let%node call_tictoc () ~return:d =
 
 ## Requirements
 
-- OCaml (>= 4.04)
-- ppx_tools
+- OCaml (>= 4.08)
+- ppx_tools (>= 6.5)
 - oasis
 
 ## Quick install
