@@ -1,9 +1,7 @@
 open Parsing_ast
 open Sequential_ast
-open Error
 
 let nb = ref 0
-
 
 (* Functions for exploding tuples : (a,b) = 1,2 becomes a=1;b=2  *)
 let explode_pattern p =
@@ -39,15 +37,15 @@ let prefix_pattern pre p =
   | Ident i -> { p with p_desc = Ident (pre^i) }
   | _ -> Error.print_error p.p_loc "This is not a variable"
 
-let rec string_of_pattern p =
+let string_of_pattern p =
   match p.p_desc with
   | Ident i -> i
   | _ -> "?"
-  (* | _ -> assert false *)
+(* | _ -> assert false *)
 
-let rec update_fby eq l =
+let update_fby eq l =
   match eq.expression.e_desc with
-  | Fby (x,e) -> { pattern = prefix_pattern "pre_" eq.pattern ; expression = e}::l
+  | Fby (_,e) -> { pattern = prefix_pattern "pre_" eq.pattern ; expression = e}::l
   | _ -> l
 
 let update_all_fby eqs =
@@ -59,10 +57,10 @@ let rec list_of_pat p =
   | PUnit -> []
   | Ident x -> [x]
   | Tuple t -> List.fold_right (fun p acc -> list_of_pat p @ acc) t []
-  | Typed (p',s) -> list_of_pat p'
+  | Typed (p',_) -> list_of_pat p'
 
 (* returns all of the outputs variables of the node <name> *)
-let rec mk_outputs e name outs =
+let mk_outputs e name outs =
   let rec loop outs =
     match outs with
     | [] -> []
@@ -126,7 +124,7 @@ let rec seq_exp e =
     }
   | Unit -> { sexp with s_e_desc = S_Unit }
   | When (e',i) ->
-     (* failwith "I don't work with clocks yet" *)
+    (* failwith "I don't work with clocks yet" *)
     { sexp with s_e_desc =
                   S_Alternative (seq_exp i,
                                  seq_exp e',
@@ -135,7 +133,7 @@ let rec seq_exp e =
                                 )
     }
   | Whennot (e',i) ->
-     (* failwith "I don't work with clocks yet" *)
+    (* failwith "I don't work with clocks yet" *)
     { sexp with s_e_desc =
                   S_Alternative (seq_exp i,
                                  {s_e_desc = S_Value Nil;
@@ -146,7 +144,7 @@ let rec seq_exp e =
     let iel = List.map (fun e -> seq_exp e) el in
     { sexp with s_e_desc = S_ETuple (iel) }
   | Merge (e1,e2,e3) ->
-     (* failwith "I don't work with clocks yet" *)
+    (* failwith "I don't work with clocks yet" *)
     { sexp with s_e_desc = S_Alternative (seq_exp e1,
                                           seq_exp e2,
                                           seq_exp e3)
@@ -155,14 +153,14 @@ let rec seq_exp e =
 
 
 
-let seq_exp_list e name =
+let seq_exp_list e _ =
   let sexp = { s_e_desc = S_Unit; s_e_loc = e.e_loc } in
   let rec seq_exp_list e acc =
     match e.e_desc with
     | Value v -> { sexp with s_e_desc = S_Value v}::acc
     | Variable s -> { sexp with s_e_desc = S_Variable s}::acc
     | Unit -> { sexp with s_e_desc = S_Unit}::acc
-    | InfixOp (op,e1,e2) ->
+    | InfixOp _ ->
       let e = seq_exp e in
       e::acc
     | ETuple el ->
@@ -173,8 +171,8 @@ let seq_exp_list e name =
           List.fold_left (fun acc e -> seq_exp_list e acc) ((seq_exp e)::acc) t
       end
     | _ -> (seq_exp e)::acc
-      (* Parsing_ast_printer.print_expression Format.std_formatter e; *)
-      (* raise @@ Invalid_argument "seq_exp_list" *)
+    (* Parsing_ast_printer.print_expression Format.std_formatter e; *)
+    (* raise @@ Invalid_argument "seq_exp_list" *)
   in
   seq_exp_list e [] |> List.rev
 
@@ -186,7 +184,7 @@ let seq_eqs_zero eqs sname env =
     | Clock _ -> failwith "clock"
     | Value v -> { sexp with s_e_desc = S_Value v }
     | Variable s -> { sexp with s_e_desc = S_Variable s }
-    | Application (i,num,e) ->
+    | Application (i,_,e) ->
       (try
          let outputs = List.assoc i !env in
          mk_outputs
@@ -214,11 +212,11 @@ let seq_eqs_zero eqs sname env =
                                             seq_exp e2,
                                             seq_exp e3) }
     | Unit -> { sexp with s_e_desc = S_Unit}
-    | Arrow (e1,e2) -> seq_exp e1
-    | Pre e -> assert false
-    | Fby (e,e') -> seq_exp e
+    | Arrow (e1,_) -> seq_exp e1
+    | Pre _ -> assert false
+    | Fby (e,_) -> seq_exp e
     | When (e',i) ->
-       (* failwith "I don't work with clocks yet" *)
+      (* failwith "I don't work with clocks yet" *)
       { sexp with s_e_desc =
                     S_Alternative (seq_exp i,
                                    seq_exp e',
@@ -226,7 +224,7 @@ let seq_eqs_zero eqs sname env =
                                      s_e_loc = Location.none } )
       }
     | Whennot (e',i) ->
-       (* failwith "I don't work with clocks yet" *)
+      (* failwith "I don't work with clocks yet" *)
       { sexp with s_e_desc = S_Alternative (seq_exp i,
                                             { s_e_desc = S_Value Nil;
                                               s_e_loc = Location.none },
@@ -236,7 +234,7 @@ let seq_eqs_zero eqs sname env =
       let iel = List.map (fun e -> seq_exp e) el in
       { sexp with s_e_desc = S_ETuple (iel) }
     | Merge (e1,e2,e3) ->
-       (* failwith "I don't work with clocks yet" *)
+      (* failwith "I don't work with clocks yet" *)
       { sexp with s_e_desc =
                     S_Alternative (seq_exp e1,
                                    seq_exp e2,
@@ -249,10 +247,10 @@ let seq_eqs_zero eqs sname env =
     | eq::eqs ->
       begin
         match eq.expression.e_desc with
-        | Application (i,num,e') ->
+        | Application (i,_,e') ->
           incr nb;
           let seq = { s_pattern = eq.pattern ;
-                  s_expression = seq_exp eq.expression }
+                      s_expression = seq_exp eq.expression }
           in
           (* let s = !nb in *)
           let eq =
@@ -273,14 +271,14 @@ let seq_eqs_zero eqs sname env =
 
 
 (* Convert equations for the step function  *)
-let rec seq_eqs_next eqs name env =
+let seq_eqs_next eqs name env =
   let rec seq_exp s e =
     let sexp = { s_e_desc = S_Unit; s_e_loc = e.e_loc } in
     match e.e_desc with
     | Array _ | Array_get _ | Imperative_update _ | Array_fold _ | Array_map _ -> failwith "todo"
     | Value v -> { sexp with s_e_desc = S_Value v}
     | Variable s -> { sexp with s_e_desc = S_Variable s }
-    | Application (i, num, e) ->
+    | Application (i, _, _) ->
       (try
          let outputs = List.assoc i !env in
          mk_outputs
@@ -291,7 +289,7 @@ let rec seq_eqs_next eqs name env =
            i outputs
        with Not_found -> failwith ("unknown node "^i))
     | Call (f,el) ->
-       let sel = List.map (fun e -> seq_exp s e) el in
+      let sel = List.map (fun e -> seq_exp s e) el in
       { sexp with s_e_desc = S_Call (f,sel)}
     | InfixOp (op,e1,e2) ->
       { sexp with s_e_desc =
@@ -308,7 +306,7 @@ let rec seq_eqs_next eqs name env =
                                    seq_exp s e3)
       }
     | Unit -> { sexp with s_e_desc = S_Unit }
-    | Arrow (e1,e2) -> seq_exp s e2
+    | Arrow (_,e2) -> seq_exp s e2
     | Pre e' ->
       begin
         match e'.e_desc with
@@ -316,7 +314,7 @@ let rec seq_eqs_next eqs name env =
         | Variable n -> { sexp with s_e_desc = S_Ref ("_pre_"^n)}
         | _ -> assert false
       end
-    | Fby (e,e') ->
+    | Fby (_,e') ->
       begin
         match e'.e_desc with
         | Value v -> { sexp with s_e_desc = S_Value v}
@@ -340,7 +338,7 @@ let rec seq_eqs_next eqs name env =
       let iel = List.map (fun e -> seq_exp s e) el in
       { sexp with s_e_desc =  S_ETuple (iel)}
     | Clock e ->
-       seq_exp s e
+      seq_exp s e
     | Merge (e1,e2,e3) ->
       { sexp with s_e_desc =
                     S_Alternative (seq_exp s e1,
@@ -355,7 +353,7 @@ let rec seq_eqs_next eqs name env =
       let s = string_of_pattern eq.pattern in
       begin match eq.expression.e_desc with
         (* For applications, we need to add another line to update the state ...  *)
-        | Application(i,num, e') ->
+        | Application(i,_num, e') ->
           incr nb;
           let seq = { s_pattern = eq.pattern;
                       s_expression = seq_exp s eq.expression } in
@@ -369,15 +367,15 @@ let rec seq_eqs_next eqs name env =
                 ,name^"_"^i^string_of_int !nb^"_state");
               s_e_loc = e.e_loc } in
           let eq' =
-          { s_pattern = Parsing_ocl.mk_pattern ("_"^i^(string_of_int !nb)^"_state");
-            s_expression = { s_e_desc = S_Application (i^"_step",!nb, (state::params));
-                             s_e_loc = e.e_loc }
-          } in
+            { s_pattern = Parsing_ocl.mk_pattern ("_"^i^(string_of_int !nb)^"_state");
+              s_expression = { s_e_desc = S_Application (i^"_step",!nb, (state::params));
+                               s_e_loc = e.e_loc }
+            } in
           eq'::seq::(aux eqs')
         | _ ->
           let seq = { s_pattern = eq.pattern;
                       s_expression = seq_exp (string_of_pattern eq.pattern) eq.expression } in
-                    seq::(aux eqs')
+          seq::(aux eqs')
       end
   in
   aux eqs
@@ -385,9 +383,9 @@ let rec seq_eqs_next eqs name env =
 
 (* Add pre and calls initializations  *)
 
-let state_eq e ({pres;calls;outs} as s) =
+let state_eq e ({pres;calls;_} as s) =
   match e.expression.e_desc with
-  | Application (i, num, e) ->
+  | Application (i, _num, _e) ->
     incr nb;
     { s with calls = (i^string_of_int !nb)::calls }
   | Pre e' ->
@@ -410,7 +408,7 @@ let state_eq e ({pres;calls;outs} as s) =
 
 module IdentSet = Set.Make(
   struct
-    let compare = Pervasives.compare
+    let compare = Stdlib.compare
     type t = ident
   end )
 
@@ -422,7 +420,7 @@ let mk_state n =
       (fun acc eq -> state_eq eq acc) s n.equations in
   l
 
-let seq_type name inputs outputs {pres;calls;outs} =
+let seq_type name _inputs _outputs {pres;calls;outs} =
   let l = pres@calls@outs in
   { s_name = name;
     s_num = List.length l;

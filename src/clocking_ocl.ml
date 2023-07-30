@@ -4,22 +4,20 @@ open Clocking_ast_printer
 
 let outputs = ref []
 
-let rec split_ct ct =
+let split_ct ct =
   match ct with
   | Ck c -> [Ck c]
   | CkTuple cks -> cks
 
-
-let rec group_ct l =
+let group_ct l =
   match l with
   | [] -> failwith "empty list"
   | [Ck x] -> Ck x
-  | x::xs -> CkTuple l
-
+  | _ -> CkTuple l
 
 let rec carriers ck = match ck with
   | CkBase -> []
-  | CkVariable { value = c } -> carriers c
+  | CkVariable { value = c; _} -> carriers c
   | Ckon (ck,s)
   | Ckonnot (ck,s) -> s::(carriers ck)
   | _ -> failwith "carriers"
@@ -35,7 +33,7 @@ let rec subst_base ck ck' =
   | CkUnknown -> ck
     (* failwith "subst_base : unknown" *)
   | CkBase -> ck'
-  | CkVariable { value = c } -> subst_base c ck'
+  | CkVariable { value = c ; _} -> subst_base c ck'
   | Ckon (ck,s) -> Ckon(subst_base ck ck',s)
   | Ckonnot (ck,s) -> Ckonnot(subst_base ck ck',s)
   (* | _ -> failwith "subst_base" *)
@@ -52,8 +50,8 @@ let rec subst ck sigma =
   match ck with
   | CkBase -> CkBase
   | CkUnknown -> failwith "subst : unknown"
-  | CkVariable { value = CkUnknown} -> ck
-  | CkVariable { value = c} -> subst c sigma
+  | CkVariable { value = CkUnknown; _} -> ck
+  | CkVariable { value = c ; _} -> subst c sigma
   | Ckon (ck,s) -> Ckon(subst ck sigma, app_sigma sigma s)
   | Ckonnot (ck,s) -> Ckonnot(subst ck sigma, app_sigma sigma s)
 
@@ -80,12 +78,12 @@ let subst_list sigma l =
 let rec get_subst xs es s =
   match xs,es with
   | [], [] -> []
-  |  x::xs,  { ce_desc = CVariable y}::es ->
+  |  x::xs, { ce_desc = CVariable y ; _}::es ->
     if List.mem x s then
       let sigma = get_subst xs es s in
       (x,y)::sigma
     else get_subst xs es s
-  |  x::xs, e::es ->
+  |  x::xs, _::es ->
     if List.mem x s then (failwith "parameters that are clocks must be given a name") else
       get_subst xs es s
   | _, _ -> failwith "get_subst"
@@ -134,8 +132,8 @@ let occurs_ck { index = n; value = _} =
     | CkVariable { index = m; value = _} -> if n = m then raise Occurs
     | CkUnknown -> raise Occurs
     | CkBase -> ()
-    | Ckon (ck,x) -> occrec ck
-    | Ckonnot (ck,x) -> occrec ck
+    | Ckon (ck,_x) -> occrec ck
+    | Ckonnot (ck,_x) -> occrec ck
   in
   occrec
 
@@ -179,10 +177,10 @@ let rec unify_ck c1 c2 =
      | CkVariable ({ index = n ; value = CkUnknown } as tv1),
        CkVariable ({ index = m; value = CkUnknown }) ->
        if n <> m then tv1.value <- t2
-     | CkVariable ({ index = n ; value = CkUnknown } as tv), c2 ->
+     | CkVariable ({ index = _n ; value = CkUnknown } as tv), c2 ->
        occurs_ck tv c2;
        tv.value <- c2
-     | c1 , CkVariable ({ index = n ; value = CkUnknown } as tv) ->
+     | c1 , CkVariable ({ index = _n ; value = CkUnknown } as tv) ->
        occurs_ck tv c1;
        tv.value <- c1
      | Ckon(ck,s), Ckon(ck',s') ->
@@ -238,8 +236,8 @@ let rec gen_instance_ct (gv,tau) =
 let rec get_cond c1 c2 =
   match shorten_ck c1, shorten_ck c2 with
   | CkBase, c -> c
-  | Ckon (a,c), Ckon (b,d) -> get_cond a b
-  | Ckonnot (a,c), Ckonnot (b,d) -> get_cond a b
+  | Ckon (a,_c), Ckon (b,_d) -> get_cond a b
+  | Ckonnot (a,_c), Ckonnot (b,_d) -> get_cond a b
   | _ -> failwith "get_cond"
 
 
@@ -284,9 +282,9 @@ let vars_of_clk tau =
     | CkUnknown -> failwith "vars_of_clk"
     | CkVariable { index = n; value = CkUnknown} ->
       if List.mem n vs then vs else (n::vs)
-    | CkVariable { index = n; value = t } -> vars vs t
-    | Ckon (ck,x) -> vars vs ck
-    | Ckonnot (ck,x) -> vars vs ck
+    | CkVariable { index = _n; value = t } -> vars vs t
+    | Ckon (ck,_x) -> vars vs ck
+    | Ckonnot (ck,_x) -> vars vs ck
     | CkBase -> vs
   in vars [] tau
 
@@ -311,11 +309,11 @@ let unknowns_of_clk_env env =
 
 let rec replace_vars_by_base tau =
     match tau with
-    | CkVariable ({ index = n; value = CkUnknown } as tv) ->
+    | CkVariable ({ index = _n; value = CkUnknown } as tv) ->
       tv.value <- CkBase
-    | Ckon (ck,x) -> replace_vars_by_base ck
-    | Ckonnot (ck,x) -> replace_vars_by_base ck
-    | CkVariable { index = n; value = t} ->
+    | Ckon (ck,_x) -> replace_vars_by_base ck
+    | Ckonnot (ck,_x) -> replace_vars_by_base ck
+    | CkVariable { index = _n; value = t} ->
       replace_vars_by_base t
     | CkBase -> ()
     | CkUnknown -> failwith "unknown"
@@ -334,7 +332,7 @@ let generalize_clk gamma  tau =
 
 let len clk =
   match clk with
-  | Ck ck -> 1
+  | Ck _ -> 1
   | CkTuple cts -> List.length cts
 
 let mk_len_clock c n =
@@ -515,11 +513,11 @@ let rec lookup env p =
      let clks = List.map (lookup env) t in
      let clk = CkTuple clks in clk
   | PUnit -> failwith "unit"
-  | Typed (p,t) -> lookup env p
+  | Typed (p,_t) -> lookup env p
 
 let remove_types p =
   match p.p_desc with
-  | Typed(p,s) -> p
+  | Typed(p,_s) -> p
   | _ -> p
 
 
@@ -548,11 +546,11 @@ let rec assoc_env (env:(string * clk_scheme) list) p : clk_scheme =
     (* let clk = CkTuple clks in generalize_clk env clk *)
     ([],CkTuple clks)
   | PUnit -> failwith "unit"
-  | Typed (p,t) -> assoc_env env p
+  | Typed (p,_t) -> assoc_env env p
 
 
 let clk_equations delta gamma eqs =
-  let rec clk_eq (gamma:(string* clk_scheme) list) eq =
+  let clk_eq (gamma:(string* clk_scheme) list) eq =
     outputs := Tools.string_list_of_pattern eq.pattern;
     let pck = assoc_env gamma eq.pattern in
     let pck = gen_instance_ct pck in
@@ -604,7 +602,7 @@ let get_all_vars_pat node =
   let vars = substract vars inouts in
   make_set vars
 
-let rec lookup_clk env p =
+let lookup_clk env p =
   let s = Tools.string_of_pattern p in
   try
     List.assoc s env

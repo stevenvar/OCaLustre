@@ -3,7 +3,6 @@ open Asttypes
 open Longident
 open Parsing_ast
 open Sequential_ast
-open Sequential_ast_printer
 open Ast_helper
 open Sequentialize
 
@@ -77,11 +76,11 @@ let rec tocaml_expression e =
     [%expr [%e tocaml_expression e1 ] || [%e tocaml_expression e2 ]]
   | S_InfixOp (S_And,e1,e2) ->
     [%expr [%e tocaml_expression e1 ] && [%e tocaml_expression e2 ]]
-  | S_List e -> [%expr () ]
-  | S_Application (id, num, el) ->
+  | S_List _e -> [%expr () ]
+  | S_Application (id, _num, el) ->
     let el' = List.map tocaml_expression el in
     (* let pat = { p_desc = PUnit; *)
-                (* p_loc = Location.none;} in *)
+    (* p_loc = Location.none;} in *)
     (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
@@ -89,10 +88,10 @@ let rec tocaml_expression e =
       pexp_attributes = [];
       pexp_loc_stack = []
     }
-  | S_Application_init (id,num,el) ->
+  | S_Application_init (id,_num,el) ->
     let el' = List.map tocaml_expression el in
     (* let pat = { p_desc = PUnit; *)
-                (* p_loc = Location.none;} in *)
+    (* p_loc = Location.none;} in *)
     (* List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el; *)
     (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
@@ -116,9 +115,9 @@ let rec tocaml_expression e =
   | S_Unit -> [%expr ()]
   | S_Constr _ -> [%expr ()]
   | S_Call (f,el) ->
-      let el' = List.map tocaml_expression el in
+    let el' = List.map tocaml_expression el in
     (* let pat = { p_desc = PUnit; *)
-                (* p_loc = Location.none;} in *)
+    (* p_loc = Location.none;} in *)
     (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
@@ -127,7 +126,7 @@ let rec tocaml_expression e =
       pexp_loc_stack = []
     }
 
-let rec lident_of_string s =
+let lident_of_string s =
   {
     txt = Lident s;
     loc = Location.none
@@ -145,13 +144,13 @@ let pat_of_string s =
     ppat_attributes = [];
     ppat_loc_stack = [] }
 
-let rec pat_of_list l =
+let pat_of_list l =
   match l with
     [] -> { ppat_desc = Ppat_construct (lident_of_string "()", None);
             ppat_loc = Location.none;
             ppat_attributes = [];
             ppat_loc_stack = [] }
-  | h::t ->
+  | h::_t ->
     { ppat_desc = Ppat_var (stringloc_of_string h);
       ppat_loc = Location.none;
       ppat_attributes = [];
@@ -170,7 +169,7 @@ let stringloc_of_pattern ?(prefix="") ?(suffix="") p =
 
 let rec pat_of_pattern p =
   match p.p_desc with
-  | Ident i -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
+  | Ident _ -> { ppat_desc = Ppat_var (stringloc_of_pattern p) ;
                  ppat_loc = p.p_loc ;
                  ppat_attributes = [];
                  ppat_loc_stack = [] }
@@ -208,7 +207,7 @@ let tocaml_eq_list el s =
   in
   List.fold_left (fun l e -> tocaml_eq e l) s el
 
-let rec tocaml_type_record l =
+let tocaml_type_record l =
   let rec loop (l,n) =
     match l with
     |  [] -> []
@@ -268,15 +267,15 @@ let rec fun_of_list l s =
 
 
 (* create state of fun _step *)
-let rec tocaml_state_next s name =
+let tocaml_state_next s name =
   let name = string_of_pattern name in
   let pres = List.map (fun s -> (name^"_pre_"^s,"pre_"^s)) s.pres in
   let outs = List.map (fun s -> (name^"_out_"^s,s)) s.outs in
   let l = pres@outs in
   List.fold_left (fun acc (x,y) ->
       [%expr [%e { pexp_desc = Pexp_setfield ([%expr state],
-                                   lident_of_string x,
-                                   Exp.ident (lident_of_string y));
+                                              lident_of_string x,
+                                              Exp.ident (lident_of_string y));
                    pexp_loc = Location.none;
                    pexp_attributes = [];
                    pexp_loc_stack = []
@@ -284,7 +283,7 @@ let rec tocaml_state_next s name =
     ) [%expr ()] l
 
 (* create state of fun _init *)
-let rec tocaml_state_zero s name =
+let tocaml_state_zero s name =
   let name = string_of_pattern name in
   let pres = List.map (fun s -> (name^"_pre_"^s,"pre_"^s)) s.pres in
   let calls = List.map (fun s -> (name^"_"^s^"_state",s^"_state")) s.calls in
@@ -307,7 +306,7 @@ let tocaml_s_zero (f:s_fun) =
   let ins = [] in (* f.s_inputs in *)
   let eqs = List.rev f.s_eqs in
   let st = tocaml_state_zero f.s_state f.s_name in
-   match ins with
+  match ins with
   | [] -> [%stri
     let [%p Pat.var name] = fun () ->
       [%e tocaml_eq_list eqs st ] ]
@@ -361,16 +360,16 @@ let rec all_input_funs name l e =
   match l with
   | [] -> e
   | h::t ->
-     let p = { p_desc = Ident h ; p_loc = Location.none } in
-     let fp = prefix_pattern ~pre:("input_"^name^"_") p in
-     let f = expr_of_pattern fp in
-     [%expr let [%p pat_of_pattern p ] = [%e f ] () in
-                [%e all_input_funs name t e ] ]
+    let p = { p_desc = Ident h ; p_loc = Location.none } in
+    let fp = prefix_pattern ~pre:("input_"^name^"_") p in
+    let f = expr_of_pattern fp in
+    [%expr let [%p pat_of_pattern p ] = [%e f ] () in
+      [%e all_input_funs name t e ] ]
 
 
 
 
-let tocaml_main inode delay wcet =
+let tocaml_main inode _delay wcet =
   create_io_file inode;
   let name = string_of_pattern inode.s_name in
   let module_name = (String.capitalize_ascii (string_of_pattern inode.s_name^"_io")) in
@@ -400,38 +399,38 @@ let tocaml_main inode delay wcet =
   let apply_output = Exp.apply output_fun outputs in
 
   let e_wcet =
-            [%expr let _st = [%e apply_init ] in
-                       begin_loop ();
-                         [%e all_input_funs name inode.s_zero.s_inputs
-                             apply_update ] ;
-                         [%e apply_output ];
-                         end_loop ();
-            ] in
+    [%expr let _st = [%e apply_init ] in
+      begin_loop ();
+      [%e all_input_funs name inode.s_zero.s_inputs
+          apply_update ] ;
+      [%e apply_output ];
+      end_loop ();
+    ] in
   let e_simple =
-            [%expr  let _st = [%e apply_init ] in 
-                       while true do
-                         [%e all_input_funs name inode.s_zero.s_inputs
-                             apply_update ] ;
-                         [%e apply_output ] done ] in                        
+    [%expr  let _st = [%e apply_init ] in 
+      while true do
+        [%e all_input_funs name inode.s_zero.s_inputs
+            apply_update ] ;
+        [%e apply_output ] done ] in                        
   let e = if wcet then e_wcet else e_simple in
   let eloop =  [%expr
-                   initialize ();
+    initialize ();
 
-                [%e e] ]
+    [%e e] ]
 
   in
   [%stri
-   let () =
-     [%e (Exp.open_ { popen_override = Asttypes.Fresh;
-                      popen_loc = Location.none;
-                      popen_expr = {
-                        pmod_desc = Pmod_ident (lid_of_ident module_name);
-                        pmod_loc = Location.none;
-                        pmod_attributes = []
-                      };
-                      popen_attributes = []
-                    }
-            eloop)]
+    let () =
+      [%e (Exp.open_ { popen_override = Asttypes.Fresh;
+                       popen_loc = Location.none;
+                       popen_expr = {
+                         pmod_desc = Pmod_ident (lid_of_ident module_name);
+                         pmod_loc = Location.none;
+                         pmod_attributes = []
+                       };
+                       popen_attributes = []
+                     }
+             eloop)]
   ]
 
 

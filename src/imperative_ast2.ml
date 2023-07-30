@@ -1,4 +1,3 @@
-open Parsetree
 open Parsing_ast
 open Clocking_ast
 open Tools
@@ -81,11 +80,11 @@ type imp_node = {
   i_step : imp_step;
 }
 
- let rec print_cond_list fmt cl =
-    match cl with
-    | [] -> Format.fprintf fmt "true"
-    | [(b,x)] -> Format.fprintf fmt "%s = %b" x b
-    | (hb,hx)::t -> Format.fprintf fmt "%s = %b && %a" hx hb print_cond_list t
+let rec print_cond_list fmt cl =
+  match cl with
+  | [] -> Format.fprintf fmt "true"
+  | [(b,x)] -> Format.fprintf fmt "%s = %b" x b
+  | (hb,hx)::t -> Format.fprintf fmt "%s = %b && %a" hx hb print_cond_list t
 
 
 
@@ -96,11 +95,11 @@ let rec print_pattern fmt p =
   | PUnit -> Format.fprintf fmt "()"
   | Typed (p,s) -> Format.fprintf fmt "(%a:%s)" print_pattern p s
 
-  let rec printml_tuple fmt l =
-    match l with
-    | [] -> ()
-    | [x] -> Format.fprintf fmt "%a"  print_pattern x
-    | h::t -> Format.fprintf fmt "%a,"  print_pattern h; printml_tuple fmt t
+let rec printml_tuple fmt l =
+  match l with
+  | [] -> ()
+  | [x] -> Format.fprintf fmt "%a"  print_pattern x
+  | h::t -> Format.fprintf fmt "%a,"  print_pattern h; printml_tuple fmt t
 
 let rec printml_expression fmt exp =
   let printml_preop fmt op =
@@ -145,11 +144,11 @@ let rec printml_expression fmt exp =
   | IArray a -> Format.fprintf fmt "[| %a |]" printml_expressions a
   | IArray_get (e,e') -> Format.fprintf fmt "%a.(%a)"
                            printml_expression e printml_expression e'
-  | IArray_fold (e,f,e') -> Format.fprintf fmt "%a.fold(...,%a)"
-                              printml_expression e printml_expression e'
-  | IArray_map (e,f) -> Format.fprintf fmt "%a.map(...)" printml_expression e
-  | IImperative_update (e,el) -> Format.fprintf fmt "%a where (...)"
-                                   printml_expression e
+  | IArray_fold (e,_f,e') -> Format.fprintf fmt "%a.fold(...,%a)"
+                               printml_expression e printml_expression e'
+  | IArray_map (e,_f) -> Format.fprintf fmt "%a.map(...)" printml_expression e
+  | IImperative_update (e,_el) -> Format.fprintf fmt "%a where (...)"
+                                    printml_expression e
   | IRef v -> Format.fprintf fmt "!%s" v
   | IRefDef e -> Format.fprintf fmt "ref %a" printml_expression e
   | IInfixOp (op,e1,e2) -> Format.fprintf fmt "%a %a %a"
@@ -164,14 +163,14 @@ let rec printml_expression fmt exp =
                                  printml_expression e2
                                  printml_expression e3
   | IUnit -> Format.fprintf fmt "()"
-  | IApplication (c,i,num,e) -> Format.fprintf fmt "(%s%d_app %a)"
-                                  i
-                                  num
-                                  printml_expression e
+  | IApplication (_c,i,num,e) -> Format.fprintf fmt "(%s%d_app %a)"
+                                   i
+                                   num
+                                   printml_expression e
   | IApplication_init (i,e) ->
-     Format.fprintf fmt "(%s %a)"
-                             i
-                             printml_expression e
+    Format.fprintf fmt "(%s %a)"
+      i
+      printml_expression e
   (* | ICall e -> Format.fprintf fmt "🐫" *)
   | ICall (f,el) ->
     Format.fprintf fmt "%s %a" f printml_expressions el
@@ -185,7 +184,7 @@ let rec printml_expression fmt exp =
 
 
 let printml_updates fmt il =
-  let aux fmt ({ i_pattern = s ; i_expression = e} as eq) =
+  let aux fmt ({ i_pattern = s ; i_expression = e; _} as eq) =
     match e with
     | x -> Format.fprintf fmt "\t if %a then %a := %a;\n"
              print_cond_list eq.i_condition
@@ -218,7 +217,7 @@ let printml_step fmt step =
     printml_updates updates
 
 let printml_inits fmt il =
-  let printml_init fmt { i_pattern = s ; i_expression = e} =
+  let printml_init fmt { i_pattern = s ; i_expression = e; _} =
     begin match e with
       | x -> Format.fprintf fmt "\tlet %a = %a in\n"
                print_pattern s

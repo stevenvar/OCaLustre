@@ -1,20 +1,19 @@
 open Parsetree
 open Asttypes
-open Longident
 open Imperative_ast2
 open Ast_helper
 open Tools
 
 let rec tocaml_cond_list cl =
-    match cl with
-    | [] -> [%expr () ]
-    | [(b,x)] -> let b = Ast_convenience.constr (string_of_bool b) [] in
-      let s = Ast_convenience.evar x in
-      [%expr [%e s] = [%e b] ]
-    | (hb,hx)::t ->
-      let e1 = tocaml_cond_list [(hb,hx)] in
-      let e2 = tocaml_cond_list t in
-      [%expr [%e e1] && [%e e2]]
+  match cl with
+  | [] -> [%expr () ]
+  | [(b,x)] -> let b = Ast_convenience.constr (string_of_bool b) [] in
+    let s = Ast_convenience.evar x in
+    [%expr [%e s] = [%e b] ]
+  | (hb,hx)::t ->
+    let e1 = tocaml_cond_list [(hb,hx)] in
+    let e2 = tocaml_cond_list t in
+    [%expr [%e e1] && [%e e2]]
 
 let rec tocaml_imperative_updates e el n =
   let rec loop l =
@@ -88,10 +87,10 @@ and tocaml_expression e n =
   | IInfixOp (IAnd,e1,e2) ->
     [%expr [%e tocaml_expression e1 n] && [%e tocaml_expression e2 n ]]
   | IApplication (c,id, num, e) ->
-     let rec dispatch n accu =
-       if n = 0 then accu
-       else dispatch (n-1) ([%expr Obj.magic ()]::accu)
-     in
+    let rec dispatch n accu =
+      if n = 0 then accu
+      else dispatch (n-1) ([%expr Obj.magic ()]::accu)
+    in
 
     let e' = tocaml_expression e n in
     let cl = tocaml_cond_list c in
@@ -102,16 +101,16 @@ and tocaml_expression e n =
       match c with
       | [] -> exp
       | _ ->
-             if n <= 1 then
-               [%expr if [%e cl] then [%e exp] else Obj.magic () ]
-             else
-               let magics =
-               { pexp_desc = Parsetree.Pexp_tuple (dispatch n []);
-                 pexp_loc = e'.pexp_loc;
-                 pexp_attributes = [];
-                 pexp_loc_stack = [] }
-             in
-               [%expr if [%e cl] then [%e exp] else [%e magics ]]
+        if n <= 1 then
+          [%expr if [%e cl] then [%e exp] else Obj.magic () ]
+        else
+          let magics =
+            { pexp_desc = Parsetree.Pexp_tuple (dispatch n []);
+              pexp_loc = e'.pexp_loc;
+              pexp_attributes = [];
+              pexp_loc_stack = [] }
+          in
+          [%expr if [%e cl] then [%e exp] else [%e magics ]]
     end
   | ICondact(l,e) ->
     let e' = tocaml_expression e n in
@@ -132,9 +131,9 @@ and tocaml_expression e n =
   | IUnit -> [%expr ()]
   | IConstr _ -> [%expr ()]
   | ICall (f,el) ->
-       let el' = List.map (fun e -> tocaml_expression e n) el in
+    let el' = List.map (fun e -> tocaml_expression e n) el in
     (* let pat = { p_desc = PUnit; *)
-                (* p_loc = Location.none;} in *)
+    (* p_loc = Location.none;} in *)
     (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
@@ -161,7 +160,7 @@ let tocaml_eq_list el acc =
   List.fold_left (fun l e -> tocaml_eq e l) acc (List.rev el)
 
 let tocaml_updates l acc =
-  let rec aux { i_condition = c; i_pattern = p; i_expression = e } acc =
+  let aux { i_condition = c; i_pattern = p; i_expression = e } acc =
     let cond = tocaml_cond_list c in
     let p' = expr_of_pattern p in
     let e = tocaml_expression e (nb_pattern p) in
@@ -177,9 +176,9 @@ let tocaml_step inode =
   [%expr fun [%p pat_of_pattern inode.i_inputs] -> [%e equations]]
 
 let tocaml_inits il acc =
-  let aux {i_pattern = p ; i_expression = e}  acc =
-      [%expr let [%p pat_of_pattern p] =
-               [%e tocaml_expression e (nb_pattern p)] in [%e acc]]
+  let aux {i_pattern = p ; i_expression = e; _}  acc =
+    [%expr let [%p pat_of_pattern p] =
+             [%e tocaml_expression e (nb_pattern p)] in [%e acc]]
   in
   List.fold_left (fun acc i -> aux i acc) acc il
 
@@ -217,57 +216,57 @@ let tocaml_main inode delay =
   let output_funp = prefix_pattern ~pre:"output_" inode.i_name in
   let output_fun = expr_of_pattern output_funp in
   if delay <= 0 then
-      let eloop =  if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
-                     [%expr
-                         [%e init_fun ] ();
-                      let main = [%e name] ()  in
-                      while true do
-                        let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
-                        let [%p pat_of_pattern inode.i_outputs ] =
-                          main [%e expr_of_pattern inode.i_inputs] in
-                        [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
-                      done ]
-                   else
-                     [%expr
-                         [%e init_fun ] ();
-                      let main = [%e name] ()  in
-                      while true do
-                        let [%p pat_of_pattern inode.i_outputs ] =
-                          main () in
-                        [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
-                      done ]
-      in
-      [%stri
-        let () = [%e Exp.open_ (Opn.mk (Mod.ident (lid_of_ident module_name))) eloop]
-      ]
+    let eloop =  if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
+        [%expr
+          [%e init_fun ] ();
+          let main = [%e name] ()  in
+          while true do
+            let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
+            let [%p pat_of_pattern inode.i_outputs ] =
+              main [%e expr_of_pattern inode.i_inputs] in
+            [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
+          done ]
+      else
+        [%expr
+          [%e init_fun ] ();
+          let main = [%e name] ()  in
+          while true do
+            let [%p pat_of_pattern inode.i_outputs ] =
+              main () in
+            [%e output_fun] [%e expr_of_pattern inode.i_outputs ]
+          done ]
+    in
+    [%stri
+      let () = [%e Exp.open_ (Opn.mk (Mod.ident (lid_of_ident module_name))) eloop]
+    ]
   else
     let eloop = if (inode.i_inputs.p_desc <> Parsing_ast.PUnit ) then
-                  [%expr
-                      [%e init_fun ] ();
-                   let main = [%e name] ()  in
-                   while true do
-                     let _delay_ms = millis () in
-                     let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
-                     let [%p pat_of_pattern inode.i_outputs ] =
-                       main [%e expr_of_pattern inode.i_inputs] in
-                     [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
-                     let _delay_ms = millis () - _delay_ms in
-                     delay([%e (Ast_convenience.int delay) ] - _delay_ms)
-                   done
-                  ]
-                else
-                  [%expr
-                      [%e init_fun ] ();
-                   let main = [%e name] ()  in
-                   while true do
-                     let _delay_ms = millis () in
-                     let [%p pat_of_pattern inode.i_outputs ] =
-                       main () in
-                     [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
-                     let _delay_ms = millis () - _delay_ms in
-                     delay([%e (Ast_convenience.int delay) ] - _delay_ms)
-                   done
-                  ]
+        [%expr
+          [%e init_fun ] ();
+          let main = [%e name] ()  in
+          while true do
+            let _delay_ms = millis () in
+            let [%p pat_of_pattern inode.i_inputs ] = [%e input_fun] () in
+            let [%p pat_of_pattern inode.i_outputs ] =
+              main [%e expr_of_pattern inode.i_inputs] in
+            [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
+            let _delay_ms = millis () - _delay_ms in
+            delay([%e (Ast_convenience.int delay) ] - _delay_ms)
+          done
+        ]
+      else
+        [%expr
+          [%e init_fun ] ();
+          let main = [%e name] ()  in
+          while true do
+            let _delay_ms = millis () in
+            let [%p pat_of_pattern inode.i_outputs ] =
+              main () in
+            [%e output_fun] [%e expr_of_pattern inode.i_outputs ];
+            let _delay_ms = millis () - _delay_ms in
+            delay([%e (Ast_convenience.int delay) ] - _delay_ms)
+          done
+        ]
     in
     [%stri
       let () = [%e Exp.open_ (Opn.mk (Mod.ident (lid_of_ident module_name))) eloop]
