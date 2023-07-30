@@ -3,14 +3,14 @@ open Clocking_ast
 
 let rec print_ck fmt c =
   match c with
-  | CkBase -> Format.fprintf fmt "base"
+  | CkBase -> Format.fprintf fmt "•"
   | CkUnknown -> Format.fprintf fmt "?"
   | CkVariable { index = _n; value = CkUnknown } ->
-    Format.fprintf fmt "_"
+    Format.fprintf fmt "?"
   | CkVariable { index = _n; value = c } ->
     Format.fprintf fmt "%a" print_ck c
   | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
-  | Ckonnot (ck,s) -> Format.fprintf fmt "(%a onnot %s)" print_ck ck s
+  | Ckonnot (ck,s) -> Format.fprintf fmt "(%a on ¬%s)" print_ck ck s
 
 let rec print_ct fmt c =
   let rec print_tuple fmt l =
@@ -124,3 +124,17 @@ let print_node fmt (node,verbose) =
   else
     Format.fprintf fmt "%a \n%!"
       print_pattern node.cname
+
+let rec get_all_clocks c = 
+  match c with
+  | CkBase -> []
+  | CkUnknown -> []
+  | CkVariable { index = _n; value = CkUnknown } -> []
+  | CkVariable { index = _n; value = c } -> get_all_clocks c
+  | Ckon (ck,s) -> s::get_all_clocks ck
+  | Ckonnot (ck,s) -> s::get_all_clocks ck
+
+let rec get_ct_clocks c = 
+  match c with
+  | Ck ck -> get_all_clocks ck
+  | CkTuple cks -> List.fold_left (fun acc x -> List.concat [get_ct_clocks x; acc]) [] cks 

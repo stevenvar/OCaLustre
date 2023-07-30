@@ -31,12 +31,12 @@ let rec carriers_list ct = match ct with
 let rec subst_base ck ck' =
   match ck with
   | CkUnknown -> ck
-    (* failwith "subst_base : unknown" *)
+  (* failwith "subst_base : unknown" *)
   | CkBase -> ck'
   | CkVariable { value = c ; _} -> subst_base c ck'
   | Ckon (ck,s) -> Ckon(subst_base ck ck',s)
   | Ckonnot (ck,s) -> Ckonnot(subst_base ck ck',s)
-  (* | _ -> failwith "subst_base" *)
+(* | _ -> failwith "subst_base" *)
 
 let rec subst_base_ct ct ck' =
   match ct with
@@ -98,10 +98,10 @@ let rec get_subst_vars (xs:Parsing_ast.ident list) es s =
       (x,y)::sigma
     else get_subst_vars xs ys s
   | _, _ ->
-     let s = List.fold_left (fun acc x -> x^acc) "" xs in
-     let s' = List.fold_left (fun acc x -> x^acc) "" es in
-     let s'' = Printf.sprintf "get_subst_vars : %s / %s" s s' in
-     failwith s''
+    let s = List.fold_left (fun acc x -> x^acc) "" xs in
+    let s' = List.fold_left (fun acc x -> x^acc) "" es in
+    let s'' = Printf.sprintf "get_subst_vars : %s / %s" s s' in
+    failwith s''
 
 (** Printing **)
 
@@ -147,8 +147,8 @@ let rec shorten_ck c =
   | CkUnknown -> failwith "shorten"
   | CkVariable { index = _; value = CkUnknown} -> c
   | CkVariable { index = _;
-                   value = CkVariable ({ index = _;
-                                         value = CkUnknown }) as tv} -> tv
+                 value = CkVariable ({ index = _;
+                                       value = CkUnknown }) as tv} -> tv
   | CkVariable ({ index = _; value = CkVariable tv1 } as tv2) ->
     tv2.value <- tv1.value;
     shorten_ck c
@@ -165,7 +165,7 @@ let rec shorten_ct c =
 (** Unify **)
 
 exception Unify_ck of ck * ck
-exception Unify_ct of ct * ct
+exception Unify_ct of ct * ct * cexpression * cexpression * (Location.t option)
 
 let rec unify_ck c1 c2 =
   let t1 = shorten_ck c1 in
@@ -192,21 +192,23 @@ let rec unify_ck c1 c2 =
      | _ -> raise (Unify_ck (t1, t2)))
   with Occurs -> raise (Unify_ck (t1,t2))
 
-let rec unify_ct c1 c2 =
-  let c1 = shorten_ct c1 in
-  let c2 = shorten_ct c2 in
-  (* Format.printf "Unify %a and %a \n" print_ct c1 print_ct c2; *)
-  try
-    (match c1,c2 with
-     | Ck c1, Ck c2 -> unify_ck c1 c2
-     | CkTuple cts, CkTuple cts' ->
-       (try
-         List.iter2 (fun c d -> unify_ct c d) cts cts'
-       with Invalid_argument _ -> Error.print_error Location.none "Not the same number of elements")
-
-     | _ ->
-       raise (Unify_ct (c1,c2)))
-  with Unify_ck (_,_) -> raise (Unify_ct (c1,c2))
+let unify_ct e1 e2 loc =
+  let rec aux c1 c2 = 
+    let c1 = shorten_ct c1 in
+    let c2 = shorten_ct c2 in
+    (* Format.printf "Unify %a and %a \n" print_ct c1 print_ct c2; *)
+    try
+      (match c1,c2 with
+       | Ck c1, Ck c2 -> unify_ck c1 c2
+       | CkTuple cts, CkTuple cts' ->
+         (try
+            List.iter2 (fun c d -> aux c d) cts cts'
+          with Invalid_argument _ -> Error.print_error Location.none "Not the same number of elements")
+       | _ ->
+         raise (Unify_ct (c1,c2,e1,e2,loc)))
+    with Unify_ck (_,_) -> raise (Unify_ct (e1.ce_clk,e2.ce_clk,e1,e2,loc))
+  in 
+  aux e1.ce_clk e2.ce_clk
 
 (** Instantiation **)
 
@@ -245,9 +247,9 @@ let rec get_cond_ct c1 c2 =
   match c1, c2 with
   | Ck c, Ck c' -> get_cond c c'
   | CkTuple cks, CkTuple cks' ->
-     let c = List.hd cks in
-     let d = List.hd cks' in
-     get_cond_ct c d
+    let c = List.hd cks in
+    let d = List.hd cks' in
+    get_cond_ct c d
   | _ -> failwith "get_cond_ct"
 
 
@@ -308,15 +310,15 @@ let unknowns_of_clk_env env =
   List.flatten vs
 
 let rec replace_vars_by_base tau =
-    match tau with
-    | CkVariable ({ index = _n; value = CkUnknown } as tv) ->
-      tv.value <- CkBase
-    | Ckon (ck,_x) -> replace_vars_by_base ck
-    | Ckonnot (ck,_x) -> replace_vars_by_base ck
-    | CkVariable { index = _n; value = t} ->
-      replace_vars_by_base t
-    | CkBase -> ()
-    | CkUnknown -> failwith "unknown"
+  match tau with
+  | CkVariable ({ index = _n; value = CkUnknown } as tv) ->
+    tv.value <- CkBase
+  | Ckon (ck,_x) -> replace_vars_by_base ck
+  | Ckonnot (ck,_x) -> replace_vars_by_base ck
+  | CkVariable { index = _n; value = t} ->
+    replace_vars_by_base t
+  | CkBase -> ()
+  | CkUnknown -> failwith "unknown"
 
 let rec replace_vars_by_base_ct tau =
   match tau with
@@ -375,9 +377,9 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
     begin
       match e.e_desc with
       | Call (f,el) ->
-         let cel = List.map (fun e -> clk_expr delta gamma e) el in
-         let t = List.fold_left (fun acc e -> (unify_ct acc e.ce_clk); e.ce_clk) ((List.hd cel).ce_clk) cel in
-        { ce_desc = CCall (f,cel); ce_loc = e.e_loc; ce_clk = t }
+        let cel = List.map (fun e -> clk_expr delta gamma e) el in
+        let t = List.fold_left (fun acc e -> (unify_ct acc e (Some e.ce_loc)); e) ((List.hd cel)) cel in
+        { ce_desc = CCall (f,cel); ce_loc = e.e_loc; ce_clk = t.ce_clk }
       | Unit ->
         let ck = Ck (new_varclk ()) in
         { ce_desc = CUnit; ce_loc = e.e_loc; ce_clk = ck }
@@ -398,70 +400,73 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
       | InfixOp (op,e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
-        unify_ct t1.ce_clk t2.ce_clk;
+        unify_ct t1 t2 None;
         { ce_desc = CInfixOp (op,t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | Alternative (e1,e2,e3) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
         let t3 = clk_expr delta gamma e3 in
-        unify_ct t1.ce_clk t2.ce_clk;
-        unify_ct t2.ce_clk t3.ce_clk;
+        unify_ct t1 t2 None;
+        unify_ct t2 t3 None;
         { ce_desc = CAlternative (t1,t2,t3); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | Fby (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
-        unify_ct t1.ce_clk t2.ce_clk;
+        unify_ct t1 t2 None;
         { ce_desc = CFby (t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | Pre e -> clk_expr delta gamma e
       | Arrow (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
-        unify_ct t1.ce_clk t2.ce_clk;
+        unify_ct t1 t2 None;
         { ce_desc = CArrow (t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | When (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
         let x = get_ident e2 in
-        unify_ct t1.ce_clk t2.ce_clk;
+        unify_ct t1 t2 None;
         let u = new_varclk () in
-        unify_ct (Ck u) t1.ce_clk;
+        let new_var = { ce_desc = CVariable x; ce_loc = e.e_loc; ce_clk = Ck u } in
+        unify_ct new_var t1 None;
         { ce_desc = CWhen(t1,t2) ; ce_loc = e.e_loc; ce_clk = Ck (Ckon(u,x)) }
       | Application (id,num,ee) ->
-         let (cks1,xs1,cks2,xs2) = try List.assoc id delta
+        let (cks1,xs1,cks2,xs2) = try List.assoc id delta
           with Not_found ->
             let s = Format.asprintf "Unbound node : %s" id in
             Error.print_error e.e_loc s
-         in
-         (* Format.printf "Input clocks = %a\n" print_ct cks1; *)
-         (* Format.printf "Output clocks = %a\n" print_ct cks2; *)
-         let s = carriers_list cks1 @ carriers_list cks2 in
-         let param = clk_expr delta gamma ee in
-         let (gin,gout) = generalize_sign (cks1,cks2) in
-         let params = match param.ce_desc with
-           | CETuple e -> e
-           | _ -> [param]
-         in
-         let xs1 = Tools.string_list_of_pattern xs1 in
-         let sigma = get_subst xs1 params s in
-         (* Format.fprintf Format.std_formatter "First subst ="; *)
-         (* List.iter (fun (x,y) -> Format.fprintf Format.std_formatter "(%s -> %s)\n" x y) sigma; *)
-         let gin = subst_ct gin sigma in
-         unify_ct gin param.ce_clk;
-         let xs2 = Tools.string_list_of_pattern xs2 in
-         let sigma2 = get_subst_vars xs2 !outputs s in
-         let gout = subst_ct gout sigma in
-         let gout = subst_ct gout sigma2 in
-         let c = get_cond_ct cks1 param.ce_clk in
-         { ce_desc = CApplication(id,num,c,param);
-           ce_loc = e.e_loc;
-           ce_clk = gout }
+        in
+        (* Format.printf "Input clocks = %a\n" print_ct cks1; *)
+        (* Format.printf "Output clocks = %a\n" print_ct cks2; *)
+        let s = carriers_list cks1 @ carriers_list cks2 in
+        let param = clk_expr delta gamma ee in
+        let (gin,gout) = generalize_sign (cks1,cks2) in
+        let params = match param.ce_desc with
+          | CETuple e -> e
+          | _ -> [param]
+        in
+        let xs1 = Tools.string_list_of_pattern xs1 in
+        let sigma = get_subst xs1 params s in
+        (* Format.fprintf Format.std_formatter "First subst ="; *)
+        (* List.iter (fun (x,y) -> Format.fprintf Format.std_formatter "(%s -> %s)\n" x y) sigma; *)
+        let gin = subst_ct gin sigma in
+        let new_var = { ce_desc = CVariable id; ce_loc = e.e_loc; ce_clk = gin } in
+        unify_ct new_var param (Some param.ce_loc);
+        let xs2 = Tools.string_list_of_pattern xs2 in
+        let sigma2 = get_subst_vars xs2 !outputs s in
+        let gout = subst_ct gout sigma in
+        let gout = subst_ct gout sigma2 in
+        let c = get_cond_ct cks1 param.ce_clk in
+        { ce_desc = CApplication(id,num,c,param);
+          ce_loc = e.e_loc;
+          ce_clk = gout }
       | Whennot (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
         let x = get_ident e2 in
         let u = new_varclk () in
-        unify_ct (Ck u) t1.ce_clk;
-        unify_ct t1.ce_clk t2.ce_clk;
+        let new_var = { ce_desc = CVariable x; ce_loc = e.e_loc; ce_clk = Ck u } in
+        unify_ct new_var t1 None;
+        unify_ct t1 t2 None;
         { ce_desc = CWhennot(t1,t2);
           ce_loc = e.e_loc ;
           ce_clk = Ck(Ckonnot(u,x))}
@@ -471,9 +476,14 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         let t3 = clk_expr delta gamma e3 in
         let x = get_ident e1 in
         let u = new_varclk () in
-        unify_ct (Ck u) t1.ce_clk;
-        unify_ct (Ck (Ckon(u,x))) t2.ce_clk;
-        unify_ct (Ck (Ckonnot(u,x))) t3.ce_clk;
+        let new_var = { ce_desc = CVariable x; ce_loc = e1.e_loc; ce_clk = Ck u } in
+        unify_ct new_var t1 (Some e1.e_loc);
+        let x2 = "expected("^get_ident e2^")" in
+        let new_var2 = { ce_desc = CVariable x2; ce_loc = e2.e_loc; ce_clk = (Ck (Ckon(u,x))) } in
+        unify_ct  new_var2 t2 (Some e2.e_loc);
+        let x3 = "expected("^get_ident e3^")" in
+        let new_var3 = { ce_desc = CVariable x3; ce_loc = e3.e_loc; ce_clk = (Ck (Ckonnot(u,x)))} in
+        unify_ct new_var3 t3 (Some e3.e_loc);
         { ce_desc = CMerge (t1,t2,t3); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
       | ETuple es ->
         let es' = List.map (clk_expr delta gamma) es in
@@ -483,11 +493,12 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         let s = Format.asprintf "%a : todo clocking" Parsing_ast_printer.print_expression e in
         Error.print_error e.e_loc s
     end
-  with Unify_ct (c1,c2) ->
-    print_env gamma;
-    let s = Format.asprintf "Clocking clash between %a and %a"
-        print_ct c1 print_ct c2 in
-    Error.print_error e.e_loc s
+  with Unify_ct (c1,c2,e1,e2,loc) ->
+    (* print_env gamma; *)
+    let s = Format.asprintf "Clocking clash between %a::%a and %a::%a"
+        print_expression e1 print_ct c1 print_expression e2 print_ct c2 in
+    let loc = Option.value ~default:e.e_loc loc in 
+    Error.print_error loc s
 
 let rec clk_expr_ct delta (gamma : (string * clk_scheme) list) e =
   match e.e_desc with
@@ -503,15 +514,15 @@ let rec clk_expr_ct delta (gamma : (string * clk_scheme) list) e =
 (* type cequation = { cpattern : Parsing_ast.pattern ; cexpression : cexpression } *)
 
 let rec lookup env p =
-   match p.p_desc with
+  match p.p_desc with
   | Ident i ->
-     (try
-        List.assoc i env
-      with Not_found ->
-        Error.print_error p.p_loc ("Not found : "^i))
+    (try
+       List.assoc i env
+     with Not_found ->
+       Error.print_error p.p_loc ("Not found : "^i))
   | Tuple t ->
-     let clks = List.map (lookup env) t in
-     let clk = CkTuple clks in clk
+    let clks = List.map (lookup env) t in
+    let clk = CkTuple clks in clk
   | PUnit -> failwith "unit"
   | Typed (p,_t) -> lookup env p
 
@@ -534,12 +545,12 @@ let group_tuple pl =
 
 
 let rec assoc_env (env:(string * clk_scheme) list) p : clk_scheme =
-   match p.p_desc with
+  match p.p_desc with
   | Ident i ->
-     (try
-        List.assoc i env
-      with Not_found ->
-        Error.print_error p.p_loc ("Not found : "^i))
+    (try
+       List.assoc i env
+     with Not_found ->
+       Error.print_error p.p_loc ("Not found : "^i))
   | Tuple t ->
     let clks = List.map (assoc_env env) t in
     let clks = List.map (gen_instance_ct) clks in
@@ -554,13 +565,14 @@ let clk_equations delta gamma eqs =
     outputs := Tools.string_list_of_pattern eq.pattern;
     let pck = assoc_env gamma eq.pattern in
     let pck = gen_instance_ct pck in
+    let new_var = { ce_desc = CVariable "_"; ce_loc = eq.expression.e_loc; ce_clk = pck } in
     let cexp = clk_expr_ct delta gamma eq.expression in
     (try
-      unify_ct pck cexp.ce_clk;
-    with Unify_ct (c1,c2) ->
-    let s = Format.asprintf "This expression has clock %a but %a was expected"
-        print_ct c2 print_ct c1 in
-    Error.print_error eq.expression.e_loc s);
+       unify_ct new_var cexp None;
+     with Unify_ct (c1,c2,_e1,_e2,_loc) ->
+       let s = Format.asprintf "This expression has clock %a but %a was expected"
+           print_ct c2 print_ct c1 in
+       Error.print_error eq.expression.e_loc s);
     { cpattern = eq.pattern ;
       cexpression = cexp;
       cclock = cexp.ce_clk
@@ -569,13 +581,13 @@ let clk_equations delta gamma eqs =
   List.map (clk_eq gamma) eqs
 
 let rec make_set l =
-    match l with
-    | [] -> []
-    | x::xs ->
-      if List.mem x xs then
-        make_set l
-      else
-        x :: (make_set xs)
+  match l with
+  | [] -> []
+  | x::xs ->
+    if List.mem x xs then
+      make_set l
+    else
+      x :: (make_set xs)
 
 let get_all_inouts node =
   let ins = split_tuple node.inputs in
@@ -609,7 +621,13 @@ let lookup_clk env p =
   with Not_found ->
     Error.print_error p.p_loc ("Cannot find variable "^s)
 
+exception Clock_escaping of string
+
 let clk_node delta node clocks =
+  let check_clock_escape clocks idents =
+    let clock_is_in_idents ck ids = List.mem ck ids in
+    List.iter (fun ck -> if not (clock_is_in_idents ck idents) then raise (Clock_escaping ck)) clocks
+  in
   reset_varclk ();
   let inouts = get_all_inouts node in
   let inouts = List.map Tools.string_of_pattern inouts in
@@ -630,25 +648,28 @@ let clk_node delta node clocks =
   let ckouts = group_tuple ckouts in
   let node_clk_ins = ckins in
   let node_clk_outs = ckouts in
-  (* print_env env; *)
   replace_vars_by_base_ct node_clk_ins;
-  (* let vars_pat = get_all_vars_pat node in *)
-  (* let node_clk_vars = List.map (fun x -> lookup_clk env x) *)
-      (* vars_pat in *)
-  (* let node_clk_vars = List.map gen_instance_ct node_clk_vars in *)
-  (* let node_clk_vars = group_tuple node_clk_vars in *)
-  (* replace_vars_by_base_ct node_clk_vars; *)
-  (* print_env env; *)
   let node_clk_scheme = generalize_clk [] node_clk_outs in
   try
     let signs_in = List.map2 (fun x y -> (x,y)) (Tools.string_list_of_pattern node.inputs) (split_ct node_clk_ins) in
     let signs_out = List.map2 (fun x y -> (x,y)) (Tools.string_list_of_pattern node.outputs) (split_ct node_clk_outs) in
-    (* Format.printf "%a := %a -> %a\n" *)
-    (* Parsing_ast_printer.print_pattern node.name *)
-    (* Parsing_ast_printer.print_pattern node.inputs *)
-    (* Parsing_ast_printer.print_pattern node.outputs; *)
+    let ct_in = List.map (fun x -> snd x) signs_in in
+    let ct_out = List.map (fun x -> snd x) signs_out in
+    let clocks_in = List.fold_left (fun acc x -> List.concat [Clocking_ast_printer.get_ct_clocks x; acc]) [] ct_in in
+    let clocks_out = List.fold_left (fun acc x -> List.concat [Clocking_ast_printer.get_ct_clocks x; acc]) [] ct_out in
+    let name_clocks = clocks_in@clocks_out in
     let print_sign fmt (x,y) =
-      Format.fprintf fmt "%s:%a" x print_ct y in
+      if List.mem x name_clocks then
+        Format.fprintf fmt "[%s:%a]" x print_ct y
+      else 
+        Format.fprintf fmt "%a" print_ct y
+    in
+    (* check that the clocks of all flows are defined in the signature of the node: *)
+    (* TODO: make it so that this is detected earlier (ideally by the inference algo) *)
+    let idents_in = List.map (fun x -> fst x) signs_in in
+    let idents_outs = List.map (fun x -> fst x) signs_out in
+    let all_idents = idents_in@idents_outs in
+    check_clock_escape name_clocks all_idents;
     if clocks then
       begin
         Format.fprintf Format.std_formatter "%a :: "
@@ -674,5 +695,5 @@ let clk_node delta node clocks =
         cequations = eqs
       } in
     (globalenv,env,cnode)
-  with _ ->
-    Error.print_error node.name.p_loc "map2"
+    with Clock_escaping id -> 
+      Error.print_error node.name.p_loc ("The following local clock is escaping its scope: "^id)

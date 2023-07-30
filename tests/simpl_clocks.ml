@@ -2,7 +2,6 @@
 
 let%node counter (ini,inc) ~return:n =
   res = false;
-  inc = 2;
   n = if f || res then ini else c + inc;
   f = true ->> false;
   c = 0 ->> n
@@ -10,8 +9,6 @@ let%node counter (ini,inc) ~return:n =
 let%node d_integrator (gamma:int) ~return:(speed,position) =
   position = counter (1,2);
   speed = 2
-
-(* counter (1,0,2); *)
 
 (* let%node tracker (acc,limit) ~return:(p,t) =
  *   (s,p) = d_integrator(acc);
