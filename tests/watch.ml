@@ -1,12 +1,3 @@
-module IO = struct
-  let watch_inputs () = true
-
-  let watch_outputs (h,m,s) =
-    Format.printf "%02d:%02d:%02d\n%!" h m s;
-    Unix.sleepf 0.001
-end
-
-
 let%node count d ~return:(cpt) =
   cpt = (0 --< (cpt+1) ) mod d
 
@@ -15,7 +6,7 @@ let%node watch (sec) ~return:(h,m,s) =
   min = (no_s = 0);
   no_m = count (60 --@ min);
   hour = (no_m = 0);
-  no_h = count(12 --@ hour);
+  no_h = count(24 --@ hour);
   h' = merge hour no_h ( (0 ->> h')--@ not hour);
   hh = merge min h' ((0 ->> hh) --@ not min);
   mm = merge min no_m ((0 ->> mm) --@ not min);

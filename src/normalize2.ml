@@ -70,7 +70,6 @@ let rec norm_exp x exp =
   | _ -> ([],exp)
 
 
-
 let rec norm_eqn eq =
   match eq.pattern.p_desc with
   |  Ident x -> begin
@@ -100,7 +99,8 @@ let rec norm_eqn eq =
         let exp = { eq.expression with e_desc = ETuple es } in
         let (ds,es') =  norm_eqn {pattern = pat; expression = exp } in
         (ds@d@[es'],e')
-      | Application _ -> ([],eq)
+      | Application (f,n,e) -> let (d,e') = norm_exp f (e) in
+        (d,{eq with expression = {eq.expression with e_desc = Application(f,n,e')}})
       | Call _ -> ([],eq)
       | _ -> failwith "nope"
     end
