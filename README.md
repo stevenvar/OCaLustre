@@ -160,26 +160,28 @@ let%node call_tictoc () ~return:d =
 
 OCaLustre is still a prototype! But if you want to try it out, just do :
 
-```
+```bash
 opam pin add ocalustre git@github.com:stevenvar/OCaLustre.git
 ```
 
 or
 
-```
-  dune build @install && dune install 
+```bash
+dune build @install && dune install 
 ```
 
 And use it as a ppx preprocessor :
 
-```
+```bash
 ocamlc -ppx ocalustre tests/foo.ml
 ```
 
 ### Generation of the main loop
 
+The ```-m``` option, followed by the name of the principal node, generates the global loop of the program:
+
 ```
-ocamlfind ppx_tools/rewriter "ocalustre -main my_main_node" ocalustre_file.ml -o ocaml_file.ml
+ocamlfind ppx_tools/rewriter "ocalustre -m main_node_name" ocalustre_file.ml -o ocaml_file.ml
 ```
 
-The ```-main``` option, followed by the name of the principal node, generates the global loop of the program. Next, you just need to fill the correct input/output functions for this node in the generated ocaml file.
+ Next, you just need to fill the correct input/output functions for this node in the generated ocaml file.
