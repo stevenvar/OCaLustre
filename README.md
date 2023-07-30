@@ -146,7 +146,7 @@ let%node tictoc c ~return:y =
   y = merge c a b
 
 let%node call_tictoc () ~return:d =
-  c = true >>> (false >>> c);
+  c = true ->> (false ->> c);
   d = tictoc c
 ```
 
