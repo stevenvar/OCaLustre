@@ -39,12 +39,12 @@ let rec print_pattern fmt p =
                      s
 
 
-let rec print_name fmt p =
+let print_name fmt p =
   match p.p_desc with
   | Ident i -> Format.fprintf fmt "%s" i
   | Tuple t -> Format.fprintf fmt "%a" (print_list print_pattern) t
   | PUnit -> Format.fprintf fmt ""
-  | Typed (p,s) -> print_pattern fmt p
+  | Typed (p,_) -> print_pattern fmt p
 
 
 let rec print_expression fmt e =
@@ -63,12 +63,12 @@ let rec print_expression fmt e =
       print_expression e1
       print_expression e2
       print_expression e3
-  | Application (i,num,e) ->
-     Format.fprintf fmt "(%a (%a))"
-                    print_ident i
-                    print_expression e
-  | Call (f,el) ->
-     Format.fprintf fmt "(call ...)"
+  | Application (i,_,e) ->
+    Format.fprintf fmt "(%a (%a))"
+      print_ident i
+      print_expression e
+  | Call _ ->
+    Format.fprintf fmt "(call ...)"
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
@@ -84,23 +84,23 @@ let rec print_expression fmt e =
                        print_expression e1
                        print_expression e2
   | Fby (e1, e2) -> Format.fprintf fmt "(%a -> pre %a)"
-                    print_expression e1
-                    print_expression e2
+                      print_expression e1
+                      print_expression e2
   | Unit -> Format.fprintf fmt "()"
   | Clock e -> Format.fprintf fmt "%a" print_expression e
   | When (e1,e2) -> Format.fprintf fmt "( %a when %a )"
-                    print_expression e1
-                    print_expression e2
+                      print_expression e1
+                      print_expression e2
   | Whennot (e1,e2) -> Format.fprintf fmt "( %a whennot %a )"
-                                      print_expression e1
-                                      print_expression e2
+                         print_expression e1
+                         print_expression e2
   | ETuple el -> Format.fprintf fmt "(%a)"
                    print_expression_list el
   | Merge (e1,e2,e3) ->
     Format.fprintf fmt  "(merge (%a) (%a) (%a))"
-    print_expression e1
-    print_expression e2
-    print_expression e3
+      print_expression e1
+      print_expression e2
+      print_expression e3
 
 
 
@@ -134,7 +134,7 @@ let split p =
 
 let remove_type x =
   match x.p_desc with
-  | Typed (x,t) -> x
+  | Typed (x,_) -> x
   | _ -> x
 
 let rec print_local_vars fmt l =
@@ -148,7 +148,7 @@ let rec to_string x =
   match x.p_desc with
   | Ident x -> x
   | PUnit -> "()"
-  | Typed(p,t) -> to_string p
+  | Typed(p,_) -> to_string p
   | _ -> failwith "cannot make a string"
 
 let rec remove_var x l =

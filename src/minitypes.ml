@@ -35,7 +35,7 @@ let rec print_typ fmt c =
     Format.fprintf fmt " (%a -> %a) " print_typ c1 print_typ c2
   | Typvariable { index = n; value = None } ->
     Format.fprintf fmt "'%d" n
-  | Typvariable { index = n; value = Some c } ->
+  | Typvariable { index = _n; value = Some c } ->
     Format.fprintf fmt "%a" print_typ c
   | TTuple (cs) -> Format.fprintf fmt "(%a)" print_tuple cs
   | TUnit -> Format.fprintf fmt "unit"
@@ -46,7 +46,7 @@ let rec print_typ fmt c =
 let rec print_typ_scheme fmt (gv,c) =
  let names =
     let rec names_of = function
-      | (n,[]) -> []
+      | (_n,[]) -> []
       | (n, (_::xs)) -> (tvar_name n)::(names_of (n+1,xs))
     in
     names_of (1,gv) in
@@ -67,7 +67,7 @@ let rec print_typ_scheme fmt (gv,c) =
          with  Not_found -> failwith ("not found"^(string_of_int n)))
       in
       Format.fprintf fmt "%s" name
-  | Typvariable { index = n; value = Some c } ->
+  | Typvariable { index = _n; value = Some c } ->
     Format.fprintf fmt "%a" print_typ_scheme (gv,c)
   | TTuple (cs) -> Format.fprintf fmt "(%a)" print_tuple cs
   | TUnit -> Format.fprintf fmt "unit"
@@ -132,12 +132,12 @@ let rec unify t1 t2 =
      | TBool, TBool -> ()
      | TFloat, TFloat -> ()
      | Typvariable ({ index = n ; value = None } as tv1),
-       Typvariable ({ index = m; value = None } as tv2) ->
+       Typvariable { index = m; value = None } ->
        if n <> m then tv1.value <- Some t2
-     | Typvariable ({ index = n ; value = None } as tv), c2 ->
+     | Typvariable ({ index = _n ; value = None } as tv), c2 ->
        occurs tv c2;
        tv.value <- Some c2
-     | c1 , Typvariable ({ index = n ; value = None } as tv) ->
+     | c1 , Typvariable ({ index = _n ; value = None } as tv) ->
        occurs tv c1;
        tv.value <- Some c1
      | TArrow (c1,c2), TArrow (c3,c4) ->
@@ -184,7 +184,7 @@ let vars_of_typ tau =
       vs
     | Typvariable { index = n; value = None} ->
       if List.mem n vs then vs else (n::vs)
-    | Typvariable { index = n; value = Some t } -> vars vs t
+    | Typvariable { index = _n; value = Some t } -> vars vs t
     | TTuple [] -> vs
     | TTuple (x::xs) ->
       let vs = vars vs x in
@@ -298,7 +298,7 @@ let rec typ_expr gamma e =
         let t2 = typ_expr gamma e2 in
         unify t2 TBool;
         t1
-      | Application (id,num,e) ->
+      | Application (id,_num,e) ->
         begin
           let fun_typ = typ_expr gamma { e_desc = Variable id;
                                              e_loc = Location.none} in
@@ -353,11 +353,11 @@ let rec lookup env p =
      let typs = List.map (lookup env) t in
      let clk = TTuple typs in clk
   | PUnit -> failwith "unit"
-  | Typed (p,t) -> lookup env p
+  | Typed (p,_t) -> lookup env p
 
 let remove_typs p =
   match p.p_desc with
-  | Typed(p,s) -> p
+  | Typed(p,_s) -> p
   | _ -> p
 
 
@@ -386,11 +386,11 @@ let rec assoc_env (env:(string * typ_scheme) list) p =
     (* let clk = TTuple typs in generalize_typ env clk *)
     ([],TTuple typs)
   | PUnit -> failwith "unit"
-  | Typed (p,t) -> assoc_env env p
+  | Typed (p,_t) -> assoc_env env p
 
 
 let typ_equations gamma eqs =
-  let rec typ_eq gamma eq =
+  let typ_eq gamma eq =
     (try
        let clk = typ_expr gamma eq.expression in
        let pck = assoc_env gamma eq.pattern in
@@ -420,7 +420,7 @@ let get_all_vars node =
   (* let outs = split_tuple node.outputs in *)
   Tools.make_set (vars@ins)
 
-let rec lookup_typ env p =
+let lookup_typ env p =
   let s = Tools.string_of_pattern p in
   try
     List.assoc s env
@@ -434,7 +434,7 @@ let typ_node gamma node types =
   let vars_typs =
     List.map (fun x ->if x = "()" then (x,([],TUnit)) else (x,([],new_vartyp()))) vars in
   let env = vars_typs@gamma in
-  let eqs = typ_equations env node.equations in
+  let _eqs = typ_equations env node.equations in
   let ckins = List.map (fun x -> lookup_typ env x)
       (split_tuple node.inputs) in
   let ckins = List.map gen_instance ckins in

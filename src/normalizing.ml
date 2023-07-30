@@ -5,8 +5,6 @@ That way, the "if-then-else" operator keeps its non-lazy semantics when
 it is compiled  **)
 
 open Parsing_ast
-open Parsing_ocl
-open Error
 
 let check_constant c =
   match c.e_desc with
@@ -159,9 +157,9 @@ let rec normalize_exp l exp =
     let (l',e') = normalize_exp l e in
     let exp' = PrefixOp (op,e') in
     l', { exp with e_desc = exp' }
-  | Value c -> l , exp
-  | Variable v -> l, exp
-  | Array el -> l,exp
+  | Value _ -> l , exp
+  | Variable _ -> l, exp
+  | Array _ -> l,exp
   | Array_get (e,e') ->
     let (l,e) = normalize_exp l e in
     let (l,e') = normalize_exp l e' in
@@ -262,9 +260,9 @@ let norm_exp l exp  =
     let (l',e') = normalize_exp l e in
     let exp' = PrefixOp (op,e') in
     l', { exp with e_desc = exp' }
-  | Value c -> l , exp
-  | Variable v -> l, exp
-  | Array el -> l,exp
+  | Value _ -> l , exp
+  | Variable _ -> l, exp
+  | Array _ -> l,exp
   | Array_fold (e,f,e') ->
     let (l,e) = normalize_exp l e in
     let (l,e') = normalize_exp l e' in

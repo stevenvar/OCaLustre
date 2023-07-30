@@ -1,7 +1,6 @@
 open Parsing_ast
 open Clocking_ast
 open Sequential_ast
-open Error
 open Tools
 
 
@@ -38,10 +37,10 @@ let rec list_of_pat p =
   | PUnit -> []
   | Ident x -> [x]
   | Tuple t -> List.fold_right (fun p acc -> list_of_pat p @ acc) t []
-  | Typed (p',s) -> list_of_pat p'
+  | Typed (p',_s) -> list_of_pat p'
 
 
-let seq_type name inputs outputs {pres;calls;outs} =
+let seq_type name _inputs _outputs {pres;calls;outs} =
   let l = pres@calls@outs in
   { s_name = name;
     s_num = List.length l;
@@ -59,12 +58,12 @@ let nb = ref 0
 
 (* Add pre and calls initializations  *)
 
-let state_eq e ({pres;calls;outs} as s) =
+let state_eq e ({pres;calls;_} as s) =
   match e.cexpression.ce_desc with
-  | CApplication (i, num, ck, e) ->
+  | CApplication (i, _num, _ck, _e) ->
     incr nb;
     { s with calls = (i^string_of_int !nb)::calls }
-  | CFby (_,e') -> {s with pres = (string_of_pattern e.cpattern)::pres }
+  | CFby _ -> {s with pres = (string_of_pattern e.cpattern)::pres }
   | _ -> s
 
 
@@ -75,22 +74,22 @@ let mk_state (n:Clocking_ast.cnode) =
   l
 
 
-let rec update_fby eq l =
+let update_fby eq l =
   match eq.cexpression.ce_desc with
-  | CFby (x,e) -> { cclock = eq.cclock ;
-                    cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ;
-                    cexpression = e}::l
+  | CFby (_x,e) -> { cclock = eq.cclock ;
+                     cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ;
+                     cexpression = e}::l
   | _ -> l
 
 let update_all_fby eqs =
   List.fold_left (fun acc eq -> update_fby eq acc) [] eqs
 
 
-let rec update_fby_zero eq l =
+let update_fby_zero eq l =
   match eq.cexpression.ce_desc with
-  | CFby (x,e) -> { cclock = eq.cclock ;
-                    cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ;
-                    cexpression = x}::l
+  | CFby (x,_e) -> { cclock = eq.cclock ;
+                     cpattern = prefix_pattern ~pre:"pre_" eq.cpattern ;
+                     cexpression = x}::l
   | _ -> l
 
 let update_all_fby_zero eqs =
@@ -111,11 +110,11 @@ let rec get_condition c =
   match c with
   | Ck c -> extract_conds c
   | CkTuple cs -> List.fold_left (fun acc x -> acc@get_condition x)
-                         []
-                         cs
+                    []
+                    cs
 
 (* returns all of the outputs variables of the node <name> *)
-let rec mk_outputs e name outs =
+let mk_outputs e name outs =
   let rec loop outs =
     match outs with
     | [] -> []
@@ -135,7 +134,7 @@ let rec seq_exp e =
   | CValue v -> { sexp with s_e_desc = S_Value v}
   | CVariable s -> { sexp with s_e_desc = S_Variable s}
   | CCall (f,el) ->
-     let sel = List.map seq_exp el in
+    let sel = List.map seq_exp el in
     { sexp with s_e_desc = S_Call (f,sel) }
   | CInfixOp (op,e1,e2) ->
     { sexp with s_e_desc =
@@ -152,15 +151,15 @@ let rec seq_exp e =
                                  seq_exp e3)
     }
   | CUnit -> { sexp with s_e_desc = S_Unit }
-  | CWhen (e',i) ->
+  | CWhen (e',_i) ->
     { sexp with s_e_desc = (seq_exp e').s_e_desc }
-  | CWhennot (e',i) ->
+  | CWhennot (e',_i) ->
     { sexp with s_e_desc = (seq_exp e').s_e_desc }
   | CETuple el ->
     let iel = List.map (fun e -> seq_exp e) el in
     { sexp with s_e_desc = S_ETuple (iel) }
   | CMerge (e1,e2,e3) ->
-     (* failwith "I don't work with clocks yet" *)
+    (* failwith "I don't work with clocks yet" *)
     { sexp with s_e_desc = S_Alternative (seq_exp e1,
                                           seq_exp e2,
                                           seq_exp e3)
@@ -169,14 +168,14 @@ let rec seq_exp e =
 
 
 
-let seq_exp_list e name =
+let seq_exp_list e _name =
   let sexp = { s_e_desc = S_Unit; s_e_loc = e.ce_loc } in
   let rec seq_exp_list e acc =
     match e.ce_desc with
     | CValue v -> { sexp with s_e_desc = S_Value v}::acc
     | CVariable s -> { sexp with s_e_desc = S_Variable s}::acc
     | CUnit -> { sexp with s_e_desc = S_Unit}::acc
-    | CInfixOp (op,e1,e2) ->
+    | CInfixOp _ ->
       let e = seq_exp e in
       e::acc
     | CETuple el ->
@@ -187,14 +186,14 @@ let seq_exp_list e name =
           List.fold_left (fun acc e -> seq_exp_list e acc) ((seq_exp e)::acc) t
       end
     | _ -> (seq_exp e)::acc
-      (* Parsing_ast_printer.print_expression Format.std_formatter e; *)
-      (* raise @@ Invalid_argument "seq_exp_list" *)
+    (* Parsing_ast_printer.print_expression Format.std_formatter e; *)
+    (* raise @@ Invalid_argument "seq_exp_list" *)
   in
   seq_exp_list e [] |> List.rev
 
 
 (* Convert equations for the init function *)
-let seq_eqs_zero eqs sname env =
+let seq_eqs_zero eqs _sname _env =
   let rec seq_exp e =
     let sexp = { s_e_desc = S_Unit ; s_e_loc = e.ce_loc} in
     match e.ce_desc with
@@ -232,8 +231,8 @@ let seq_eqs_zero eqs sname env =
      * | CUnit -> { sexp with s_e_desc = S_Unit}
      * | CArrow (e1,e2) -> seq_exp e1
      * (\* | CPre e -> assert false *\) *)
-     | CFby (e,e') -> Printf.printf "FBY" ; seq_exp e
-     (* | CWhen (e',i) ->
+    | CFby (e,_e') -> Printf.printf "FBY" ; seq_exp e
+    (* | CWhen (e',i) ->
      *   { sexp with s_e_desc = (seq_exp e').s_e_desc}
      * | CWhennot (e',i) ->
      *   { sexp with s_e_desc = (seq_exp e').s_e_desc}
@@ -253,8 +252,8 @@ let seq_eqs_zero eqs sname env =
     let seq = { s_e_desc = S_Magic ; s_e_loc = eq.cexpression.ce_loc } in
     match eq.cpattern.p_desc with
     | Tuple pl ->
-       List.map (fun p -> { s_pattern = p;
-                            s_expression = seq })  pl
+      List.map (fun p -> { s_pattern = p;
+                           s_expression = seq })  pl
 
     | _ -> [{ s_pattern = eq.cpattern ; s_expression = seq} ]
   in
@@ -264,10 +263,10 @@ let seq_eqs_zero eqs sname env =
     | eq::eqs ->
       begin
         match eq.cexpression.ce_desc with
-        | CApplication (i,num,c,e') ->
+        | CApplication (i,_num,_c,_e') ->
           incr nb;
           let seq = { s_pattern = eq.cpattern ;
-                  s_expression = seq_exp eq.cexpression }
+                      s_expression = seq_exp eq.cexpression }
           in
           let seqs = split_eqs eq in
           (* let s = !nb in *)
@@ -308,41 +307,41 @@ let mk_condition (l:(bool * Clocking_ast.ident) list) =
     match l with
     | [] -> acc
     | [(b,v)] ->
-       let var = {sexp with s_e_desc = S_Variable v} in
-       let v = {sexp with s_e_desc = S_Value (Bool b)} in
-       let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in
-       { sexp with s_e_desc = S_InfixOp (S_And, e, acc) }
+      let var = {sexp with s_e_desc = S_Variable v} in
+      let v = {sexp with s_e_desc = S_Value (Bool b)} in
+      let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in
+      { sexp with s_e_desc = S_InfixOp (S_And, e, acc) }
     | (b,v)::l' ->
-       let var = {sexp with s_e_desc = S_Variable v} in
-       let v = {sexp with s_e_desc = S_Value (Bool b)} in
-       let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in
-       loop l' { sexp with s_e_desc = S_InfixOp (S_And, e, acc) }
+      let var = {sexp with s_e_desc = S_Variable v} in
+      let v = {sexp with s_e_desc = S_Value (Bool b)} in
+      let e = { sexp with s_e_desc = S_InfixOp (S_Equals,var,v) } in
+      loop l' { sexp with s_e_desc = S_InfixOp (S_And, e, acc) }
   in
   loop l {sexp with s_e_desc = S_Value (Bool true) }
 
 (* Convert equations for the step function  *)
-let rec seq_eqs_next eqs name env =
+let seq_eqs_next eqs name env =
   let rec seq_exp s e =
     let sexp = { s_e_desc = S_Unit; s_e_loc = e.ce_loc } in
     match e.ce_desc with
     | CArray _ | CArray_get _ | CImperative_update _ | CArray_fold _ | CArray_map _ -> failwith "todo"
     | CValue v -> { sexp with s_e_desc = S_Value v}
     | CVariable s -> { sexp with s_e_desc = S_Variable s }
-    | CApplication (i, num,c, e) ->
-       (* let conds = get_condition (Ck c) in *)
+    | CApplication (i, _num, _c, _e) ->
+      (* let conds = get_condition (Ck c) in *)
       let e = (try
-         let outputs = List.assoc i !env in
-         mk_outputs
-           ({ sexp with
-              s_e_desc = S_Field
-                  ({ sexp with s_e_desc = S_Variable "state"},
-                   name^"_"^i^string_of_int !nb^"_state")})
-           i outputs
-       with Not_found -> failwith ("unknown node "^i))
+                 let outputs = List.assoc i !env in
+                 mk_outputs
+                   ({ sexp with
+                      s_e_desc = S_Field
+                          ({ sexp with s_e_desc = S_Variable "state"},
+                           name^"_"^i^string_of_int !nb^"_state")})
+                   i outputs
+               with Not_found -> failwith ("unknown node "^i))
       in e
     (* {sexp with s_e_desc = S_Alternative(mk_condition conds,e,e)} *)
     | CCall (f,el) ->
-       let sel= List.map (fun e -> seq_exp s e) el in
+      let sel= List.map (fun e -> seq_exp s e) el in
       { sexp with s_e_desc = S_Call (f,sel) }
     | CInfixOp (op,e1,e2) ->
       { sexp with s_e_desc =
@@ -359,7 +358,7 @@ let rec seq_eqs_next eqs name env =
                                    seq_exp s e3)
       }
     | CUnit -> { sexp with s_e_desc = S_Unit }
-    | CArrow (e1,e2) -> seq_exp s e2
+    | CArrow (_e1,e2) -> seq_exp s e2
     (* | Pre e' ->
      *   begin
      *     match e'.e_desc with
@@ -367,7 +366,7 @@ let rec seq_eqs_next eqs name env =
      *     | Variable n -> { sexp with s_e_desc = S_Ref ("_pre_"^n)}
      *     | _ -> assert false
      *   end *)
-    | CFby (e,e') ->
+    | CFby (_e,e') ->
       begin
         match e'.ce_desc with
         | CValue v -> { sexp with s_e_desc = S_Value v}
@@ -404,34 +403,34 @@ let rec seq_eqs_next eqs name env =
     | eq :: eqs' ->
       let s = string_of_pattern eq.cpattern in
       begin match eq.cexpression.ce_desc with
-      (* For applications, we need to add another line to update the state ...  *)
-      | CApplication(i,num,c, e') ->
-         let conds = get_condition (Ck c) in
-         incr nb;
-         let seq = { s_pattern = eq.cpattern;
-                     s_expression = seq_exp s eq.cexpression } in
+        (* For applications, we need to add another line to update the state ...  *)
+        | CApplication(i,_num,c, e') ->
+          let conds = get_condition (Ck c) in
+          incr nb;
+          let seq = { s_pattern = eq.cpattern;
+                      s_expression = seq_exp s eq.cexpression } in
 
-         let params = seq_exp_list e' name in
-         let e = eq.cexpression in
-         let state =
-           { s_e_desc = S_Field(
-                            {s_e_desc = S_Variable "state";
-                             s_e_loc = Location.none}
-                           ,name^"_"^i^string_of_int !nb^"_state");
-             s_e_loc = e.ce_loc } in
-         let eunit = { s_e_desc = S_Unit ; s_e_loc = e.ce_loc } in
-         let e = { s_e_desc = S_Application (i^"_step",!nb, (state::params)); s_e_loc = e.ce_loc } in
-         let e = if conds = [] then e else { e with s_e_desc = S_Alternative(mk_condition conds,e,eunit)} in
+          let params = seq_exp_list e' name in
+          let e = eq.cexpression in
+          let state =
+            { s_e_desc = S_Field(
+                  {s_e_desc = S_Variable "state";
+                   s_e_loc = Location.none}
+                ,name^"_"^i^string_of_int !nb^"_state");
+              s_e_loc = e.ce_loc } in
+          let eunit = { s_e_desc = S_Unit ; s_e_loc = e.ce_loc } in
+          let e = { s_e_desc = S_Application (i^"_step",!nb, (state::params)); s_e_loc = e.ce_loc } in
+          let e = if conds = [] then e else { e with s_e_desc = S_Alternative(mk_condition conds,e,eunit)} in
           let eq' =
-          { s_pattern = { p_desc = PUnit ; p_loc = eq.cpattern.p_loc };
-            s_expression = e;
-          }
+            { s_pattern = { p_desc = PUnit ; p_loc = eq.cpattern.p_loc };
+              s_expression = e;
+            }
           in
           eq'::seq::(aux eqs')
         | _ ->
           let seq = { s_pattern = eq.cpattern;
                       s_expression = seq_exp (string_of_pattern eq.cpattern) eq.cexpression } in
-                    seq::(aux eqs')
+          seq::(aux eqs')
       end
   in
   aux eqs

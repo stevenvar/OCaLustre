@@ -51,7 +51,7 @@ let string_of_char_list cl =
 
 exception WrongClock of ck
 exception WrongCt of ct
-let rec check_clock_of_clock (c:ct) =
+let check_clock_of_clock (c:ct) =
   let c = Clocking_ocl.shorten_ct c in
   let rec aux c =
     match c with
@@ -64,7 +64,7 @@ let rec check_clock_of_clock (c:ct) =
   in
   match c with
   | Ck c -> aux c
-  | CkTuple cs -> raise (WrongCt c)
+  | CkTuple _cs -> raise (WrongCt c)
 
 (* raise (WrongCt c) *)
 
@@ -74,20 +74,20 @@ let rec cktuple_of_list l =
   | [ck] -> check_clock_of_clock ck
   | ck::cks -> Cktuple (check_clock_of_clock ck, cktuple_of_list cks)
 
-let rec check_clocks_of_clocks (c:ct) =
+let check_clocks_of_clocks (c:ct) =
   match c with
   | Ck _ -> (check_clock_of_clock c)
   | CkTuple (cks) -> cktuple_of_list cks
 
 
-let rec check_clock_of_clock_scheme (g,c: clk_scheme) =
+let check_clock_of_clock_scheme (_g,c: clk_scheme) =
   check_clock_of_clock c
 
-let rec check_binop_of_binop op =
+let check_binop_of_binop op =
   match op with
   | _ -> Binopop_int (* we don't care which binop it is as the binop doesnt interfere with the typing rule *)
 
-let rec check_constant_of_constant k =
+let check_constant_of_constant k =
   match k with
   | Integer _ -> Kint
   | Float _ -> Kfloat
@@ -165,14 +165,14 @@ let rec print_chk fmt c =
   | Ckbase -> Format.fprintf fmt "BASE"
   | Ckon (c,i) -> Format.fprintf fmt "(%a on %s)" print_chk c (string_of_char_list i)
   | Ckonnot (c,i) -> Format.fprintf fmt "(%a onnot %s)" print_chk c (string_of_char_list i)
-  | Cktuple (c,ck) -> Format.fprintf fmt "(%a)" print_tuple c
+  | Cktuple (c,_ck) -> Format.fprintf fmt "(%a)" print_tuple c
   | Ckarrow (c,c') -> Format.fprintf fmt "(%a -> %a)" print_chk c print_chk c'
 
 
 let rec check_pattern_of_pattern (cpattern: Parsing_ast.pattern) =
   match cpattern.p_desc with
     | Ident x -> Patp_var (char_list_of_string x)
-    | Typed (p,s) -> check_pattern_of_pattern p
+    | Typed (p,_s) -> check_pattern_of_pattern p
     | Tuple pl -> pattern_of_list  pl
     | PUnit -> Patp_nil
 
@@ -180,7 +180,7 @@ let rec check_pattern_of_pattern (cpattern: Parsing_ast.pattern) =
 let rec check_var_of_pattern (cpattern: Parsing_ast.pattern) =
   match cpattern.p_desc with
     | Ident x ->  (char_list_of_string x)
-    | Typed (p,s) -> check_var_of_pattern p
+    | Typed (p,_s) -> check_var_of_pattern p
     | PUnit -> failwith "not unit"
     | _ -> failwith "No tuples"
 
@@ -201,7 +201,7 @@ let check_equation_of_equation { cpattern; cexpression; cclock } =
        let le = check_lexp_of_cexpression e2 in
        let c = const_of_cexpression e1 in
        EqFby (check_var_of_pattern cpattern, clk, c, le)
-    | CApplication (i,n,c,e) ->
+    | CApplication (i,_n,c,e) ->
        let le = match e.ce_desc with CETuple es -> check_lexps_of_cexpressions es | _ -> check_lexps_of_cexpressions [e]  in
       EqApp (check_pattern_of_pattern cpattern,check_clock_of_clock (Ck c),char_list_of_string i, le)
     | CCall (f,el) ->
@@ -239,7 +239,7 @@ let check_node_of_node n =
     )
 
 let check_env_of_env env  =
-  let rec aux (s,clk) =
+  let aux (s,clk) =
     try
       (char_list_of_string s, check_clock_of_clock_scheme clk)
     with WrongClock ck ->
@@ -255,7 +255,7 @@ let check_env_of_env env  =
   List.map aux env
 
 let check_global_env_of_global_env global =
-  let rec aux (s,(clk1,xs1,clk2,xs2)) =
+  let aux (s,(clk1,xs1,clk2,xs2)) =
     try
       let name = char_list_of_string s in
       let inc = check_clocks_of_clocks clk1 in

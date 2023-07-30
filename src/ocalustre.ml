@@ -1,18 +1,13 @@
 open Ast_mapper
-open Ast_helper
 open Asttypes
 open Parsetree
-open Longident
 open Parsing_ocl
 open Parsing_ast
 open Parsing_ast_printer
 open Scheduler
-open Normalizing
 open Sequential_ast
 open Sequential_ast_printer
-open Proof_printer
 open Sequentialize2
-open Codegen
 open Imperative_ast2
 open Clocking_ast
 
@@ -23,13 +18,13 @@ let clocks = ref false
 let lustre = ref false
 let wcet = ref false
 let no_auto = ref false
-let why = ref false
+(* let why = ref false *)
 let nonalloc = ref false
 let check = ref false
 let delay = ref (-1)
 let typing = ref false
 let print_types = ref false
-let not_printed_wrapper = ref true
+(* let not_printed_wrapper = ref true *)
 let just_clock = ref false
 let main = ref ""
 let outputs_env = ref []
@@ -44,19 +39,18 @@ let typ_env = ref []
 
 (** Printing funs **)
 let print_steps _node _norm_node _sched_node _cnode _icnode =
-   Format.fprintf
-                Format.std_formatter
-                "(** Parsed Node **) \n %a \n (** Normalized Node **) \n %a (** Scheduled Node **) : \n %a \n (** Clocked Node **) \n %a \n (** Imperative Function **) \n %a"
-                print_node _node
-                print_node _norm_node
-                print_node _sched_node
-                Clocking_ast_printer.print_node (_cnode,!verbose)
-                Imperative_ast2.printml_node _icnode
+  Format.fprintf
+    Format.std_formatter
+    "(** Parsed Node **) \n %a \n (** Normalized Node **) \n %a (** Scheduled Node **) : \n %a \n (** Clocked Node **) \n %a \n (** Imperative Function **) \n %a"
+    print_node _node
+    print_node _norm_node
+    print_node _sched_node
+    Clocking_ast_printer.print_node (_cnode,!verbose)
+    Imperative_ast2.printml_node _icnode
 
-let print_why node =
-  let whyml = Proof_compiling.pcompile_cnode node in
-  whyml_node Format.std_formatter whyml
-
+(* let print_why node =
+   let whyml = Proof_compiling.pcompile_cnode node in
+   whyml_node Format.std_formatter whyml *)
 
 (** Extracting OCaml code funs **)
 let create_imperative_code node =
@@ -68,22 +62,22 @@ let create_imperative_code node =
   str
 
 let create_functional_code (node:Imperative_ast2.imp_node) =
-    let stri = if !main = string_of_pattern node.i_name then
-                 [Extracting2.tocaml_main node !delay]
-               else []
-    in
-    let str = Extracting2.tocaml_node node::stri in
-    str
+  let stri = if !main = string_of_pattern node.i_name then
+      [Extracting2.tocaml_main node !delay]
+    else []
+  in
+  let str = Extracting2.tocaml_node node::stri in
+  str
 
 
 (** Function that maps structure_items of the form :
 
-let%node NAME (IN1,IN2,...) ~return:(OUT1, OUT2, ...) =
-  OUT1 = EQ1;
-  ...
-  OUTX = EQX
+    let%node NAME (IN1,IN2,...) ~return:(OUT1, OUT2, ...) =
+    OUT1 = EQ1;
+    ...
+    OUTX = EQX
 
-into classic Ocaml code
+    into classic Ocaml code
 
  **)
 
@@ -91,14 +85,14 @@ let create_node mapper str =
   match str.pstr_desc with
   | Pstr_extension (({txt="node";_},PStr [s]),_) ->
     begin match s.pstr_desc with
-    | Pstr_value (_,[v]) ->
+      | Pstr_value (_,[v]) ->
         let _node = mk_node v.pvb_pat v.pvb_expr in
         (* let _norm_node = if !no_auto then _node else normalize_node _node in *)
         let _norm_node = if !no_auto then _node else Normalize2.norm_node _node in
         if !verbose then Format.fprintf
-                Format.std_formatter
-                "%a"
-                print_node _node;
+            Format.std_formatter
+            "%a"
+            print_node _node;
         let _sched_node = if !no_auto then _node else schedule _norm_node in
         begin
           if !lustre then Lustre_printer.to_lustre_file _node;
@@ -125,10 +119,10 @@ let create_node mapper str =
         end
       | _ -> Error.syntax_error s.pstr_loc "not a node"
     end
-  | x -> [default_mapper.structure_item mapper str]
+  | _x -> [default_mapper.structure_item mapper str]
 
 (** Custom mapper **)
-let lustre_mapper argv =
+let lustre_mapper _argv =
   { default_mapper with
     structure = fun mapper st -> let stl = List.map (create_node mapper) st in List.flatten stl }
 

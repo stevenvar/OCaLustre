@@ -1,7 +1,5 @@
 open Parsing_ast
-open Parsing_ocl
 open Parsing_ast_printer
-open Error
 open Imperative_ast
 
 
@@ -15,21 +13,21 @@ let rec get_dep_id e l  =
     let l' = get_dep_id e1 l in
     let l'' = get_dep_id e2 l' in
     get_dep_id e3 l''
-  | Application (i,num,e) ->
-      get_dep_id e l
-  | Call (f,el) ->
-     List.fold_left (fun acc e -> get_dep_id e acc) l el
-  | InfixOp (op, e1, e2) ->
+  | Application (_i,_num,e) ->
+    get_dep_id e l
+  | Call (_f,el) ->
+    List.fold_left (fun acc e -> get_dep_id e acc) l el
+  | InfixOp (_op, e1, e2) ->
     let l = get_dep_id e1 l in
     get_dep_id e2 l
-  | PrefixOp (op, e) ->
+  | PrefixOp (_op, e) ->
     get_dep_id e l
-  | Value v -> l
-  | Array el -> l
-  | Array_fold (e,f,e') ->
+  | Value _v -> l
+  | Array _el -> l
+  | Array_fold (e,_f,e') ->
     let l = get_dep_id e l in
     get_dep_id e' l
-  | Array_map (e,f) ->
+  | Array_map (e,_f) ->
     get_dep_id e l
   | Array_get (e,e') ->
     let l = get_dep_id e l in
@@ -41,8 +39,8 @@ let rec get_dep_id e l  =
   | Arrow (e1,e2) ->
     let l = get_dep_id e1 l in
     get_dep_id e2 l
-  | Pre e ->  l
-  | Fby (v,e) ->
+  | Pre _e ->  l
+  | Fby (v,_e) ->
     (* not dependent on e since it appears at the next instant *)
     get_dep_id v l
   | Clock e ->
@@ -67,14 +65,14 @@ let rec imp_get_dep_id e l  =
     imp_get_dep_id e3 l''
   | IApplication (i,num,e) ->
     let i = i^(string_of_int num)^"_step" in
-      imp_get_dep_id e (i::l)
-  | ICall e -> l
-  | IInfixOp (op, e1, e2) ->
+    imp_get_dep_id e (i::l)
+  | ICall _e -> l
+  | IInfixOp (_op, e1, e2) ->
     let l = imp_get_dep_id e1 l in
     imp_get_dep_id e2 l
-  | IPrefixOp (op, e) ->
+  | IPrefixOp (_op, e) ->
     imp_get_dep_id e l
-  | IValue v -> l
+  | IValue _v -> l
   | IUnit -> l
   | IETuple el -> List.fold_left (fun accu e -> imp_get_dep_id e accu) l el
   | IRefDef e ->
@@ -85,9 +83,9 @@ let rec imp_get_dep_id e l  =
 let rec get_id p =
   match p.p_desc with
   | Ident i -> i
-  | Tuple t -> Error.print_error p.p_loc "Not an ident"
+  | Tuple _t -> Error.print_error p.p_loc "Not an ident"
   | PUnit -> Error.print_error p.p_loc "Not an ident"
-  | Typed (p,t) -> get_id p
+  | Typed (p,_t) -> get_id p
 
 let rec contains e i =
   match e.pattern.p_desc with
@@ -99,13 +97,13 @@ let rec contains e i =
                                   e_loc = Location.none }}
           i || acc) false t
   | PUnit -> false
-  | Typed (p,t) ->
+  | Typed (p,_t) ->
     contains { pattern = p ;
                expression = { e_desc = Unit ;
                               e_loc = Location.none }} i
 
 
-let rec icontains e i =
+let icontains e i =
   match e.i_pattern.p_desc with
   | Ident j -> i = j
   | Tuple t ->
@@ -115,9 +113,9 @@ let rec icontains e i =
                                               e_loc = Location.none }} i || acc)
       false t
   | PUnit -> false
-  | Typed (p,s) -> contains { pattern = p ;
-                              expression = { e_desc = Unit ;
-                                             e_loc = Location.none }} i
+  | Typed (p,_s) -> contains { pattern = p ;
+                               expression = { e_desc = Unit ;
+                                              e_loc = Location.none }} i
 
 let rec find_eq_from_id i eqs =
   match eqs with
@@ -137,7 +135,7 @@ let rec get_ids p =
     let ids = List.map get_ids t in
     List.flatten ids
   | PUnit -> []
-  | Typed (p,s) -> get_ids p
+  | Typed (p,_s) -> get_ids p
 
 let mk_dep_graph (eqs : equation list) =
   let eq_dep eq =
@@ -156,8 +154,8 @@ let rec print_dep_graph g =
   let print_one_dep fmt (e,dep) =
     Format.fprintf fmt
       "%a depends on (%a)\n"
-    print_ident e
-    print_idents dep
+      print_ident e
+      print_idents dep
   in
   match g with
   | [] -> ()
@@ -218,18 +216,18 @@ let schedule_ieqs ieqs inputs =
 let schedule node =
   let inputs = get_ids node.inputs in
   try
-  let eqs_sorted = schedule_eqs node.equations inputs in
-  {
-    pre = node.pre;
-    post = node.post;
-    inv = node.inv;
-    name = node.name;
-    inputs = node.inputs;
-    outputs = node.outputs;
-    equations = eqs_sorted
-  }
+    let eqs_sorted = schedule_eqs node.equations inputs in
+    {
+      pre = node.pre;
+      post = node.post;
+      inv = node.inv;
+      name = node.name;
+      inputs = node.inputs;
+      outputs = node.outputs;
+      equations = eqs_sorted
+    }
   with CycleFound p ->
-    let print_vars fmt vs = Tools.print_list fmt (fun s ->
+    let print_vars fmt vs = Tools.print_list fmt (fun _ ->
         (Format.fprintf fmt "%s")) vs in
     let s = Format.asprintf "Causality loop in node \"%a\" with variables %a"
         print_pattern node.name
