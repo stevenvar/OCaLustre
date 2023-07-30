@@ -161,15 +161,10 @@ let%node call_tictoc () ~return:d =
 OCaLustre is still a prototype! But if you want to try it out, just do :
 
 ```
-  oasis setup && ./configure && make && make install
+  dune build @install && dune install 
 ```
 
-And use it with ocamlfind as any other package, for example :
-```
-  ocamlfind ocamlc -package ocalustre foo.ml
-```
-
-Or as a ppx preprocessor :
+And use it as a ppx preprocessor :
 
 ```
 ocamlc -ppx ocalustre tests/foo.ml
