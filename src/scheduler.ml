@@ -1,7 +1,5 @@
 open Parsing_ast
 open Parsing_ast_printer
-open Imperative_ast
-
 
 exception CycleFound of ident list
 
@@ -56,30 +54,6 @@ let rec get_dep_id e l  =
     let l = get_dep_id e2 l in
     get_dep_id e3 l
 
-let rec imp_get_dep_id e l  =
-  match e with
-  | IVariable i -> i::l
-  | IAlternative (e1,e2,e3) ->
-    let l' = imp_get_dep_id e1 l in
-    let l'' = imp_get_dep_id e2 l' in
-    imp_get_dep_id e3 l''
-  | IApplication (i,num,e) ->
-    let i = i^(string_of_int num)^"_step" in
-    imp_get_dep_id e (i::l)
-  | ICall _e -> l
-  | IInfixOp (_op, e1, e2) ->
-    let l = imp_get_dep_id e1 l in
-    imp_get_dep_id e2 l
-  | IPrefixOp (_op, e) ->
-    imp_get_dep_id e l
-  | IValue _v -> l
-  | IUnit -> l
-  | IETuple el -> List.fold_left (fun accu e -> imp_get_dep_id e accu) l el
-  | IRefDef e ->
-    imp_get_dep_id e l
-  | IRef v -> v::l
-  | _ -> l
-
 let rec get_id p =
   match p.p_desc with
   | Ident i -> i
@@ -102,31 +76,10 @@ let rec contains e i =
                expression = { e_desc = Unit ;
                               e_loc = Location.none }} i
 
-
-let icontains e i =
-  match e.i_pattern.p_desc with
-  | Ident j -> i = j
-  | Tuple t ->
-    List.fold_left
-      (fun acc p -> contains { pattern = p ;
-                               expression = { e_desc = Unit ;
-                                              e_loc = Location.none }} i || acc)
-      false t
-  | PUnit -> false
-  | Typed (p,_s) -> contains { pattern = p ;
-                               expression = { e_desc = Unit ;
-                                              e_loc = Location.none }} i
-
 let rec find_eq_from_id i eqs =
   match eqs with
   | [] -> failwith ("no equation : "^i)
   | h::t -> if contains h i then h else find_eq_from_id i t
-
-
-let rec find_ieq_from_id i eqs =
-  match eqs with
-  | [] -> failwith ("no equation : "^i)
-  | h::t -> if icontains h i then h else find_ieq_from_id i t
 
 let rec get_ids p =
   match p.p_desc with
@@ -189,28 +142,11 @@ let rec remove_dups lst= match lst with
   | [] -> []
   | h::t -> h::(remove_dups (List.filter (fun x -> x<>h) t))
 
-let imp_mk_dep_graph (eqs) =
-  let imp_eq_dep eq =
-    let dep = imp_get_dep_id eq.i_expression [] in
-    let ids = get_ids eq.i_pattern in
-    List.map (fun i -> (i,dep) ) ids
-  in
-  List.map (fun x -> (imp_eq_dep x)) eqs |> List.flatten
-
 let schedule_eqs eqs inputs =
   let g = mk_dep_graph eqs in
   let g = remove_inputs_dep inputs g in
   let ids_sorted = List.rev (toposort g) in
   let eqs_sorted= List.map (fun i -> find_eq_from_id i eqs) ids_sorted in
-  remove_dups eqs_sorted
-
-
-let schedule_ieqs ieqs inputs =
-  let g = imp_mk_dep_graph ieqs in
-  let g = remove_inputs_dep inputs g in
-
-  let ids_sorted = List.rev (toposort g) in
-  let eqs_sorted= List.map (fun i -> find_ieq_from_id i ieqs) ids_sorted in
   remove_dups eqs_sorted
 
 let schedule node =

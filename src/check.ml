@@ -52,7 +52,7 @@ let string_of_char_list cl =
 exception WrongClock of ck
 exception WrongCt of ct
 let check_clock_of_clock (c:ct) =
-  let c = Clocking_ocl.shorten_ct c in
+  let c = Clocking.shorten_ct c in
   let rec aux c =
     match c with
     | Clocking_ast.CkBase -> Ckbase

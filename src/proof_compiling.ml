@@ -1,4 +1,4 @@
-open Seq_proof_ast
+open Proof_ast
 open Parsing_ast
 
 let get_num , reset , get =

@@ -7,8 +7,8 @@ open Parsing_ast_printer
 open Scheduler
 open Sequential_ast
 open Sequential_ast_printer
-open Sequentialize2
-open Imperative_ast2
+open Sequentialize
+open Imperative_ast
 open Clocking_ast
 
 
@@ -46,7 +46,7 @@ let print_steps _node _norm_node _sched_node _cnode _icnode =
     print_node _norm_node
     print_node _sched_node
     Clocking_ast_printer.print_node (_cnode,!verbose)
-    Imperative_ast2.printml_node _icnode
+    Imperative_ast.printml_node _icnode
 
 (* let print_why node =
    let whyml = Proof_compiling.pcompile_cnode node in
@@ -61,12 +61,12 @@ let create_imperative_code node =
     Print_type.print_type str;
   str
 
-let create_functional_code (node:Imperative_ast2.imp_node) =
+let create_functional_code (node:Imperative_ast.imp_node) =
   let stri = if !main = string_of_pattern node.i_name then
-      [Extracting2.tocaml_main node !delay]
+      [Extracting.tocaml_main node !delay]
     else []
   in
-  let str = Extracting2.tocaml_node node::stri in
+  let str = Extracting.tocaml_node node::stri in
   str
 
 
@@ -88,7 +88,7 @@ let create_node mapper str =
       | Pstr_value (_,[v]) ->
         let _node = mk_node v.pvb_pat v.pvb_expr in
         (* let _norm_node = if !no_auto then _node else normalize_node _node in *)
-        let _norm_node = if !no_auto then _node else Normalize2.norm_node _node in
+        let _norm_node = if !no_auto then _node else Normalize.norm_node _node in
         if !verbose then Format.fprintf
             Format.std_formatter
             "%a"
@@ -99,7 +99,7 @@ let create_node mapper str =
           (* if !why then print_why _sched_node; *)
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           if !typing then typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
-          let (global_env, local_env, _cnode) = Clocking_ocl.clk_node !simpl_env _sched_node !clocks in
+          let (global_env, local_env, _cnode) = Clocking.clk_node !simpl_env _sched_node !clocks in
           let checked = if !check then (Check.check_node global_env local_env _cnode) else true in
           if !check then Format.printf "Checking of %a : %s \n" print_pattern _cnode.cname (if checked then "OK" else "FAIL");
           if checked then
@@ -107,7 +107,7 @@ let create_node mapper str =
               simpl_env := global_env;
               if !just_clock then [%str ] else
                 begin
-                  let _icnode = Compiling_ocl.compile_cnode _cnode in
+                  let _icnode = Compiling.compile_cnode _cnode in
                   if !verbose then (
                     print_steps _node _norm_node _sched_node _cnode _icnode);
                   if not !nonalloc then create_functional_code _icnode

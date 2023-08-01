@@ -4,7 +4,7 @@ open Longident
 open Parsing_ast
 open Sequential_ast
 open Ast_helper
-open Sequentialize
+open Sequential_ast_printer
 
 let lid_of_ident ?(prefix="") ?(suffix="") i =
   {
@@ -407,11 +407,11 @@ let tocaml_main inode _delay wcet =
       end_loop ();
     ] in
   let e_simple =
-    [%expr  let _st = [%e apply_init ] in 
+    [%expr  let _st = [%e apply_init ] in
       while true do
         [%e all_input_funs name inode.s_zero.s_inputs
             apply_update ] ;
-        [%e apply_output ] done ] in                        
+        [%e apply_output ] done ] in
   let e = if wcet then e_wcet else e_simple in
   let eloop =  [%expr
     initialize ();

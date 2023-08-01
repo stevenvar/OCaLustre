@@ -1,274 +1,224 @@
-
-open Parsetree
+open Clocking_ast
 open Imperative_ast
 open Parsing_ast
-open Error
-open Scheduler
-
-module IdentSet = Set.Make(
-  struct
-    let compare = Pervasives.compare
-    type t = ident
-  end )
-
-let get_num , reset , get =
-  let cpt = ref 0 in
-  (fun () -> incr cpt; !cpt) , (fun () -> cpt := 0 ) , (fun () -> !cpt)
-
-let rec get_ident p =
-  match p.p_desc with
-  | Ident i -> i
-  | Typed (p,s) -> get_ident p
-  | _ -> Error.print_error p.p_loc "Not an ident"
-
-let rec compile_expression e p =
-  let compile_preop op =
-    match op with
-    | Not -> INot
-    | Neg -> INeg
-    | Negf -> INegf
-  in
-  let compile_infop op =
-    match op with
-    | Equals -> IEquals
-    | Plus -> IPlus
-    | Minus -> IMinus
-    | Times -> ITimes
-    | Div -> IDiv
-    | Diff -> IDiff
-    | Plusf -> IPlusf
-    | Minusf -> IMinusf
-    | Timesf -> ITimesf
-    | Divf -> IDivf
-    | Inf -> IInf
-    | Infe -> IInfe
-    | Sup -> ISup
-    | Supe -> ISupe
-    | Bor -> IOr    | Band -> IAnd
-    | Mod -> IMod
-  in
-  match e.e_desc with
-  | Value v -> IValue v
-  | Variable s -> IVariable s
-  | Array el -> IArray (List.map (fun e -> compile_expression e p) el)
-  | Array_fold (e,f,acc) ->
-    IArray_fold (compile_expression e p, f, compile_expression acc p)
-  | Array_map (e,f) ->
-    IArray_map (compile_expression e p, f)
-  | Imperative_update (e,pe) ->
-    let pe = List.map (fun (e1,e2) -> compile_expression e1 p, compile_expression e2 p) pe in
-    IImperative_update (compile_expression e p,pe )
-  | Array_get (e,e') ->
-    IArray_get(compile_expression e p, compile_expression e' p)
-  | Application (i, num, e) ->
-    (* let name = i^(string_of_int num)^"_step" in *)
-    IApplication (i, num, compile_expression e p)
-  | Call e ->
-    ICall e
-  | InfixOp (op,e1,e2) ->
-    IInfixOp(compile_infop op,
-             compile_expression e1 p,
-             compile_expression e2 p)
-  | PrefixOp (op, e) ->
-    IPrefixOp (compile_preop op, compile_expression e p)
-  | Alternative (e1,e2,e3) ->
-    IAlternative (compile_expression e1 p,
-                  compile_expression e2 p,
-                  compile_expression e3 p)
-  | Unit -> IUnit
-  | Pre _ | Arrow _ -> assert false
-  | Fby (v,e') -> IRef ("st_"^(get_ident p))
-  | When (e',i) ->
-    IAlternative ((compile_expression i p),
-                  (compile_expression e' p),
-                  IValue Nil)
-  | Whennot (e',i) ->
-    IAlternative ((compile_expression i p),
-                  IValue Nil,
-                  (compile_expression e' p))
-  | ETuple el ->
-    let iel = List.map (fun e -> compile_expression e p) el in
-    IETuple (iel)
-  | Merge (e1,e2,e3) ->
-    IAlternative (compile_expression e1 p,
-                  compile_expression e2 p,
-                  compile_expression e3 p)
-
-let rec pre_pattern p =
-  let rec new_desc = match p.p_desc with
-    | Ident i -> Ident ("st_"^i)
-    | Tuple t -> Tuple (List.map pre_pattern t)
-    | PUnit -> PUnit
-    | Typed (p',s) -> (pre_pattern p').p_desc
-  in
-  { p with p_desc = new_desc }
-
-let generate_fby_inits el =
-  let generate_init e l =
-    match e.expression.e_desc with
-    | Fby (v, e') -> { i_pattern = pre_pattern e.pattern ; i_expression =  IRefDef (compile_expression v e.pattern)}::l
-                     (*
-      begin
-      match v.e_desc with
-      | Value v -> ( e.pattern , IValue v)::l
-      | _ -> Error.syntax_error v.e_loc
-      end
-*)
-
-    | _ -> l
-  in
-  List.fold_left (fun acc e -> generate_init e acc) [] el
-
-let generate_app_inits el =
-let rec generate_init e {p_desc ; p_loc} l =
-  match e with
-  | IApplication (i,num,el') ->
-    let p_desc = Ident (i^(string_of_int num)^"_step") in
-    (* {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,el')}::l *)
-    {i_pattern = {p_desc ; p_loc} ; i_expression =  IApplication_init (i,IUnit)}::l
-  | _ -> l
-in
-List.fold_left (fun acc e -> generate_init e.i_expression e.i_pattern acc) [] el
-
-(*
-let rec get_dep_eq e l el ins : equation list =
-  match e.e_desc with
-  | Variable v ->
-    if List.mem v ins then l else
-      let dep = (find_eq_from_id v el) in
-      let dep_of_dep = get_dep_eq dep.expression l el ins in
-      let deps = dep::(diff el dep_of_dep) in
-        deps@l
-  | Alternative (e1,e2,e3) ->
-    let l1 = get_dep_eq e1 l el ins in
-    let l2 = get_dep_eq e2 l1 el ins in
-    let l3 = get_dep_eq e3 l2 el ins in
-    l3
-  | Application (i,e) ->
-    get_dep_eq e l el ins
-  | ETuple es ->
-    let ids = List.fold_left (fun acc e -> get_dep_eq e acc el ins) l es in
-    ids
-  | _ -> l
-*)
-
-(*
-let dep_of_init e l =
-  let deps = match e.e_desc with
-    | Fby (e1,_) -> get_dep_id e1 l
-    | Application (i,e)  -> get_dep_id e l
-    | _ -> l
-  in
-  deps
-*)
-
-let rec get_dep e s el ins =
-  match e with
-  | IVariable v ->
-
-    if List.mem v ins then s else
-    let eq = (find_ieq_from_id v el).i_expression in
-    let deps = get_dep eq s el ins in
-    IdentSet.add v deps
-  | IAlternative (e1,e2,e3) ->
-    let s1 = get_dep e1 s el ins in
-    let s2 = get_dep e2 s1 el ins in
-    let s3 = get_dep e3 s2 el ins in
-    s3
-  | IApplication (i,_,e) ->
-    get_dep e s el ins
-  | ICall _ -> s
-  | IRef v -> s
-  | IRefDef e -> get_dep e s el ins
-  | IInfixOp (_,e1,e2) ->
-    let s1 = get_dep e1 s el ins in
-    let s2 = get_dep e2 s1 el ins in
-    s2
-  | IPrefixOp (_,e) ->
-    get_dep e s el ins
-  | IETuple ee ->
-    List.fold_left (fun acc e -> get_dep e acc el ins) s ee
-  | _ -> s
-
-let generate_inits (el : imp_equation list) inputs  =
-  let rec generate_init e s =
-    match e with
-    | IRefDef e -> get_dep e s el inputs
-    | IApplication (_,_,e') -> get_dep e' s el inputs
-    | _ -> s
-  in
-  let set_ids = List.fold_left (fun acc e -> generate_init e.i_expression acc) IdentSet.empty el in
-  let ids = IdentSet.elements set_ids in
-
-  let ids = diff ids inputs in
-  let eqs = List.map (fun i -> find_ieq_from_id i el) ids in
-  eqs
-
-let init_pre cnode =
-  let rec gen_pre name exp l =
-    match exp.e_desc with
-    | Fby (v, e') -> gen_pre name e' l
-    | _ -> l
-  in
-  List.fold_left
-    (fun acc e -> gen_pre e.pattern e.expression acc)
-    []
-    cnode.equations
+open Tools
 
 
-let generate_updates cnode =
-  let aux eq l =
-    match eq.expression.e_desc with
-    | Fby (v,e') -> { i_pattern = pre_pattern eq.pattern ; i_expression = compile_expression e' eq.pattern}::l
-    | _ -> l
-  in
-  List.fold_left (fun acc e -> aux e acc) [] cnode.equations
 
+let rec extract_conds c =
+  begin
+    match Clocking.shorten_ck c with
+    | Ckon (x,c) ->
+      (true,c)::(extract_conds x)
+    | Ckonnot (x,c) ->
+      (false,c)::(extract_conds x)
+    | _ -> []
+  end
 
-let compile_equation e =
-  let pat = e.pattern in
-  {
-    i_pattern = pat;
-    i_expression = compile_expression e.expression pat;
-  }
-
-let rec to_list p =
-  match p.p_desc with
-  | PUnit -> []
-  | Ident x -> [x]
-  | Tuple t -> List.fold_left (fun acc p -> to_list p @ acc) [] t
-  | Typed (p',s) -> to_list p'
-
-let compile_condition c =
+let rec get_condition c =
   match c with
-  | Some x -> Some (compile_expression x { p_desc = PUnit ; p_loc = Location.none} )
-  | None -> None
+  | Ck c -> extract_conds c
+  | CkTuple cs -> List.fold_left (fun acc x -> acc@get_condition x)
+                    []
+                    cs
 
-let compile_cnode node =
-  reset ();
-  let inputs = to_list node.inputs in
-  let i_eqs = List.map (compile_equation) node.equations in
-  (* let i_inits = generate_inits i_eqs inputs in *)
-  let i_inits = [] in
-  let i_fby_inits = generate_fby_inits node.equations in
-  let i_app_inits = generate_app_inits i_eqs in
-  let i_all_inits = schedule_ieqs (i_fby_inits@i_inits@i_app_inits) inputs in
-  (* let i_all_inits = (i_fby_inits@i_inits@i_app_inits) in *)
-  {
-    i_pre = None ;
-    (* compile_condition node.pre; *)
-    i_post = None;
-    (* compile_condition node.post; *)
-    i_inv = None;
-    (* compile_condition node.inv; *)
-    i_name = node.name ;
-    i_inputs = node.inputs;
-    i_outputs = node.outputs;
-    i_inits =  (i_all_inits);
-    i_app_inits = [];
-    i_fby_inits = [];
-    i_step_fun = {
-      i_equations = i_eqs;
-      i_updates = generate_updates node
+let compile_preop op =
+  match op with
+  | Not -> INot
+  | Neg -> INeg
+  | Negf -> INegf
+
+let compile_infop op =
+  match op with
+  | Equals -> IEquals
+  | Plus -> IPlus
+  | Minus -> IMinus
+  | Times -> ITimes
+  | Div -> IDiv
+  | Diff -> IDiff
+  | Plusf -> IPlusf
+  | Minusf -> IMinusf
+  | Timesf -> ITimesf
+  | Divf -> IDivf
+  | Inf -> IInf
+  | Infe -> IInfe
+  | Sup -> ISup
+  | Supe -> ISupe
+  | Bor -> IOr    | Band -> IAnd
+  | Mod -> IMod
+
+let rec compile_expression_init i e c =
+  let ce = fun e -> compile_expression_init i e c in
+  let compile_desc d =
+    match d with
+    | CValue v -> IValue v
+    | CVariable s -> IVariable s
+    | CApplication (i,num,c, e) -> IApplication(get_condition (Ck c),i,num,ce e)
+    (* | Condact (l,e') -> ICondact(l,ce e') *)
+    | CCall (f,el) -> ICall (f,List.map ce el)
+    | CInfixOp (op,e1,e2) -> IInfixOp(compile_infop op, ce e1, ce e2)
+    | CPrefixOp (op, e) -> IPrefixOp (compile_preop op, ce e)
+    | CAlternative (e1,e2,e3) -> IAlternative (ce e1, ce e2, ce e3)
+    | CUnit -> IUnit
+    | CPre _ ->
+      (* Error.syntax_error e.ce_loc
+         "A pre cannot be on the left side of an equation" *)
+      IRef("pre_"^i)
+    | CArrow (e1,_e2) -> (ce e1).i_desc
+    | CFby (v,_e') -> (ce v).i_desc
+    | CWhen (e',_i) -> (ce e').i_desc
+    (* IAlternative (ce i, ce e', IValue Nil) *)
+    | CWhennot (e',_i) -> (ce e').i_desc
+    (* IAlternative (ce i, IValue Nil, ce e') *)
+    | CETuple el ->
+      let iel = List.map (fun e -> ce e) el in
+      IETuple (iel)
+    | CMerge (e1,e2,e3) -> IAlternative (ce e1, ce e2, ce e3)
+    | _ -> failwith "todo"
+  in
+  { i_desc = compile_desc e.ce_desc ; i_loc = e.ce_loc }
+
+let rec compile_expression_step i e c =
+  let ce = fun e -> compile_expression_step i e c in
+  let compile_desc d =
+    match d with
+    | CValue v -> IValue v
+    | CVariable s -> IVariable s
+    | CApplication (i,num,c,e') ->
+      let conds = get_condition (Ck c) in
+      IApplication(conds,i,num,ce e')
+    | CCall (f,el) -> ICall (f, List.map ce el)
+    | CInfixOp (op,e1,e2) ->
+      IInfixOp(compile_infop op, ce e1, ce e2)
+    | CPrefixOp (op, e) ->
+      IPrefixOp (compile_preop op, ce e)
+    | CAlternative (e1,e2,e3) ->
+      IAlternative (ce e1, ce e2, ce e3)
+    | CUnit -> IUnit
+    | CPre _ -> IRef ("pre_"^i)
+    | CArrow (_,e2) -> (ce e2).i_desc
+    | CFby _ -> IRef (i^"_fby")
+    | CWhen (e',_i) -> (ce e').i_desc
+    (* IAlternative (ce i, ce e', IValue Nil) *)
+    | CWhennot (e',_i) ->
+      (ce e').i_desc
+    (* IAlternative (ce i, IValue Nil, ce e') *)
+    | CETuple el ->
+      let iel = List.map (fun e -> ce e) el in
+      IETuple (iel)
+    | CMerge (e1,e2,e3) ->
+      IAlternative (ce e1, ce e2, ce e3)
+    | CArray el -> IArray (List.map (fun e -> ce e) el)
+    | CArray_fold (e,f,acc) ->
+      IArray_fold (ce e, f, ce acc)
+    | CArray_map (e,f) ->
+      IArray_map (ce e, f)
+    | CImperative_update (e,pe) ->
+      let pe = List.map (fun (e1,e2) -> ce e1, ce e2) pe in
+      IImperative_update (ce e,pe )
+    | CArray_get (e,e') ->
+      IArray_get(ce e, ce e')
+    | _ -> failwith "todo"
+  in
+  { i_desc = compile_desc e.ce_desc ; i_loc = e.ce_loc }
+
+let compile_equation_init eq =
+  { i_pattern = eq.cpattern;
+    i_expression = compile_expression_init
+        (get_ident eq.cpattern)
+        eq.cexpression
+        eq.cclock;
+    i_condition = [] }
+
+let compile_equation_step eq =
+  { i_pattern = eq.cpattern;
+    i_expression = compile_expression_step
+        (get_ident eq.cpattern)
+        eq.cexpression
+        eq.cclock;
+    i_condition = [] }
+
+let get_updates_init eqs =
+  let aux eq l =
+    match eq.cexpression.ce_desc with
+    | CFby (e1,_e2) -> { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
+                         i_expression = compile_expression_init
+                             (get_ident eq.cpattern) e1 eq.cclock;
+                         i_condition = [] }::l
+
+    | _ -> l
+  in
+  List.fold_left (fun acc x -> aux x acc) [] eqs
+
+let get_updates_step eqs =
+  let aux eq l =
+    match eq.cexpression.ce_desc with
+    | CFby (_e1,e2) ->
+      let cond = get_condition eq.cclock in
+      { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
+        i_expression = compile_expression_step
+            (get_ident eq.cpattern) e2 eq.cclock;
+        i_condition = cond }::l
+    | CPre e -> { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
+                  i_expression = compile_expression_step
+                      (get_ident eq.cpattern) e eq.cclock;
+                  i_condition = [] }::l
+    | _ -> l
+  in
+  List.fold_left (fun acc x -> aux x acc) [] eqs
+
+let get_init_fby eqs =
+  let aux eq l =
+    match eq.cexpression.ce_desc with
+    | CFby (e1,_e2) ->
+      let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e1 eq.cclock) in
+      { i_pattern = suffix_pattern ~suf:"_fby" eq.cpattern;
+        i_expression = { i_desc = desc; i_loc = e1.ce_loc};
+        i_condition = [] }::l
+    | _ -> l
+  in
+  List.fold_left (fun acc x -> aux x acc) [] eqs
+
+let get_app_inits eqs =
+  let aux (p,e) l =
+    match e.ce_desc with
+    (* | Condact(k,e) -> aux (p,e) l *)
+    | CApplication (i,num,_c,e) ->
+      let app = { p with p_desc = Ident (i^(string_of_int num)^"_app")} in
+      { i_pattern = app ;
+        i_expression =
+          { i_desc = IApplication_init (i,{i_desc = IUnit; i_loc = e.ce_loc});
+            i_loc = e.ce_loc};
+        i_condition = [] }::l
+    | _ -> l
+  in
+  List.fold_left (fun acc x -> aux (x.cpattern,x.cexpression) acc) [] eqs
+
+let get_init_pres eqs =
+  let aux eq l =
+    match eq.cexpression.ce_desc with
+    | CPre e ->  let desc = IRefDef(compile_expression_step (get_ident eq.cpattern) e eq.cclock) in
+      { i_pattern = prefix_pattern ~pre:"pre_" eq.cpattern;
+        i_expression = { i_desc = desc ; i_loc = e.ce_loc };
+        i_condition = [] }::l
+    | _ -> l
+  in
+  List.fold_left (fun acc x -> aux x acc) [] eqs
+
+let compile_cnode cnode =
+  let equations_step = List.map compile_equation_step cnode.cequations in
+  let fby_updates_step = get_updates_step cnode.cequations in
+  let init_fby = get_init_fby cnode.cequations in
+  let init_apps = get_app_inits cnode.cequations in
+  { i_name = cnode.cname;
+    i_inputs = cnode.cinputs;
+    i_outputs = cnode.coutputs;
+    i_init = {
+      i_init_apps = init_apps;
+      i_init_fby = init_fby;
+    };
+    i_step = {
+      i_step_equations = equations_step;
+      i_step_updates = fby_updates_step
     }
   }
