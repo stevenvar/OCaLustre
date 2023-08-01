@@ -49,8 +49,8 @@ let print_steps _node _norm_node _sched_node _cnode _icnode =
     Imperative_ast.printml_node _icnode
 
 let print_why node =
-   let whyml = Proof_compiling.pcompile_cnode node in
-   Proof_printer.whyml_node Format.std_formatter whyml
+  let whyml = Proof_compiling.pcompile_cnode node in
+  Proof_printer.whyml_node Format.std_formatter whyml
 
 (** Extracting OCaml code funs **)
 let create_imperative_code node =
@@ -129,18 +129,17 @@ let lustre_mapper _argv =
 (** Entry point **)
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
-                  ("-y", Arg.Set why, "Prints whyml code");
                   ("-n", Arg.Set no_auto, "Don't normalize, don't schedule");
-                  ("-l", Arg.Set lustre, "Prints lustre node");
-                  ("-na", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
-                  ("-m", Arg.Set_string main, "Generate main function");
-                  ("-i", Arg.Set clocks, "Prints node clocks");
+                  ("-c", Arg.Set clocks, "Prints node clocks");
                   ("-t", Arg.Set typing, "Prints node type");
-                  ("-d", Arg.Set_int delay, "Set a main loop frequency (in ms delay)");
-                  ("-clk", Arg.Set just_clock, "Just infer clocks, and stop");
-                  ("-wcet", Arg.Set wcet, "Create bytecode compatible with bytecrawler");
-                  ("-check_clocks", Arg.Set check, "Check clock inference");
-                  ("-t", Arg.Set print_types, "Prints node types");]
+                  ("--why", Arg.Set why, "Prints whyml code");
+                  ("--lustre", Arg.Set lustre, "Prints lustre node");
+                  ("--nonalloc", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
+                  ("--main", Arg.Set_string main, "Generate main function");
+                  ("--delay", Arg.Set_int delay, "Set a main loop frequency (in ms delay)");
+                  ("--clock", Arg.Set just_clock, "Just infer clocks, and stop");
+                  ("--wcet", Arg.Set wcet, "Create bytecode compatible with bytecrawler");
+                  ("--check-clocks", Arg.Set check, "Check clock inference");]
   in let usage_msg = "OCaLustre : "
   in Arg.parse speclist print_endline usage_msg;
   register "ocalustre" lustre_mapper
