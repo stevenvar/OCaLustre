@@ -18,7 +18,7 @@ let clocks = ref false
 let lustre = ref false
 let wcet = ref false
 let no_auto = ref false
-(* let why = ref false *)
+let why = ref false
 let nonalloc = ref false
 let check = ref false
 let delay = ref (-1)
@@ -48,9 +48,9 @@ let print_steps _node _norm_node _sched_node _cnode _icnode =
     Clocking_ast_printer.print_node (_cnode,!verbose)
     Imperative_ast.printml_node _icnode
 
-(* let print_why node =
+let print_why node =
    let whyml = Proof_compiling.pcompile_cnode node in
-   whyml_node Format.std_formatter whyml *)
+   Proof_printer.whyml_node Format.std_formatter whyml
 
 (** Extracting OCaml code funs **)
 let create_imperative_code node =
@@ -77,7 +77,7 @@ let create_functional_code (node:Imperative_ast.imp_node) =
     ...
     OUTX = EQX
 
-    into classic Ocaml code
+    into classic OCaml code
 
  **)
 
@@ -96,7 +96,7 @@ let create_node mapper str =
         let _sched_node = if !no_auto then _node else schedule _norm_node in
         begin
           if !lustre then Lustre_printer.to_lustre_file _node;
-          (* if !why then print_why _sched_node; *)
+          if !why then print_why _sched_node;
           (* mini_env := Miniclock.clock_node !mini_env _sched_node; *)
           if !typing then typ_env := Minitypes.typ_node !typ_env _sched_node !clocks;
           let (global_env, local_env, _cnode) = Clocking.clk_node !simpl_env _sched_node !clocks in
@@ -129,7 +129,7 @@ let lustre_mapper _argv =
 (** Entry point **)
 let _ =
   let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
-                  (* ("-y", Arg.Set why, "Prints whyml code"); *)
+                  ("-y", Arg.Set why, "Prints whyml code");
                   ("-n", Arg.Set no_auto, "Don't normalize, don't schedule");
                   ("-l", Arg.Set lustre, "Prints lustre node");
                   ("-na", Arg.Set nonalloc, "Generate non-allocating code (state passing style)");
