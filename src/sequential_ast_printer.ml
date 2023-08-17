@@ -117,7 +117,9 @@ let rec print_s_expression fmt (exp,name) =
                        s
   | S_List el -> Format.fprintf fmt "%a"
                    print_s_list el
-  | S_Call _e -> Format.fprintf fmt "(...)"
+  | S_Call (f,e) -> Format.fprintf fmt "%s %a"
+                      f
+                      print_s_expression (e,name)
   | S_Constr s -> Format.fprintf fmt "%s" s
   | S_ETuple el -> Format.fprintf fmt "%a"
                      print_s_expressions el

@@ -5,6 +5,7 @@ let print_value fmt v =
   | Integer i -> Format.fprintf fmt "%d" i
   | Bool b -> Format.fprintf fmt "%b" b
   | Float f -> Format.fprintf fmt "%f" f
+  | Char c -> Format.fprintf fmt "%c" c
   | String str -> Format.fprintf fmt "\"%s\"" str
   | Nil -> Format.fprintf fmt "nil"
   | Enum s -> Format.fprintf fmt "%s" s
@@ -81,7 +82,7 @@ let rec print_expression fmt e =
   | Array_map (e,f) ->Format.fprintf fmt "%a.map(%a)" print_expression e Pprintast.expression f
   | Imperative_update (e,el) -> Format.fprintf fmt "%a where (%a)" print_expression e print_update_list el
   | Alternative (e1,e2,e3) ->
-    Format.fprintf fmt  "(if (%a) then (%a) else (%a))"
+    Format.fprintf fmt  "(if %a then %a else (%a))"
       print_expression e1
       print_expression e2
       print_expression e3
@@ -89,8 +90,8 @@ let rec print_expression fmt e =
      Format.fprintf fmt "(%a %a)"
                     print_ident i
                     print_expression e
-  | Call (f,el) ->
-     Format.fprintf fmt "(call %s %a)" f print_expression_list el
+  | Call (f,e) ->
+     Format.fprintf fmt "(call %s %a)" f print_expression e
   | InfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
@@ -112,18 +113,18 @@ let rec print_expression fmt e =
   | When (e1,e2) -> Format.fprintf fmt "(%a when %a)"
                       print_expression e1
                       print_expression e2
-  | Whennot (e1,e2) -> Format.fprintf fmt "( %a whennot %a )"
+  | Whennot (e1,e2) -> Format.fprintf fmt "(%a whennot %a)"
                          print_expression e1
                          print_expression e2
   | ETuple el -> Format.fprintf fmt "(%a)"
                    print_expression_list el
   | Merge (e1,e2,e3) ->
-    Format.fprintf fmt  "(merge (%a) (%a) (%a))"
+    Format.fprintf fmt  "(merge %a %a %a)"
       print_expression e1
       print_expression e2
       print_expression e3
   | Clock e ->
-    Format.fprintf fmt "clock %a"
+    Format.fprintf fmt "(clock %a)"
       print_expression e
 
 let print_equation fmt e =

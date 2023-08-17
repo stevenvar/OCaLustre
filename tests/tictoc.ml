@@ -3,7 +3,7 @@ let%node tictoc c ~return:y =
   b := 2 [@ whennot c];
   y := merge c a b
 
-let%node call_tictoc () ~return:d = 
+let%node call_tictoc () ~return:d =
   c := true >>> (false >>> c);
   d := tictoc c
 

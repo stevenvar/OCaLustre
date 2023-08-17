@@ -22,7 +22,7 @@ and imp_expr_desc =
   | ICondact of (bool * ident) list * imp_expr
   | IApplication of (bool*ident) list * ident * int * imp_expr
   | IApplication_init of ident * imp_expr
-  | ICall of ident * imp_expr list
+  | ICall of ident * imp_expr
   | IRef of ident
   | IRefDef of imp_expr
   | IInfixOp of imp_infop * imp_expr * imp_expr
@@ -171,9 +171,8 @@ let rec printml_expression fmt exp =
     Format.fprintf fmt "(%s %a)"
       i
       printml_expression e
-  (* | ICall e -> Format.fprintf fmt "🐫" *)
-  | ICall (f,el) ->
-    Format.fprintf fmt "%s %a" f printml_expressions el
+  | ICall (f,e) ->
+    Format.fprintf fmt "%s %a" f printml_expression e
   | IConstr s -> Format.fprintf fmt "%s" s
   | IETuple el -> Format.fprintf fmt "(%a)"
                     printml_expressions el
@@ -186,7 +185,7 @@ let rec printml_expression fmt exp =
 let printml_updates fmt il =
   let aux fmt ({ i_pattern = s ; i_expression = e; _} as eq) =
     match e with
-    | x -> Format.fprintf fmt "\t if %a then %a := %a;\n"
+    | x -> Format.fprintf fmt "  if %a then %a := %a;\n"
              print_cond_list eq.i_condition
              print_pattern s
              printml_expression x
@@ -195,7 +194,7 @@ let printml_updates fmt il =
 
 let printml_equations fmt el =
   let printml_equation fmt e =
-    Format.fprintf fmt "\tlet %a = %a in \n"
+    Format.fprintf fmt "  let %a = %a in \n"
       print_pattern e.i_pattern
       printml_expression e.i_expression
   in
@@ -219,7 +218,7 @@ let printml_step fmt step =
 let printml_inits fmt il =
   let printml_init fmt { i_pattern = s ; i_expression = e; _} =
     begin match e with
-      | x -> Format.fprintf fmt "\tlet %a = %a in\n"
+      | x -> Format.fprintf fmt "  let %a = %a in\n"
                print_pattern s
                printml_expression x
     end
@@ -227,7 +226,7 @@ let printml_inits fmt il =
   List.iter (fun i -> printml_init fmt i) il
 
 let printml_node fmt node =
-  Format.fprintf fmt "\nlet %a () =\n%a\tfun %a -> \n %a\t%a\n"
+  Format.fprintf fmt "let %a () =\n%a  fun %a -> \n%a  %a\n"
     print_pattern node.i_name
     printml_init node.i_init
     print_pattern node.i_inputs

@@ -18,6 +18,7 @@ and  equation = {
 and value = Integer of int
           | Float of float
           | Bool of bool
+          | Char of char
           | String of string
           | Enum of string
           | Nil
@@ -56,7 +57,7 @@ and exp_desc =
   (* | Current of expression *)
   | Arrow of expression * expression
   | Merge of expression * expression * expression
-  | Call of ident * expression list
+  | Call of ident * expression
   | Clock of expression
   | Unit
 and inf_operator =

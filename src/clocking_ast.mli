@@ -40,7 +40,7 @@ and cexp_desc =
   | CPre of cexpression
   | CArrow of cexpression * cexpression
   | CMerge of cexpression * cexpression * cexpression
-  | CCall of (ident * cexpression list)
+  | CCall of ident * cexpression
   | CUnit
 
 

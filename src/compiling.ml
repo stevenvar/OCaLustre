@@ -55,7 +55,7 @@ let rec compile_expression_init i e c =
     | CVariable s -> IVariable s
     | CApplication (i,num,c, e) -> IApplication(get_condition (Ck c),i,num,ce e)
     (* | Condact (l,e') -> ICondact(l,ce e') *)
-    | CCall (f,el) -> ICall (f,List.map ce el)
+    | CCall (f,e) -> ICall (f, ce e)
     | CInfixOp (op,e1,e2) -> IInfixOp(compile_infop op, ce e1, ce e2)
     | CPrefixOp (op, e) -> IPrefixOp (compile_preop op, ce e)
     | CAlternative (e1,e2,e3) -> IAlternative (ce e1, ce e2, ce e3)
@@ -87,7 +87,7 @@ let rec compile_expression_step i e c =
     | CApplication (i,num,c,e') ->
       let conds = get_condition (Ck c) in
       IApplication(conds,i,num,ce e')
-    | CCall (f,el) -> ICall (f, List.map ce el)
+    | CCall (f,e) -> ICall (f, ce e)
     | CInfixOp (op,e1,e2) ->
       IInfixOp(compile_infop op, ce e1, ce e2)
     | CPrefixOp (op, e) ->

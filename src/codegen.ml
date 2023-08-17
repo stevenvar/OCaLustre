@@ -20,15 +20,13 @@ let rec tocaml_expression e =
   | S_Value (Enum s) ->  Exp.construct {txt = Lident s; loc = Location.none} None
   | S_Value (Integer i) -> Exp.constant (Pconst_integer (string_of_int i,None))
   | S_Value (Float f) -> Exp.constant (Pconst_float (string_of_float f,None))
+  | S_Value (Char c) -> Exp.constant (Pconst_char c)
   | S_Value (String str) -> Exp.constant (Pconst_string (str,e.s_e_loc,None))
   | S_Value (Bool true) ->
     Exp.construct {txt= Lident "true" ; loc = Location.none } None
   | S_Value (Bool false) ->
     Exp.construct {txt= Lident "false" ; loc = Location.none } None
   | S_ETuple t ->
-    (* let pat = { p_desc = PUnit; *)
-    (*             p_loc = Location.none;} in *)
-    (* List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) t; *)
     Exp.tuple (List.map (fun i -> tocaml_expression i) t)
   | S_Variable i -> [%expr  [%e Exp.ident (lid_of_ident i) ] ]
   | S_Ref i ->
@@ -79,9 +77,6 @@ let rec tocaml_expression e =
   | S_List _e -> [%expr () ]
   | S_Application (id, _num, el) ->
     let el' = List.map tocaml_expression el in
-    (* let pat = { p_desc = PUnit; *)
-    (* p_loc = Location.none;} in *)
-    (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
@@ -90,10 +85,6 @@ let rec tocaml_expression e =
     }
   | S_Application_init (id,_num,el) ->
     let el' = List.map tocaml_expression el in
-    (* let pat = { p_desc = PUnit; *)
-    (* p_loc = Location.none;} in *)
-    (* List.iter (fun e -> print_s_expression Format.std_formatter (e,pat)) el; *)
-    (* let n = string_of_int num in *)
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident id),l);
       pexp_loc = Location.none;
@@ -114,11 +105,13 @@ let rec tocaml_expression e =
     ]]
   | S_Unit -> [%expr ()]
   | S_Constr _ -> [%expr ()]
-  | S_Call (f,el) ->
-    let el' = List.map tocaml_expression el in
-    (* let pat = { p_desc = PUnit; *)
-    (* p_loc = Location.none;} in *)
-    (* let n = string_of_int num in *)
+  | S_Call (f,e) ->
+    let tocaml_list e =
+      match e.s_e_desc with
+      | S_ETuple el -> List.map tocaml_expression el
+      | _ -> assert false
+    in
+    let el' = tocaml_list e in
     let l = List.map (fun e -> Nolabel,e) el' in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
       pexp_loc = Location.none;
@@ -332,19 +325,17 @@ let tocaml_s_next (f:s_fun) =
         [%e fun_of_list ins (tocaml_eq_list eqs st)]
     ]
 
-
-
 let create_io_file inode =
   let name = string_of_pattern inode.s_name in
   let file_name = (name^"_io.ml") in
   if not (Sys.file_exists file_name) then
     begin
       let oc = open_out file_name in
-      let init = Printf.sprintf "(* initialization function *)\nlet initialize () = (* TODO *) () \n" in
+      let init = Printf.sprintf "(* initialization function *)\nlet initialize () = (* TODO: fill *) () \n" in
       let input_params = inode.s_zero.s_inputs in
-      let inputs = List.map (fun x -> Printf.sprintf "let input_%s_%s () = (* TODO *) in %s \n" name x x) input_params in
+      let inputs = List.map (fun x -> Printf.sprintf "let input_%s_%s () = (* TODO: fill *) in %s \n" name x x) input_params in
       let output_params = List.fold_left (fun acc x -> acc^" "^x) "" inode.s_next.s_outputs in
-      let output = Printf.sprintf "let output_%s %s = (* TODO *) \n" name output_params in
+      let output = Printf.sprintf "let output_%s %s = (* TODO: fill *) \n" name output_params in
       output_string oc init;
       output_string oc "(* Input functions *)\n";
       List.iter (fun fi -> output_string oc fi) inputs;
@@ -352,7 +343,6 @@ let create_io_file inode =
       output_string oc output;
       raise (Location.Error (Location.error ~loc:inode.s_name.p_loc ("I/O functions for node "^name^" where not available : the file "^file_name^" has been created")))
     end
-
 
 open Tools
 
@@ -366,15 +356,10 @@ let rec all_input_funs name l e =
     [%expr let [%p pat_of_pattern p ] = [%e f ] () in
       [%e all_input_funs name t e ] ]
 
-
-
-
 let tocaml_main inode _delay wcet =
   create_io_file inode;
   let name = string_of_pattern inode.s_name in
   let module_name = (String.capitalize_ascii (string_of_pattern inode.s_name^"_io")) in
-  (* let initialize_funp = suffix_pattern ~suf:"_initialize" inode.s_name in *)
-  (* let initialize_fun = expr_of_pattern initialize_funp in *)
   let init_funp = suffix_pattern ~suf:"_alloc" inode.s_name in
   let init_fun = expr_of_pattern init_funp in
   let inputsp = List.map (fun x -> { p_desc = Ident x ; p_loc = Location.none }) inode.s_zero.s_inputs in
@@ -390,14 +375,12 @@ let tocaml_main inode _delay wcet =
   let inputsp = if inputsp = [] then [ {p_desc = PUnit; p_loc = Location.none }] else inputsp in
   let update_inputsp = state::inputsp in
   let update_inputs = List.map expr_of_pattern update_inputsp in
-
   let update_inputs = List.map (fun x -> (Nolabel,x)) update_inputs in
   let apply_update = Exp.apply update_fun update_inputs in
   let state_expr = expr_of_pattern state  in
   let outputs = List.map (fun x -> (Exp.field state_expr (lid_of_ident (name^"_out_"^x)) )) inode.s_next.s_outputs in
   let outputs = List.map (fun x -> (Nolabel,x)) outputs in
   let apply_output = Exp.apply output_fun outputs in
-
   let e_wcet =
     [%expr let _st = [%e apply_init ] in
       begin_loop ();
@@ -415,9 +398,7 @@ let tocaml_main inode _delay wcet =
   let e = if wcet then e_wcet else e_simple in
   let eloop =  [%expr
     initialize ();
-
     [%e e] ]
-
   in
   [%stri
     let () =
@@ -432,8 +413,6 @@ let tocaml_main inode _delay wcet =
                      }
              eloop)]
   ]
-
-
 
 let tocaml_node s_node is_main d wcet =
   let typ = tocaml_type s_node.s_type in

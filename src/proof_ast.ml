@@ -9,7 +9,7 @@ and s_expr =
   | S_Variable of ident
   | S_Application of ident * int * s_expr
   | S_Application_init of ident * s_expr
-  | S_Call of ident * s_expr list
+  | S_Call of ident * s_expr
   | S_Ref of ident
   | S_RefDef of s_expr
   | S_InfixOp of imp_infop * s_expr * s_expr

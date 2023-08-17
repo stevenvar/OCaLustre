@@ -32,6 +32,7 @@ and tocaml_expression e n =
   | IValue (Enum s) -> Ast_convenience.constr ~loc:e.i_loc s []
   | IValue (Integer i) -> Ast_convenience.int ~loc:e.i_loc i
   | IValue (Float f) -> Ast_convenience.float ~loc:e.i_loc f
+  | IValue (Char c) -> Ast_convenience.char ~loc:e.i_loc c
   | IValue (Bool true) -> Ast_convenience.constr ~loc:e.i_loc "true" []
   | IValue (Bool false) ->  Ast_convenience.constr ~loc:e.i_loc "false" []
   | IETuple t -> Ast_convenience.tuple ~loc:e.i_loc
@@ -91,12 +92,10 @@ and tocaml_expression e n =
       if n = 0 then accu
       else dispatch (n-1) ([%expr Obj.magic ()]::accu)
     in
-
     let e' = tocaml_expression e n in
     let cl = tocaml_cond_list c in
     let n' = string_of_int num in
     let exp = [%expr [%e (Exp.ident (lid_of_ident (id^n'^"_app")))] [%e e' ]] in
-
     begin
       match c with
       | [] -> exp
@@ -130,12 +129,17 @@ and tocaml_expression e n =
     ]
   | IUnit -> [%expr ()]
   | IConstr _ -> [%expr ()]
-  | ICall (f,el) ->
-    let el' = List.map (fun e -> tocaml_expression e n) el in
+  | ICall (f,e) ->
+    let list_of_tuple t =
+      match t with
+      | IETuple t -> List.map (fun x -> tocaml_expression x n) t
+      | _ -> failwith "Not a tuple"
+    in
+    let el = list_of_tuple e.i_desc in
     (* let pat = { p_desc = PUnit; *)
     (* p_loc = Location.none;} in *)
     (* let n = string_of_int num in *)
-    let l = List.map (fun e -> Nolabel,e) el' in
+    let l = List.map (fun e -> Nolabel,e) el in
     { pexp_desc = Pexp_apply (Exp.ident (lid_of_ident f),l);
       pexp_loc = Location.none;
       pexp_attributes = [];
@@ -192,11 +196,11 @@ let create_io_file inode =
   if not (Sys.file_exists file_name) then
     begin
       let oc = open_out file_name in
-      let init = Printf.sprintf "let init_%s () = (* TODO *) \n" name in
+      let init = Printf.sprintf "let init_%s () = (* TODO: fill *) \n" name in
       let input_params = string_of_pattern inode.i_inputs in
-      let input = Printf.sprintf "let input_%s () = (* TODO *) in %s \n" name input_params in
+      let input = Printf.sprintf "let input_%s () = (* TODO: fill *) in %s \n" name input_params in
       let output_params = string_of_pattern inode.i_outputs in
-      let output = Printf.sprintf "let output_%s %s = (* TODO *) \n" name output_params in
+      let output = Printf.sprintf "let output_%s %s = (* TODO: fill  *) \n" name output_params in
       output_string oc init;
       if input_params <> "()" then
         output_string oc input;

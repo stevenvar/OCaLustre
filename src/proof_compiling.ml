@@ -45,8 +45,8 @@ let rec compile_pre_expression e =
   | Variable s -> S_Variable ("pre_"^s)
   | Application (i,num, e) ->
     S_Application (i, num, compile_pre_expression e)
-  | Call (f,el) ->
-    S_Call (f,List.map compile_pre_expression el)
+  | Call (f,e) ->
+    S_Call (f, compile_pre_expression e)
   | InfixOp (op,e1,e2) ->
     S_InfixOp(compile_infop op,
               compile_pre_expression e1,
@@ -86,8 +86,8 @@ let rec compile_expression_step e p =
   | Variable s -> S_Variable s
   | Application (i,num, e) ->
     S_Application (i, num, compile_expression_step e p)
-  | Call (f,el) ->
-    S_Call (f,List.map (fun e -> compile_expression_step e p) el)
+  | Call (f,e) ->
+    S_Call (f, compile_expression_step e p)
   | InfixOp (op,e1,e2) ->
     S_InfixOp(compile_infop op,
               compile_expression_step e1 p,

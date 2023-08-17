@@ -38,8 +38,8 @@ let mk_not e1 = PrefixOp ( Not , e1)
 (** check if the pattern is a variable **)
 let rec checkname_pattern n =
   match n.ppat_desc with
-  |  Ppat_var sl -> {p_loc=sl.loc ; p_desc= Ident sl.txt }
-  |  Ppat_tuple t -> {p_loc=n.ppat_loc ; p_desc= Tuple (List.map checkname_pattern t) }
+  | Ppat_var sl -> {p_loc=sl.loc ; p_desc= Ident sl.txt }
+  | Ppat_tuple t -> {p_loc=n.ppat_loc ; p_desc= Tuple (List.map checkname_pattern t) }
   | _ -> Error.print_error n.ppat_loc "Not a pattern"
 
 (** check if the name is an ident **)
@@ -65,19 +65,17 @@ let rec get_idents l e =
   | Array_get (e,e') ->
     let l = get_idents l e in
     get_idents l e'
-  | Call (_,el) ->
-     List.fold_left (fun acc e -> (get_idents l e)@acc) [] el
+  | Call (_,e) ->
+    get_idents l e
   | Application (_,_,e) ->
     get_idents l e
   | Alternative (e1,e2,e3) ->
     let l = get_idents l e3 in
     let l = get_idents l e2 in
-    let l = get_idents l e1 in
-    l
+    get_idents l e1
   | InfixOp (_, e1, e2) ->
     let l = get_idents l e2 in
-    let l = get_idents l e1 in
-    l
+    get_idents l e1
   | PrefixOp (_, e1) -> get_idents l e1
   | Pre e -> get_idents l e
   | Value _ -> l
@@ -91,52 +89,42 @@ let rec get_idents l e =
   | When (e',_) -> get_idents l e'
   | Whennot (e',_) -> get_idents l e'
   | ETuple (el) ->
-    List.fold_left (fun accu e -> (get_idents l e)@accu) [] el
+    List.concat_map (get_idents l) el
   | Clock e -> get_idents l e
   | Merge (e1,e2,e3) ->
     let l = get_idents l e3 in
     let l = get_idents l e2 in
-    let l = get_idents l e1 in
-    l
+    get_idents l e1
 
 (** Extract name of a clock in an OCaml attribute **)
 let extract_clock { attr_name = s; attr_payload = p; _} =
+  let extract_ident b e =
+    match e.pexp_desc with
+    | Pexp_ident _ -> (b,Some e)
+    | _ -> Error.syntax_error e.pexp_loc "The clock should only be an ident"
+  in
   let b = match s.txt with
     | "when" -> true
     | "whennot" -> false
-    | _ -> Error.syntax_error s.loc "wrong attribute"
+    | _ -> Error.syntax_error s.loc "Wrong attribute: expecting when or whennot"
   in
   match p with
-  | PStr str ->
-    begin
-      match str with
-        [x] ->
-        begin
-          match x.pstr_desc with
-          | Pstr_eval (e,_) ->
-            begin
-              match e.pexp_desc with
-              | Pexp_ident {txt = (Lident _); _} -> (b,Some e)
-              | _ -> Error.syntax_error e.pexp_loc "the clock should only be an ident"
-            end
-          | _ -> Error.syntax_error x.pstr_loc "wrong form of clock"
-        end
-      | _ -> (false,None)
-    end
-  | _ -> Error.syntax_error s.loc "wrong attribute"
+  | PStr [{pstr_desc = Pstr_eval (e,_); _ }] ->
+    extract_ident b e
+  | PStr _ -> (false,None)
+  | _ -> Error.syntax_error s.loc "Wrong attribute: expecting a structure"
 
 
 (** Extract the int in a Pexp_constant **)
 let get_int e =
   match e with
   | { pexp_desc = Pexp_constant c;
-      pexp_loc ;
-      _ } ->
+      pexp_loc ; _ } ->
     begin match c with
       | Pconst_integer (i,_) -> int_of_string i
       | _ -> Error.syntax_error pexp_loc "not an integer"
     end
-  | _ -> Error.syntax_error e.pexp_loc "not an integer"
+  | _ -> Error.syntax_error e.pexp_loc "not a constant expression"
 
 (** Transforms OCaml expressions to node of the OCaLustre AST **)
 
@@ -148,15 +136,7 @@ let make_expression e =
     | _ -> Error.print_error e.pexp_loc "Not an array update"
   and mk_expr e =
     let attr = e.pexp_attributes in
-    (* Format.printf "Number of attributes : %d \n" (List.length attr); *)
     let clocks = List.map extract_clock attr in
-
-    (* let clk = if attr <> [] then *)
-        (* let a = List.hd attr in *)
-        (* let (sl,pl) = a in *)
-        (* Some (sl,extract_clock a) *)
-      (* else None *)
-    (* in *)
     let exp = match e with
       | [%expr () ] -> { e_desc = Unit ; e_loc = e.pexp_loc }
       | { pexp_desc = Pexp_tuple el ; pexp_loc ; _} ->
@@ -179,21 +159,13 @@ let make_expression e =
         { e_desc = Imperative_update (mk_expr e1, parse_updates e2);
           e_loc = e.pexp_loc}
       | [%expr [| [%e? e1] ^ [%e? e2] |] ] ->
-        let v= mk_expr e1 in
+        let v = mk_expr e1 in
         let nb = get_int e2 in
-        let make_list_n v n =
-          let rec loop n acc =
-            if n = 0 then acc
-            else loop (n-1) (v::acc)
-          in
-          loop n []
-        in
-        let l = make_list_n v nb in
+        let l = List.init nb (fun _ -> v) in
         { e_desc = Array l ;
           e_loc = e.pexp_loc }
       | { pexp_desc = Pexp_array el;
-          pexp_loc ;
-          _ } ->
+          pexp_loc ; _ } ->
         let l = List.map mk_expr el in
         { e_desc = Array l ;
           e_loc = pexp_loc }
@@ -250,82 +222,68 @@ let make_expression e =
                                   e_loc = e.pexp_loc }
       | [%expr true] -> { e_desc = Value (Bool true) ; e_loc = e.pexp_loc }
       | [%expr false] -> { e_desc = Value (Bool false) ; e_loc = e.pexp_loc }
-      | { pexp_desc = Pexp_constant c;
-          _ } ->
+      | { pexp_desc = Pexp_constant c; pexp_loc; _ } ->
         begin match c with
-          | Pconst_integer (i,_s) -> { e_desc = Value (Integer (int_of_string i)) ;
-                                      e_loc = e.pexp_loc }
-          | Pconst_float (f,_s) -> { e_desc = Value (Float (float_of_string f)) ;
-                                    e_loc = e.pexp_loc }
-          | Pconst_string (str,_,_) -> { e_desc = Value (String str);
-                                       e_loc = e.pexp_loc }
-          | _ -> assert false   (* only int/float /string ftm *)
+          | Pconst_integer (i,None) -> { e_desc = Value (Integer (int_of_string i));
+                                         e_loc = pexp_loc }
+          | Pconst_float (f,None) -> { e_desc = Value (Float (float_of_string f));
+                                       e_loc = pexp_loc }
+          | Pconst_char c -> { e_desc = Value (Char c);
+                               e_loc = pexp_loc }
+          | Pconst_string (str,loc,None) -> { e_desc = Value (String str);
+                                              e_loc = loc }
+          | _ -> Error.syntax_error e.pexp_loc "Wrong constant value"
         end
-      | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; _} ,e);
-          pexp_loc ;
-          _ } ->
-        begin match e with
-          | None -> { e_desc = Value (Enum s) ;
-                      e_loc = pexp_loc }
-          | _ ->  Error.syntax_error pexp_loc
-                    "A sum type cannot be something else than an enumerated type"
-        end
-      | { pexp_desc = Pexp_constraint (e,_); _ } ->
-        mk_expr e
-      | {pexp_desc = Pexp_ident {txt = (Lident v); _} ;
-         _ } -> { e_desc = Variable v ; e_loc = e.pexp_loc }
-      | [%expr [%e? e1] fby [%e? e2] ]  ->
+      | { pexp_desc = Pexp_construct ({ txt = (Lident s) ; _}, None); pexp_loc ; _ } ->
+        { e_desc = Value (Enum s) ; e_loc = pexp_loc }
+      | { pexp_desc = Pexp_construct _; pexp_loc ; _ } ->
+        Error.syntax_error pexp_loc
+          "A sum type cannot be something else than an enumerated type"
+      | { pexp_desc = Pexp_constraint (e,_); _ } -> mk_expr e
+      | {pexp_desc = Pexp_ident {txt = (Lident v); _} ; _ } ->
+        { e_desc = Variable v ; e_loc = e.pexp_loc }
+      | [%expr [%e? e1] fby [%e? e2]]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
-      | [%expr [%e? e1] ->>> [%e? e2] ]  ->
+          e_loc = e.pexp_loc }
+      | [%expr [%e? e1] ->>> [%e? e2]]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
-      | [%expr [%e? e1] ->> [%e? e2] ]  ->
+          e_loc = e.pexp_loc }
+      | [%expr [%e? e1] ->> [%e? e2]]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
-      | [%expr [%e? e1] >>> [%e? e2] ]  ->
+          e_loc = e.pexp_loc }
+      | [%expr [%e? e1] >>> [%e? e2]]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
-      | [%expr [%e? e1] --< [%e? e2] ]  ->
+          e_loc = e.pexp_loc }
+      | [%expr [%e? e1] --< [%e? e2]]  ->
         { e_desc = Fby (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
-      | [%expr [%e? e1] => [%e? e2] ]  ->
+          e_loc = e.pexp_loc }
+      | [%expr [%e? e1] => [%e? e2]]  ->
         { e_desc = Arrow (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
-      | [%expr [%e? e1] --> [%e? e2] ]  ->
+          e_loc = e.pexp_loc }
+      | [%expr [%e? e1] --> [%e? e2]]  ->
         { e_desc = Arrow (mk_expr e1 , mk_expr e2);
-          e_loc = e.pexp_loc  }
+          e_loc = e.pexp_loc }
       | [%expr clock [%e? e1]] ->
         let clock = Clock (mk_expr e1) in
         { e_desc = clock; e_loc = e.pexp_loc }
-      (* | [%expr call [%e? e1] [%e? e2] [%e? e3] ] ->
-       *   let app = Call (e1) in
-       *   { e_desc = app ; e_loc = e.pexp_loc } *)
       | [%expr [%e? e1] [%e? e2] ] ->
         let app = Application(checkname_ident e1, get_num(), mk_expr e2) in
         { e_desc = app ; e_loc = e.pexp_loc }
-      | [%expr [%e? e1] --@ not [%e? e2]] ->
+      | [%expr [%e? e1] @ not [%e? e2]] ->
         { e_desc = Whennot (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
-      | [%expr [%e? e1] --@ [%e? e2]] ->
-         { e_desc = When (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
-      |  { pexp_desc = Pexp_apply (f,params);
-          pexp_loc ;
-          _ } ->
-          begin
-            match f with
-            | [%expr call ] ->
-               { e_desc = Call(checkname_ident (snd (List.hd params)), List.map (fun (_,e) -> mk_expr e) (List.tl params));
-                 e_loc = pexp_loc;
-               }
-            | _ ->
-               let s = Format.asprintf "%a"
-                         Pprintast.expression e in
-               Error.syntax_error e.pexp_loc s
-          end
+      | [%expr [%e? e1] @ [%e? e2]] ->
+        { e_desc = When (mk_expr e1,mk_expr e2) ; e_loc = e.pexp_loc }
+      |  { pexp_desc = Pexp_apply ([%expr call],params); pexp_loc ; _ } ->
+        begin match List.map snd params with
+          | n::arg ->
+            let exp = {e_desc = ETuple (List.map mk_expr arg); e_loc = e.pexp_loc} in
+            { e_desc = Call(checkname_ident n, exp);
+              e_loc = pexp_loc }
+          | _ -> Error.syntax_error e.pexp_loc "Not a call"
+        end
       | _ ->
         let s =
-          Format.asprintf "%a"
-            Pprintast.expression e in
+          Format.asprintf "%a" Pprintast.expression e in
         Error.syntax_error e.pexp_loc s
     in
     let create_sampled e cl =
@@ -350,20 +308,12 @@ let id_of_lid lid =
 let rec pat_of_pexp p =
   match p.pexp_desc with
   | Pexp_ident i -> { p_desc = Ident (id_of_lid i.txt) ;
-                      p_loc = p.pexp_loc ; }
+                      p_loc = p.pexp_loc }
   | Pexp_tuple t ->
     let tl = List.map (fun p -> pat_of_pexp p) t in
     { p_desc = Tuple tl ; p_loc = p.pexp_loc }
-  | Pexp_constraint (e',t) ->
-    let pat' =
-      begin
-        match t.ptyp_desc with
-        | Ptyp_constr ({ txt = lid ; _},_) ->
-          { p_desc = Typed (pat_of_pexp e' , id_of_lid lid) ; p_loc = p.pexp_loc }
-        | _ -> Error.syntax_error p.pexp_loc "Not a type constraint"
-      end
-    in
-    pat'
+  | Pexp_constraint (e',{ptyp_desc = Ptyp_constr (lidloc,_) ; _}) ->
+    { p_desc = Typed (pat_of_pexp e', id_of_lid lidloc.txt) ; p_loc = p.pexp_loc }
   | _ -> raise @@ Invalid_argument "pat_of_expr"
 
 (** Creates equation in the AST **)
@@ -373,18 +323,14 @@ let mk_equation eq =
     begin
       match p.pexp_desc with
       | Pexp_ident _ ->
-        {
-          pattern= pat_of_pexp p;
-          expression = make_expression e
-        }
+        { pattern = pat_of_pexp p; expression = make_expression e}
       | Pexp_tuple _ ->
-        { pattern=  pat_of_pexp p;
-          expression = make_expression e}
+        { pattern = pat_of_pexp p; expression = make_expression e}
       | Pexp_constraint _ ->
-        { pattern = pat_of_pexp p ; expression = make_expression e}
+        { pattern = pat_of_pexp p; expression = make_expression e}
       | _ ->
         Error.syntax_error eq.pexp_loc
-          "Equation in wrong form (maybe you need parenthesis)"
+          "Equation in wrong form (maybe you need to add parentheses)"
     end
   | _ -> Error.syntax_error eq.pexp_loc "Not an equation"
 
@@ -417,33 +363,30 @@ let mk_inv b =
 (** Parse a pattern **)
 let rec parse_patt p =
   match p.ppat_desc with
-  |  Ppat_construct _ -> { p_desc = PUnit ; p_loc = p.ppat_loc }
-  | Ppat_any ->  { p_desc = Ident "_" ; p_loc = p.ppat_loc }
-  | Ppat_var s -> { p_desc = Ident s.txt ; p_loc = s.loc }
-  | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> parse_patt x) l) ;
+  | Ppat_construct _ -> { p_desc = PUnit; p_loc = p.ppat_loc }
+  | Ppat_var s -> { p_desc = Ident s.txt; p_loc = s.loc }
+  | Ppat_tuple l -> { p_desc = Tuple (List.map (fun x -> parse_patt x) l);
                       p_loc = p.ppat_loc }
-  | Ppat_constraint (p,t) ->
-    begin match t.ptyp_desc with
-      | Ptyp_constr ({ txt = lid; _},_) ->
-        { p_desc = Typed (parse_patt p , id_of_lid lid) ;
+  | Ppat_constraint (p,{ptyp_desc; _}) ->
+    begin match ptyp_desc with
+      | Ptyp_constr (idloc,_) ->
+        { p_desc = Typed (parse_patt p , id_of_lid idloc.txt) ;
           p_loc = p.ppat_loc }
       | _ -> Error.syntax_error p.ppat_loc "Not a type constraint"
     end
   | _ -> Error.syntax_error p.ppat_loc "Unknown pattern format"
 
 (** Check that the I/O are tuples and returns a tuple of corresponding idents **)
-let checkio s ({pexp_desc; _} as body) =
-  match pexp_desc with
-  | Pexp_fun (l,_,p,e) ->
-    if s = l then parse_patt p, e
-    else
-      Error.syntax_error body.pexp_loc "Wrong label"
-  | _ -> Error.syntax_error body.pexp_loc "Wrong i/o"
+let checkio s body =
+  match body.pexp_desc with
+  | Pexp_fun (l,_,p,e) when l=s -> parse_patt p, e
+  | Pexp_fun _ -> Error.syntax_error body.pexp_loc "Wrong label"
+  | _ -> Error.syntax_error body.pexp_loc "Wrong I/O"
 
 (** creates an OCaLustre node **)
 let mk_node name body =
   let name = checkname_pattern name in
-  let inputs, body = checkio (Nolabel) body in
+  let inputs, body = checkio Nolabel body in
   let outputs, body = checkio (Labelled "return") body in
   let pre,body = mk_pre body in
   let post,body = mk_post body in

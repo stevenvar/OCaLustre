@@ -55,8 +55,6 @@ let rec subst ck sigma =
   | Ckon (ck,s) -> Ckon(subst ck sigma, app_sigma sigma s)
   | Ckonnot (ck,s) -> Ckonnot(subst ck sigma, app_sigma sigma s)
 
-
-
 let rec subst_names cks sigma =
   match cks with
   | [] -> []
@@ -88,7 +86,6 @@ let rec get_subst xs es s =
       get_subst xs es s
   | _, _ -> failwith "get_subst"
 
-
 exception Incorrect_params
 
 let rec get_subst_vars (xs:Parsing_ast.ident list) es s =
@@ -113,7 +110,6 @@ let tvar_name n =
   in "'"^(name_of n)
 
 (** Variables **)
-
 let new_varclk, reset_varclk =
   let cpt = ref 0 in
   (fun () ->
@@ -122,9 +118,7 @@ let new_varclk, reset_varclk =
   (fun () -> cpt := 0)
 
 (** Shorten **)
-
 exception Occurs
-
 
 let occurs_ck { index = n; value = _} =
   let rec occrec = function
@@ -162,7 +156,6 @@ let rec shorten_ct c =
   | CkTuple cts -> CkTuple (List.map shorten_ct cts)
 
 (** Unify **)
-
 exception Unify_ck of ck * ck
 exception Unify_ct of ct * ct * cexpression * cexpression * (Location.t option)
 
@@ -210,7 +203,6 @@ let unify_ct e1 e2 loc =
   aux e1.ce_clk e2.ce_clk
 
 (** Instantiation **)
-
 let gen_instance (gv,tau) =
   let gv_unknowns = List.map (fun n -> n, new_varclk ()) gv in
   let rec ginstance t =
@@ -253,8 +245,6 @@ let rec get_cond_ct c1 c2 =
 
 
 (** Generalization **)
-
-
 let generalize_sign (cin,cout) =
   let v = new_varclk () in
   let generalize_ck c =
@@ -346,7 +336,6 @@ let mk_len_clock c n =
   else
     aux n []
 
-
 let print_env env =
   let rec print_vars fmt gv =
     match gv with
@@ -360,7 +349,6 @@ let print_env env =
         x
         print_ct y) env
 
-
 let get_ident e =
   match e.e_desc with
   | Variable n -> n
@@ -369,16 +357,26 @@ let get_ident e =
     Error.print_error e.e_loc s
 
 (** Clk inference **)
-
 let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
   (* Format.printf "Clocking %a \n" Parsing_ast_printer.print_expression e; *)
   try
     begin
       match e.e_desc with
-      | Call (f,el) ->
-        let cel = List.map (fun e -> clk_expr delta gamma e) el in
-        let t = List.fold_left (fun acc e -> (unify_ct acc e (Some e.ce_loc)); e) ((List.hd cel)) cel in
-        { ce_desc = CCall (f,cel); ce_loc = e.e_loc; ce_clk = t.ce_clk }
+      | Call (f,e) ->
+        let rec flatten_clocks = function
+          | Ck c -> [c]
+          | CkTuple ct ->
+            List.fold_left (fun acc x -> flatten_clocks x @ acc) [] ct
+          in
+        let unify_all cks init =
+          List.iter (fun c -> unify_ck c init) (flatten_clocks cks)
+        in
+        let t = clk_expr delta gamma e in
+        let vr = new_varclk ()  in
+        (* Unify all clocks of parameters together with vr: *)
+        unify_all t.ce_clk vr;
+        let ck = Ck vr in
+        { ce_desc = CCall (f,t); ce_loc = e.e_loc; ce_clk = ck }
       | Unit ->
         let ck = Ck (new_varclk ()) in
         { ce_desc = CUnit; ce_loc = e.e_loc; ce_clk = ck }
@@ -413,7 +411,9 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         let t2 = clk_expr delta gamma e2 in
         unify_ct t1 t2 None;
         { ce_desc = CFby (t1,t2); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
-      | Pre e -> clk_expr delta gamma e
+      | Pre e ->
+          let t = clk_expr delta gamma e in
+          { ce_desc = CPre t; ce_loc = e.e_loc; ce_clk = t.ce_clk }
       | Arrow (e1,e2) ->
         let t1 = clk_expr delta gamma e1 in
         let t2 = clk_expr delta gamma e2 in
@@ -482,10 +482,12 @@ let rec clk_expr delta (gamma : (string * clk_scheme) list) e =
         let u = new_varclk () in
         let new_var = { ce_desc = CVariable x; ce_loc = e1.e_loc; ce_clk = Ck u } in
         unify_ct new_var t1 (Some e1.e_loc);
-        let x2 = "expected("^get_ident e2^")" in
+        let id2 = try get_ident e2 with _ -> "e2" in
+        let x2 = "expected("^id2^")" in
         let new_var2 = { ce_desc = CVariable x2; ce_loc = e2.e_loc; ce_clk = (Ck (Ckon(u,x))) } in
         unify_ct  new_var2 t2 (Some e2.e_loc);
-        let x3 = "expected("^get_ident e3^")" in
+        let id3 = try get_ident e3 with _ -> "e3" in
+        let x3 = "expected("^id3^")" in
         let new_var3 = { ce_desc = CVariable x3; ce_loc = e3.e_loc; ce_clk = (Ck (Ckonnot(u,x)))} in
         unify_ct new_var3 t3 (Some e3.e_loc);
         { ce_desc = CMerge (t1,t2,t3); ce_loc = e.e_loc; ce_clk = t1.ce_clk }
@@ -514,8 +516,6 @@ let rec clk_expr_ct delta (gamma : (string * clk_scheme) list) e =
       ce_loc = e.e_loc}
   | _ ->  (clk_expr delta gamma e)
 
-
-(* type cequation = { cpattern : Parsing_ast.pattern ; cexpression : cexpression } *)
 
 let rec lookup env p =
   match p.p_desc with

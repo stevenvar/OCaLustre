@@ -6,7 +6,7 @@ let rec print_ck fmt c =
   | CkBase -> Format.fprintf fmt "•"
   | CkUnknown -> Format.fprintf fmt "?"
   | CkVariable { index = _n; value = CkUnknown } ->
-    Format.fprintf fmt "?"
+    Format.fprintf fmt "?%d?" _n
   | CkVariable { index = _n; value = c } ->
     Format.fprintf fmt "%a" print_ck c
   | Ckon (ck,s) -> Format.fprintf fmt "(%a on %s)" print_ck ck s
@@ -49,7 +49,7 @@ let rec print_expression fmt (ce:cexpression) =
   | CImperative_update (e,_) -> Format.fprintf fmt "%a where (...)"
                                   print_expression e
   | CAlternative (e1,e2,e3) ->
-    Format.fprintf fmt  "(if (%a) then (%a) else (%a))"
+    Format.fprintf fmt  "(if %a then %a else %a)"
       print_expression e1
       print_expression e2
       print_expression e3
@@ -58,8 +58,8 @@ let rec print_expression fmt (ce:cexpression) =
       print_ck c
       print_ident i
       print_expression e
-  | CCall (f,el) ->
-    Format.fprintf fmt "(call %s %a)" f print_expression_list el
+  | CCall (f,e) ->
+    Format.fprintf fmt "(call %s %a)" f print_expression e
   | CInfixOp (op, e1, e2) ->
     Format.fprintf fmt "(%a %a %a)"
       print_expression e1
@@ -83,13 +83,13 @@ let rec print_expression fmt (ce:cexpression) =
   | CWhen (e1,e2) -> Format.fprintf fmt "(%a when %a)"
                        print_expression e1
                        print_expression e2
-  | CWhennot (e1,e2) -> Format.fprintf fmt "( %a whennot %a )"
+  | CWhennot (e1,e2) -> Format.fprintf fmt "(%a whennot %a)"
                           print_expression e1
                           print_expression e2
   | CETuple el -> Format.fprintf fmt "(%a)"
                     print_expression_list el
   | CMerge (e1,e2,e3) ->
-    Format.fprintf fmt  "(merge (%a) (%a) (%a))"
+    Format.fprintf fmt  "(merge %a %a %a)"
       print_expression e1
       print_expression e2
       print_expression e3
@@ -97,7 +97,7 @@ let rec print_expression fmt (ce:cexpression) =
 
 
 let print_equation fmt (eq,_vars) =
-  Format.fprintf fmt "\t (%a : %a) = %a;\n"
+  Format.fprintf fmt "  (%a : %a) = %a;\n"
     print_pattern eq.cpattern
     print_ct eq.cclock
     print_expression eq.cexpression
@@ -125,7 +125,7 @@ let print_node fmt (node,verbose) =
     Format.fprintf fmt "%a \n%!"
       print_pattern node.cname
 
-let rec get_all_clocks c = 
+let rec get_all_clocks c =
   match c with
   | CkBase -> []
   | CkUnknown -> []
@@ -134,7 +134,7 @@ let rec get_all_clocks c =
   | Ckon (ck,s) -> s::get_all_clocks ck
   | Ckonnot (ck,s) -> s::get_all_clocks ck
 
-let rec get_ct_clocks c = 
+let rec get_ct_clocks c =
   match c with
   | Ck ck -> get_all_clocks ck
-  | CkTuple cks -> List.fold_left (fun acc x -> List.concat [get_ct_clocks x; acc]) [] cks 
+  | CkTuple cks -> List.fold_left (fun acc x -> List.concat [get_ct_clocks x; acc]) [] cks

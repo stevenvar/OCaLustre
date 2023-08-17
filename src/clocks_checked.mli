@@ -68,7 +68,7 @@ type eqn =
 | EqDef of identifier * ck * cexp
 | EqFby of identifier * ck * constant * e
 | EqApp of xs * ck * identifier * es
-| EqEval of identifier * ck * h * e * e list
+| EqEval of identifier * ck * h * e
 
 type leqns =
 | Eqseqs_one of eqn
@@ -131,7 +131,7 @@ val clockof_cexp : c -> cexp -> ck option
 
 val clockof_pat : c -> xs -> ck option
 
-val clockof_params : c -> e -> e list -> ck option
+val clockof_params : c -> e -> ck option
 
 val well_clocked_equation : eqn -> h0 -> c -> bool
 

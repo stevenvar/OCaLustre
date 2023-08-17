@@ -1,3 +1,4 @@
+(** (mostly) auto-generated code from Coq specification **)
 
 (** val negb : bool -> bool **)
 
@@ -131,7 +132,7 @@ type eqn =
 | EqDef of identifier * ck * cexp
 | EqFby of identifier * ck * constant * e
 | EqApp of xs * ck * identifier * es
-| EqEval of identifier * ck * h * e * e list
+| EqEval of identifier * ck * h * e
 
 type leqns =
 | Eqseqs_one of eqn
@@ -431,17 +432,10 @@ let rec clockof_pat c0 = function
       | None -> None)
    | None -> None)
 
-(** val clockof_params : c -> e -> e list -> ck option **)
+(** val clockof_params : c -> e -> ck option **)
 
-let rec clockof_params c0 e0 = function
-| [] -> clockof_exp c0 e0
-| e1 :: l0 ->
-  (match clockof_exp c0 e1 with
-   | Some ck0 ->
-     (match clockof_params c0 e0 l0 with
-      | Some ck' -> if eq_clock ck0 ck' then Some ck0 else None
-      | None -> None)
-   | None -> None)
+let clockof_params c e =
+  clockof_exp c e
 
 (** val well_clocked_equation : eqn -> h0 -> c -> bool **)
 
@@ -493,9 +487,9 @@ let well_clocked_equation eqn0 h1 c0 =
            | None -> false)
         | None -> false)
      | None -> false)
-  | EqEval (y, ck0, _, e0, l) ->
+  | EqEval (y, ck0, _, e) ->
     let c1 = clockof_pat c0 (Patp_var y) in
-    let cparams = clockof_params c0 e0 l in
+    let cparams = clockof_params c0 e in
     (match c1 with
      | Some ck1 ->
        (match cparams with
